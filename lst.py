@@ -16,7 +16,14 @@ def load(path='./lst.pickle'):
     return joblib.load(path)
     
 def interpretor(x_targ, x, y):
-    def Jup(j, x):
+    """Interpret the y values for the x_targ values
+
+    Args:
+        x_targ (list of float): Target x values to interpret y values for.
+        x (list of float): Original x values.
+        y (list of float): Original y values corresponding to x values.
+    """
+    def jup(j, x):
         return j if j+1>=len(x) else j+1
     
     new_y = []
@@ -24,35 +31,29 @@ def interpretor(x_targ, x, y):
     for xt in x_targ:
         if xt < x[j]:
             if j == 0:
-                new_y.append(y[j]) # If our y start later than the need we have, keep the first value of val # todo improve by checking the curve direction
+                # If our y start later than the need we have, 
+                # keep the first value of val 
+                new_y.append(y[j])
             else:
                 distance_max = x[j] - x[j-1]
                 distance = x[j] - xt
                 ratio = distance / distance_max
                 new_y.append(y[j] - (y[j] - y[j-1]) * ratio)
-                j=Jup(j, x)
+                j=jup(j, x)
         elif xt > x[j]:
             while j+1 < len(x) and xt > x[j+1]: # catch up the late if j have more than 1 value bellow the need wavelength
-                j=Jup(j, x)
+                j=jup(j, x)
             if j+1 >= len(x):
                 new_y.append(y[j]) # not anymore j value # todo improve by checking the curve direction
             else:
                 distance_max = x[j+1] - x[j]
                 distance = xt - x[j]
                 ratio = distance / distance_max
-                warnings.filterwarnings('error')
-                try:
-                    new_y.append(y[j] + (y[j+1] - y[j]) * ratio)
-                except Warning:
-                    print(j)
-                    print(y[j])
-                    print(y[j+1])
-                    print(ratio)
-                    raise
-                j=Jup(j, x)
+                new_y.append(y[j] + (y[j+1] - y[j]) * ratio)
+                j=jup(j, x)
         else: # if the wavelength are equals
             new_y.append(y[j])
-            j=Jup(j, x)
+            j=jup(j, x)
     return new_y
 
 def smoothMiddle(lst, window=5):
