@@ -34,10 +34,11 @@ def quantize(signal, levels=10):
 
 def random_erase(signal, erase_fraction=0.1):
     """Randomly set a fraction of the signal to zero."""
-    num_erase = int(len(signal) * erase_fraction)
-    erase_indices = np.random.choice(len(signal), num_erase, replace=False)
-    signal[erase_indices] = 0
-    return signal
+    signal_copy = signal.copy()
+    num_erase = int(len(signal_copy) * erase_fraction)
+    erase_indices = np.random.choice(len(signal_copy), num_erase, replace=False)
+    signal_copy[erase_indices] = 0
+    return signal_copy
 
 def resample(signal, target_length):
     """Resample the signal to a different length."""
