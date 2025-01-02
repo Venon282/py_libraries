@@ -15,8 +15,8 @@ def save(lst, path='./lst.pkl'):
 def load(path='./lst.pickle'):
     return joblib.load(path)
     
-def interpretor(x_targ, x, y):
-    """Interpret the y values for the x_targ values
+def interpolation(x_targ, x, y):
+    """interpolation the y values for the x_targ values
 
     Args:
         x_targ (list of float): Target x values to interpret y values for.
