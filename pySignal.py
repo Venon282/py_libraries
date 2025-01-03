@@ -1,4 +1,6 @@
 import numpy as np
+import pywt
+from scipy.signal import cwt, morlet
 
 def add_noise(signal, noise_level=0.05):
     """Add random Gaussian noise to the signal."""
@@ -61,3 +63,60 @@ def jitter(signal, std=0.01):
     """Add small random jitters to the signal."""
     jitter = np.random.normal(0, std, size=signal.shape)
     return signal + jitter
+
+def fourier_phase(signal, perturbation_level=0.1):
+    """
+    Perturb the phase component of the Fourier Transform.
+    """
+    transformed_signal = np.fft.fft(signal)
+    magnitude = np.abs(transformed_signal)
+    phase = np.angle(transformed_signal)
+    phase += np.random.uniform(-perturbation_level, perturbation_level, size=phase.shape)
+    perturbed_signal = magnitude * np.exp(1j * phase)
+    return np.fft.ifft(perturbed_signal).real
+
+def fourier_amplitude(signal, perturbation_level=0.1):
+    """
+    Perturb the amplitude component of the Fourier Transform.
+    """
+    transformed_signal = np.fft.fft(signal)
+    magnitude = np.abs(transformed_signal)
+    phase = np.angle(transformed_signal)
+    magnitude += np.random.uniform(-perturbation_level, perturbation_level, size=magnitude.shape)
+    perturbed_signal = magnitude * np.exp(1j * phase)
+    return np.fft.ifft(perturbed_signal).real
+
+def wavelet_augment(signal, wavelet_range=(5, 20), amplitude_range=(0.1, 0.5), width_range=(5, 20)):
+    """Augment the signal by adding wavelets.
+
+    Args:
+        signal (np.ndarray): The input signal to augment.
+        wavelet_range (tuple, optional): Range for the number of wavelets to add. Defaults to (5, 20).
+        amplitude_range (tuple, optional): Range for the amplitude of the wavelets. Defaults to (0.1, 0.5).
+        width_range (tuple, optional): Range for the width of the wavelets. Defaults to (5, 20).
+
+    Returns:
+        np.ndarray: The augmented signal.
+    """
+    augmented_signal = signal.copy()
+    signal_length = len(signal)
+    num_wavelets = np.random.randint(*wavelet_range) if isinstance(wavelet_range, tuple) else wavelet_range
+    
+    for _ in range(num_wavelets):
+        # Randomly choose a center point for the wavelet
+        center = np.random.randint(0, signal_length)
+        
+        # Random amplitude and width within specified ranges
+        amplitude = np.random.uniform(*amplitude_range)
+        width = np.random.uniform(*width_range)
+        
+        # Generate the wavelet (only real part is used)
+        wavelet = amplitude * morlet(signal_length, w=width).real
+        
+        # Shift the wavelet to the selected center
+        shifted_wavelet = np.roll(wavelet, center - signal_length // 2)
+        
+        # Add the wavelet to the signal
+        augmented_signal += shifted_wavelet
+    
+    return augmented_signal
