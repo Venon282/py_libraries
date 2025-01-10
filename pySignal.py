@@ -1,6 +1,11 @@
 import numpy as np
 import pywt
 from scipy.signal import cwt, morlet
+from typing import Union
+
+def noise(size, noise_level=0.05):
+    """Generate random Gaussian noise."""
+    return np.random.normal(0, noise_level, size)
 
 def add_noise(signal, noise_level=0.05):
     """Add random Gaussian noise to the signal."""
@@ -120,3 +125,7 @@ def wavelet_augment(signal, wavelet_range=(5, 20), amplitude_range=(0.1, 0.5), w
         augmented_signal += shifted_wavelet
     
     return augmented_signal
+
+def derivative(y:Union[list, np.ndarray], x:Union[list, np.ndarray]) -> np.array:
+    dx = x[1] - x[0]
+    return np.gradient(y, dx)

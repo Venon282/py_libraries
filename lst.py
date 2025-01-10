@@ -2,6 +2,8 @@ import pickle
 import warnings
 import statistics
 import joblib
+import numpy as np
+import math
 
 def proportions(lst):
     return {str(element): list(lst).count(element) / len(lst) for element in set(lst)}
@@ -68,4 +70,119 @@ def smoothMiddle(lst, window=5):
     shiftl, shiftr = (shift, shift) if window%2==1 else (shift-1, shift)
     return [statistics.mean(lst[max(0, i-shiftl):min(len(lst), i+shiftr+1)]) for i, l in enumerate(lst)]
         
+def countCategorical(lst):
+    """Count the number of occurences of each element in the categoricals 2d array
+
+    Args:
+        lst (list): List of elements
+
+    Returns:
+        dict: {element: count}
+    """
+    return np.sum(lst == 1, axis=0)
     
+def findIndicesOfN(lst, n):
+    """Find the indices of subarrays where the element n is present.
+
+    Args:
+        lst (np.ndarray): 2D NumPy array of elements.
+        n (int): Element to find.
+
+    Returns:
+        list: A list of arrays, where each array contains the indices in the subarray where n is present.
+    """
+    # Use NumPy to identify locations where elements equal n
+    return np.array([np.where(row == n)[0] for row in lst])
+
+def findIndexOfN(lst, n):
+    """Find the first index of element n in each sub-array.
+
+    Args:
+        lst (np.ndarray): 2D NumPy array of elements.
+        n (int): Element to find.
+
+    Returns:
+        list: A list of indices, where each index is the first occurrence of n in the respective sub-array.
+    """
+    # Use NumPy to identify the first occurrence of n in each row
+    return np.array([np.where(row == n)[0][0] if np.any(row == n) else -1 for row in lst])
+
+
+def repartition(data1, data2, proportion):
+    """
+    Divides data between two tables according to a given proportion.
+
+    Parameters:
+    - data1 (list or array): First data table.
+    - data2 (list or array): Second data table.
+    - proportion (float): Proportion to be used for allocation (e.g. 0.8).
+
+    Returns:
+    - split_data1 (list): Part extracted from data1.
+    - split_data2 (list): Part extracted from data2.
+    """
+    # Initial data size
+    size1 = len(data1)
+    size2 = len(data2)
+    
+    # Total size of combined data
+    total_size = size1 + size2
+
+    # Target size for each table
+    target_size1 = math.ceil(proportion * total_size)
+    target_size2 = total_size - target_size1  # Complement
+    
+    # Calculation of extractions respecting the relative sizes
+    if size1 < target_size1: 
+        # If data1 is too small to meet the proportion, adjust based on size1
+        split_size1 = size1
+        split_size2 = math.ceil(size1 * (1-proportion) / proportion)
+    elif size2 < target_size2: 
+        # If data2 is too small to meet the complementary proportion, adjust based on size2
+        split_size2 = size2
+        split_size1 = math.ceil(size2 * proportion / (1-proportion))
+    else:  
+        # Both tables have enough data to meet the target proportion
+        split_size1 = size1
+        split_size2 = size2
+
+    # Répartition
+    split_data1 = data1[:split_size1]
+    split_data2 = data2[:split_size2]
+    
+    return split_data1, split_data2
+
+def repartitionNbNeed(data1, data2, proportion):
+    """
+    Divides data between two tables according to a given proportion.
+
+    Parameters:
+    - data1 (list or array): First data table.
+    - data2 (list or array): Second data table.
+    - proportion (float): Proportion to be used for allocation (e.g. 0.8).
+
+    Returns:
+    - split_data1 (list): Part extracted from data1.
+    - split_data2 (list): Part extracted from data2.
+    """
+    # Initial data size
+    size1 = len(data1)
+    size2 = len(data2)
+    
+    # Total size of combined data
+    total_size = size1 + size2
+
+    # Target size for each table
+    target_size1 = math.ceil(proportion * total_size)
+    target_size2 = total_size - target_size1  # Complement
+    
+    # Calculation of extractions respecting the relative sizes
+    if size1 < target_size1: 
+        # If data1 is too small to meet the proportion, adjust based on size1
+        return size1, math.ceil(size1 * (1-proportion) / proportion)
+    elif size2 < target_size2: 
+        # If data2 is too small to meet the complementary proportion, adjust based on size2
+        return math.ceil(size2 * proportion / (1-proportion)), size2
+    else:  
+        # Both tables have enough data to meet the target proportion
+        return size1, size2
