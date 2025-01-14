@@ -126,6 +126,18 @@ def wavelet_augment(signal, wavelet_range=(5, 20), amplitude_range=(0.1, 0.5), w
     
     return augmented_signal
 
-def derivative(y:Union[list, np.ndarray], x:Union[list, np.ndarray]) -> np.array:
+def derivative(y:Union[list, np.ndarray], x:Union[list, np.ndarray] = [0, 1]) -> np.array:
     dx = x[1] - x[0]
     return np.gradient(y, dx)
+
+def custom_average(*args):
+    """
+    Compute the element-wise average of input arrays.
+    
+    Parameters:
+        *args: A variable number of NumPy arrays of the same shape.
+    
+    Returns:
+        np.ndarray: Element-wise average of the input arrays.
+    """
+    return (1 / len(args)) * np.sum(args, axis=0)
