@@ -13,10 +13,10 @@ def countElements(lst):
 
 def save(lst, path='./lst.pkl'):
     return joblib.dump(lst, path)
-        
+
 def load(path='./lst.pickle'):
     return joblib.load(path)
-    
+
 def interpolation(x_targ, x, y):
     """interpolation the y values for the x_targ values
 
@@ -27,14 +27,14 @@ def interpolation(x_targ, x, y):
     """
     def jup(j, x):
         return j if j+1>=len(x) else j+1
-    
+
     new_y = []
     j = 0
     for xt in x_targ:
         if xt < x[j]:
             if j == 0:
-                # If our y start later than the need we have, 
-                # keep the first value of val 
+                # If our y start later than the need we have,
+                # keep the first value of val
                 new_y.append(y[j])
             else:
                 distance_max = x[j] - x[j-1]
@@ -69,7 +69,7 @@ def smoothMiddle(lst, window=5):
     shift = max(1, window//2)
     shiftl, shiftr = (shift, shift) if window%2==1 else (shift-1, shift)
     return [statistics.mean(lst[max(0, i-shiftl):min(len(lst), i+shiftr+1)]) for i, l in enumerate(lst)]
-        
+
 def countCategorical(lst):
     """Count the number of occurences of each element in the categoricals 2d array
 
@@ -80,7 +80,7 @@ def countCategorical(lst):
         dict: {element: count}
     """
     return np.sum(lst == 1, axis=0)
-    
+
 def findIndicesOfN(lst, n):
     """Find the indices of subarrays where the element n is present.
 
@@ -124,24 +124,24 @@ def repartition(data1, data2, proportion):
     # Initial data size
     size1 = len(data1)
     size2 = len(data2)
-    
+
     # Total size of combined data
     total_size = size1 + size2
 
     # Target size for each table
     target_size1 = math.ceil(proportion * total_size)
     target_size2 = total_size - target_size1  # Complement
-    
+
     # Calculation of extractions respecting the relative sizes
-    if size1 < target_size1: 
+    if size1 < target_size1:
         # If data1 is too small to meet the proportion, adjust based on size1
         split_size1 = size1
         split_size2 = math.ceil(size1 * (1-proportion) / proportion)
-    elif size2 < target_size2: 
+    elif size2 < target_size2:
         # If data2 is too small to meet the complementary proportion, adjust based on size2
         split_size2 = size2
         split_size1 = math.ceil(size2 * proportion / (1-proportion))
-    else:  
+    else:
         # Both tables have enough data to meet the target proportion
         split_size1 = size1
         split_size2 = size2
@@ -149,7 +149,7 @@ def repartition(data1, data2, proportion):
     # Répartition
     split_data1 = data1[:split_size1]
     split_data2 = data2[:split_size2]
-    
+
     return split_data1, split_data2
 
 def repartitionNbNeed(data1, data2, proportion):
@@ -168,21 +168,34 @@ def repartitionNbNeed(data1, data2, proportion):
     # Initial data size
     size1 = len(data1)
     size2 = len(data2)
-    
+
     # Total size of combined data
     total_size = size1 + size2
 
     # Target size for each table
     target_size1 = math.ceil(proportion * total_size)
     target_size2 = total_size - target_size1  # Complement
-    
+
     # Calculation of extractions respecting the relative sizes
-    if size1 < target_size1: 
+    if size1 < target_size1:
         # If data1 is too small to meet the proportion, adjust based on size1
         return size1, math.ceil(size1 * (1-proportion) / proportion)
-    elif size2 < target_size2: 
+    elif size2 < target_size2:
         # If data2 is too small to meet the complementary proportion, adjust based on size2
         return math.ceil(size2 * proportion / (1-proportion)), size2
-    else:  
+    else:
         # Both tables have enough data to meet the target proportion
         return size1, size2
+
+def idxSumOfTwo(nums, target):
+    """
+        :type nums: List[int]
+        :type target: int
+        :rtype: List[int]
+    """
+    dict_ = {}
+    for i in range(len(nums)):
+        if nums[i] in dict_:
+            return [dict_[nums[i]], i]
+        dict_[target - nums[i]] = i
+    return []
