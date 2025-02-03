@@ -1,165 +1,149 @@
-import matplotlib.pyplot as plt
-import math
-from pathlib import Path
-import numpy as np
+class Graph:
+    def __init__(self):
+        """
+        Initializes an empty Graph with lists for nodes and edges.
+        """
+        self.nodes = []
+        self.edges = []
 
-def handleKargs(plt, kwargs):
-    
-    if kwargs.get('legend', False):
-        plt.legend()
-        
-    if kwargs.get('show', False):
-        plt.show()
-        
-    path = kwargs.get('path', False)
-    if path:
-        save(plt, file_path=path)
+    def addNode(self, node):
+        """
+        Adds a node to the graph.
 
-def save(plt, file_path):
-    file_path = Path(file_path)
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_path.touch(exist_ok=True)
-    plt.savefig(file_path)
-    plt.close()
+        Parameters:
+            node (Node): The node instance to add.
+        """
+        if node not in self.nodes:
+            self.nodes.append(node)
 
-def curve(x, y, title=None, color='b', linestyle='-', linewidth=2, grid=True):
-    """
-    Plots a simple curve with customization options.
-    
-    Parameters:
-    - x: The x-values (list or array-like).
-    - y: The y-values (list or array-like).
-    - title: The title of the plot (optional).
-    - xlabel: Label for the x-axis (optional).
-    - ylabel: Label for the y-axis (optional).
-    - color: Color of the line (default is 'blue').
-    - linestyle: Line style (default is solid line '-').
-    - linewidth: Width of the line (default is 2).
-    - grid: Whether to show the grid (default is True).
-    """
-    plt.plot(x, y, color=color, linestyle=linestyle, linewidth=linewidth)
-    
-    if title:
-        plt.title(title)
-        
-    plt.grid(grid)
-    
-    plt.show()
-    
-def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-', 
-           xlim=None, ylim=None, linewidth=2, grid=True, legend=True, show=True, path=None,
-           **kwargs):
-    if title:
-        plt.title(title)
-    
-    xs, ys = [], []
-    for i, arg in enumerate(args):
-        options = {'color':color, 'linestyle':linestyle, 'linewidth':linewidth, 'label': None}
-        x, y = arg[0], arg[1]
-        xs.append(x)
-        ys.append(y)
-        if len(arg) == 3 and isinstance(arg[2], dict):
-            options.update(arg[2])
-        
-        plt.plot(x, y, color=options['color'], linestyle=options['linestyle'], linewidth=options['linewidth'], label=options['label'])
-            
-    plt.grid(grid)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    
-    # if xlim is not None:
-    #     bottom, top = max(xlim[0], np.min(xs)) , min(xlim[1], np.max(xs))
-    #     diff = top - bottom
-    #     plt.xlim(bottom - diff * 0.1, top + diff * 0.1)
-        
-    # if ylim is not None:
-    #     bottom, top = max(ylim[0], np.min(ys)) , min(ylim[1], np.max(ys))
+    def removeNode(self, node):
+        """
+        Removes a node from the graph, along with any edges connected to it.
 
-    #     diff = top - bottom
-    #     plt.ylim(bottom - diff * 0.1, top + diff * 0.1)
-            
-    if legend:
-        plt.legend()
-        
-    if show:
-        plt.show()
-        
-    if path is not None:
-        save(plt, file_path=path)
-        
-def dots(x_desire, y_real, title='Desire Vs real', x_label='Desire', y_label='Real', 
-            xlim=None, ylim=None,
-            color='red', additional_lines: list[dict]=[], show=True, path=None):
-    plt.scatter(x_desire, y_real, alpha=0.4, color=color)
-    for al in additional_lines:
-        plt.plot(al['x'], al['y'], color=al['color'] if 'color' in al else color, linestyle=al['linestyle'] if 'linestyle' in al else '--')
-    plt.title(title)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
+        Parameters:
+            node (Node): The node instance to remove.
+        """
+        if node in self.nodes:
+            self.nodes.remove(node)
+        # Remove all edges that are connected to this node.
+        self.edges = [edge for edge in self.edges if edge.start != node and edge.end != node]
+        # Optionally, remove the edge from the node's own edge list.
+        node.edges = []
 
-    if xlim is not None:
-        plt.xlim(xlim)
+    def addEdge(self, edge):
+        """
+        Adds an edge to the graph and also registers the edge with the corresponding nodes.
 
-    if ylim is not None:
-        plt.ylim(ylim)    
-    if show:
-        plt.show()
-        
-    if path is not None:
-        save(plt, file_path=path)
-      
-def dotsHeat(x_desire, y_real, title='Desire Vs real', x_label='Desire', y_label='Real', 
-            xlim=None, ylim=None,
-            color=None, cmap='Blues', gridsize=50, mincnt=1, additional_lines: list[dict]=[], show=True, path=None):
-    plt.hexbin(x_desire, y_real, cmap=cmap, mincnt=mincnt, gridsize=gridsize)
-    for al in additional_lines:
-        plt.plot(al['x'], al['y'], color=al['color'] if 'color' in al else color, linestyle=al['linestyle'] if 'linestyle' in al else '--')
-    plt.title(title)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
+        Parameters:
+            edge (Edge): The edge instance to add.
+        """
+        # Optionally, ensure both nodes are part of the graph.
+        if edge.start not in self.nodes:
+            self.addNode(edge.start)
+        if edge.end not in self.nodes:
+            self.addNode(edge.end)
+        self.edges.append(edge)
+        # Optionally, add this edge to the nodes' internal edge lists.
+        if edge not in edge.start.edges:
+            edge.start.edges.append(edge)
+        if edge not in edge.end.edges:
+            edge.end.edges.append(edge)
 
-    if xlim is not None:
-        plt.xlim(xlim)
+    def removeEdge(self, edge):
+        """
+        Removes an edge from the graph.
 
-    if ylim is not None:
-        plt.ylim(ylim)    
-    if show:
-        plt.show()
-        
-    if path is not None:
-        save(plt, file_path=path)
-    
-def graphs(*args, title=None, x_label='', y_label='', color='b', linestyle='-', linewidth=2, grid=True, show=True, path=None):
-    grid = math.sqrt(len(args))
-    nrows, ncols = int(grid), math.ceil(grid)
-    fig = plt.figure()
-    if title:
-        fig.suptitle(title)
-    
-    for i, arg in enumerate(args):
-        options = {'title':None, 'color':color, 'linestyle':linestyle, 'linewidth':linewidth, 'grid':grid, 'label': None}
-        x, y = arg[0], arg[1]
-        if len(arg) == 3 and isinstance(arg[2], dict):
-            options.update(arg[2])
-        
-        sub = fig.add_subplot(nrows, ncols, i+1)
-        sub.plot(x, y, color=options['color'], linestyle=options['linestyle'], linewidth=options['linewidth'], label=options['label'])
-        
-        if options['title']:
-            sub.set_title(options['title'])
-            
-        sub.grid(options['grid'])
-        
-        if options['label']:
-            fig.legend()
-            
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-            
-    fig.tight_layout()
-    if show:
-        plt.show()
-        
-    if path is not None:
-        save(plt, file_path=path)
-    
+        Parameters:
+            edge (Edge): The edge instance to remove.
+        """
+        if edge in self.edges:
+            self.edges.remove(edge)
+        # Optionally, remove the edge from the nodes' edge lists.
+        if edge in edge.start.edges:
+            edge.start.edges.remove(edge)
+        if edge in edge.end.edges:
+            edge.end.edges.remove(edge)
+
+    def getNode(self, name):
+        """
+        Retrieves a node by its name.
+
+        Parameters:
+            name (str): The name identifier of the node.
+
+        Returns:
+            Node or None: The node with the matching name, or None if not found.
+        """
+        for node in self.nodes:
+            if node.name == name:
+                return node
+        return None
+
+    def isLinkedList(self):
+        def forward(node):
+            if len(node.edges) > 2 or len(node.edges) == 0:
+                return False
+            if len(node.edges) == 1 and node.edges[0].end is node:
+                return True
+            for edge in node.edges:
+                if edge.start is node:
+                    return forward(edge.end)
+            return False
+
+        def backward(node):
+            if len(node.edges) > 2 or len(node.edges) == 0:
+                return False
+            if len(node.edges) == 1 and node.edges[0].start is node:
+                return True
+            for edge in node.edges:
+                if edge.end is node:
+                    return forward(edge.start
+            return False)
+
+        if len(self.nodes) == 0 of len(self.nodes[0].edges) == 0:
+            return False
+
+        node = self.nodes[0]
+        return forward(node) and backward(node)
+
+
+
+    def toDict(self):
+        """
+        Returns a dictionary representation of the graph.
+
+        Returns:
+            dict: A dictionary with lists of nodes and edges.
+        """
+        return {
+            "nodes": [node.toDict() for node in self.nodes],
+            "edges": [edge.to_dict() for edge in self.edges]
+        }
+
+    def __str__(self):
+        """
+        Returns a string representation of the graph.
+
+        Returns:
+            str: A summary of the graph's nodes and edges.
+        """
+        nodes_str = ', '.join([node.name for node in self.nodes])
+        edges_str = ', '.join([
+            f"{edge.start.name}->{edge.end.name}" if edge.directed else f"{edge.start.name}-{edge.end.name}"
+            for edge in self.edges
+        ])
+        return f"Graph with nodes: {nodes_str}\nEdges: {edges_str}"
+
+    def draw(self, canvas):
+        """
+        Draws the entire graph on a given canvas.
+
+        Parameters:
+            canvas: The drawing surface or canvas (e.g., a Tkinter Canvas).
+        """
+        # Draw all edges first so that nodes appear on top.
+        for edge in self.edges:
+            edge.draw(canvas)
+        # Then draw all nodes.
+        for node in self.nodes:
+            node.draw(canvas)
