@@ -1,6 +1,19 @@
 import matplotlib.pyplot as plt
 import math
 from pathlib import Path
+import numpy as np
+
+def handleKargs(plt, kwargs):
+    
+    if kwargs.get('legend', False):
+        plt.legend()
+        
+    if kwargs.get('show', False):
+        plt.show()
+        
+    path = kwargs.get('path', False)
+    if path:
+        save(plt, file_path=path)
 
 def save(plt, file_path):
     file_path = Path(file_path)
@@ -33,13 +46,18 @@ def curve(x, y, title=None, color='b', linestyle='-', linewidth=2, grid=True):
     
     plt.show()
     
-def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-', linewidth=2, grid=True, legend=True, show=True, path=None):
+def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-', 
+           xlim=None, ylim=None, linewidth=2, grid=True, legend=True, show=True, path=None,
+           **kwargs):
     if title:
         plt.title(title)
     
+    xs, ys = [], []
     for i, arg in enumerate(args):
         options = {'color':color, 'linestyle':linestyle, 'linewidth':linewidth, 'label': None}
         x, y = arg[0], arg[1]
+        xs.append(x)
+        ys.append(y)
         if len(arg) == 3 and isinstance(arg[2], dict):
             options.update(arg[2])
         
@@ -48,6 +66,17 @@ def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-',
     plt.grid(grid)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
+    
+    # if xlim is not None:
+    #     bottom, top = max(xlim[0], np.min(xs)) , min(xlim[1], np.max(xs))
+    #     diff = top - bottom
+    #     plt.xlim(bottom - diff * 0.1, top + diff * 0.1)
+        
+    # if ylim is not None:
+    #     bottom, top = max(ylim[0], np.min(ys)) , min(ylim[1], np.max(ys))
+
+    #     diff = top - bottom
+    #     plt.ylim(bottom - diff * 0.1, top + diff * 0.1)
             
     if legend:
         plt.legend()

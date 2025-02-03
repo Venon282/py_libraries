@@ -141,3 +141,17 @@ def custom_average(*args):
         np.ndarray: Element-wise average of the input arrays.
     """
     return (1 / len(args)) * np.sum(args, axis=0)
+
+# def cwt(data, wavelet='cmor', scales=np.arange(1, 128)):
+#     """
+#     Calculates the coefficients of the continuous wavelet transform for a signal.
+    
+#     Args:
+#         data: array-like, input signal.
+#         wavelet: str, type of wavelet (example: "cmor" for complex Morlet).
+#         scales: array-like, scale for coefficients.
+#     Returns:
+#         CWT coefficients as a 2D array.
+#     """
+#     cwt_coeffs, _ = pywt.cwt(data, scales, wavelet)
+#     return np.abs(cwt_coeffs)
