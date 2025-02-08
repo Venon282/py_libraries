@@ -6,7 +6,7 @@ def prefixCount(words:list[str], pref:str):
     """
     return sum([1 for word in words if word.startswith(pref)])
 
-def is1SwapAreEqual(self, s1, s2):
+def is1SwapAreEqual(s1, s2):
     """
     :type s1: str
     :type s2: str
@@ -29,7 +29,7 @@ def is1SwapAreEqual(self, s1, s2):
     i, j = different
     return s1[i] == s2[j] and s1[j] == s2[i]
 
-def longestCommonPrefix(self, strs):
+def longestCommonPrefix(strs):
     """
     :type strs: List[str]
     :rtype: str
@@ -46,3 +46,21 @@ def longestCommonPrefix(self, strs):
         prefix = prefix[:i]
 
     return prefix
+
+def longestUnicSubstringLength(s):
+    """
+    :type s: str
+    :rtype: int
+    """
+    chars = {}
+    max_length = 0
+    start = 0
+
+    for end, char in enumerate(s):
+        if char in chars and chars[char] >= start:
+            start = chars[char] + 1
+        else:
+            max_length = max(max_length, end - start + 1)
+        chars[char] = end
+
+    return max_length
