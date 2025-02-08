@@ -64,3 +64,20 @@ def longestUnicSubstringLength(s):
         chars[char] = end
 
     return max_length
+
+def isValidParenthese(s, open_ = ['(', '[', '{'], close_ = [')', ']', '}']):
+        """
+        :type s: str
+        :rtype: bool
+        """
+        corresponding = {key: value for key, value in zip(close_, open_)}
+        pile = []
+
+        for c in s:
+            if c in open_:
+                pile.append(c)
+            elif c in close_:
+                if len(pile) == 0 or (c in corresponding and pile[-1] != corresponding[c]):
+                    return False
+                pile.pop()
+        return len(pile) == 0
