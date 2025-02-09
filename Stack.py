@@ -15,6 +15,11 @@ class Stack:
         return len(self.stack) == 0
 
     def top(self):
+        """return the reference of the top value
+
+        Returns:
+            _type_: _description_
+        """
         return self.stack[-1]
 
     def min(self):

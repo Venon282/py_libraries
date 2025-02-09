@@ -1,9 +1,9 @@
 class Queue:
-    def __init__(self):
+    def __init__(self, queue=[]):
         """
         Initializes an empty Stack.
         """
-        self.queue = []
+        self.queue = queue
 
     def enqueue(self, element):
         self.queue = [element] + self.queue
