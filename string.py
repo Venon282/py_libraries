@@ -92,3 +92,31 @@ def removeOccurrences(s, part):
         idx = s.index(part)
         s = s[:idx] + s[idx+len(part):]
     return s
+
+def isInterleave(s1, s2, s3):
+    """
+    :type s1: str
+    :type s2: str
+    :type s3: str
+    :rtype: bool
+    """
+    # If lengths do not match, return False
+    if len(s1) + len(s2) != len(s3):
+        return False
+    
+    # DP table to store results for subproblems
+    dp = [[False] * (len(s2) + 1) for _ in range(len(s1) + 1)]
+    
+    # Base case: empty s1 and s2 interleave to form empty s3
+    dp[0][0] = True
+
+    # Fill DP table
+    for i in range(len(s1) + 1):
+        for j in range(len(s2) + 1):
+            if i > 0 and s1[i - 1] == s3[i + j - 1]:
+                dp[i][j] = dp[i][j] or dp[i - 1][j]
+            if j > 0 and s2[j - 1] == s3[i + j - 1]:
+                dp[i][j] = dp[i][j] or dp[i][j - 1]
+    
+    # The result is stored in dp[len(s1)][len(s2)]
+    return dp[len(s1)][len(s2)]
