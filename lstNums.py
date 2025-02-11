@@ -41,3 +41,13 @@ def mergeIntervals(intervals):
         else:
             new.append([start, end])
     return new
+
+def oddNumberInEvenList(nums):
+    """
+    :type nums: List[int]
+    :rtype: int
+    """
+    x=0
+    for i in nums:
+        x^=i
+    return x
