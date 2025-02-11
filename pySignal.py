@@ -142,16 +142,132 @@ def custom_average(*args):
     """
     return (1 / len(args)) * np.sum(args, axis=0)
 
-# def cwt(data, wavelet='cmor', scales=np.arange(1, 128)):
-#     """
-#     Calculates the coefficients of the continuous wavelet transform for a signal.
+def toBarcodeImage(signal: np.ndarray, n_rows: int = 64) -> np.ndarray:
+    """
+    Replicates a 1D spectral signal into a 2D image by repeating the signal along a new axis.
     
-#     Args:
-#         data: array-like, input signal.
-#         wavelet: str, type of wavelet (example: "cmor" for complex Morlet).
-#         scales: array-like, scale for coefficients.
-#     Returns:
-#         CWT coefficients as a 2D array.
-#     """
-#     cwt_coeffs, _ = pywt.cwt(data, scales, wavelet)
-#     return np.abs(cwt_coeffs)
+    Parameters:
+        signal (np.ndarray): 1D array representing the spectral intensity.
+        n_rows (int): Number of times to replicate the signal (default: 64).
+    
+    Returns:
+        np.ndarray: 2D image with shape (n_rows, len(signal)).
+    """
+    return np.tile(signal, (n_rows, 1))
+
+
+# Hankel Matrix Embedding
+def toHankelMatrix(signal: np.ndarray, window_length: int) -> np.ndarray:
+    """
+    Constructs a Hankel (trajectory) matrix from the spectral signal.
+    
+    Parameters:
+        signal (np.ndarray): 1D array representing the spectral intensity.
+        window_length (int): The length of the sliding window to form the Hankel matrix.
+    
+    Returns:
+        np.ndarray: 2D Hankel matrix embedding of the signal.
+    """
+    from scipy.linalg import hankel
+    if window_length > len(signal):
+        raise ValueError("window_length must be less than or equal to the length of the signal.")
+    return hankel(signal[:window_length], signal[window_length-1:])
+
+
+# Gramian Angular Field (GAF)
+def toGramianAngularField(signal: np.ndarray, image_size: int = 64, method: str = 'summation') -> np.ndarray:
+    """
+    Computes the Gramian Angular Field (GAF) of a normalized spectral signal.
+    
+    Parameters:
+        signal (np.ndarray): 1D array representing the spectral intensity.
+                             It should be normalized to the range [0, 1].
+        image_size (int): The size of the output GAF image (default: 64).
+        method (str): Method for GAF computation; either 'summation' or 'difference' (default: 'summation').
+    
+    Returns:
+        np.ndarray: 2D GAF image.
+    """
+    from pyts.image import GramianAngularField
+    # Reshape signal for pyts (expects 2D input: [n_samples, series_length])
+    x_reshaped = signal.reshape(1, -1)
+    gaf = GramianAngularField(image_size=image_size, method=method)
+    return gaf.fit_transform(x_reshaped)[0]
+
+
+# Markov Transition Field (MTF)
+def toMarkovTransitionField(signal: np.ndarray, image_size: int = 64, n_bins: int = 8) -> np.ndarray:
+    """
+    Computes the Markov Transition Field (MTF) for a normalized spectral signal.
+    
+    Parameters:
+        signal (np.ndarray): 1D array representing the spectral intensity.
+                             It should be normalized to the range [0, 1].
+        image_size (int): The size of the output MTF image (default: 64).
+        n_bins (int): Number of bins to discretize the signal (default: 8).
+    
+    Returns:
+        np.ndarray: 2D MTF image.
+    """
+    from pyts.image import MarkovTransitionField
+    x_reshaped = signal.reshape(1, -1)
+    mtf = MarkovTransitionField(image_size=image_size, n_bins=n_bins)
+    return mtf.fit_transform(x_reshaped)[0]
+
+
+# 5. Recurrence Plot (RP)
+def toRecurrentPlot(signal: np.ndarray, threshold: str = 'point', percentage: float = 10) -> np.ndarray:
+    """
+    Computes the Recurrence Plot (RP) of a spectral signal.
+    
+    Parameters:
+        signal (np.ndarray): 1D array representing the spectral intensity.
+        threshold (str or float): Thresholding method or value. If 'point', uses a percentage-based threshold.
+        percentage (float): The percentage for thresholding when threshold is set to 'point' (default: 10).
+    
+    Returns:
+        np.ndarray: 2D recurrence plot image (typically binary).
+    """
+    from pyts.image import RecurrencePlot
+    x_reshaped = signal.reshape(1, -1)
+    rp = RecurrencePlot(threshold=threshold, percentage=percentage)
+    return rp.fit_transform(x_reshaped)[0]
+
+
+# 6. Continuous Wavelet Transform (CWT) Scalogram
+def toContinuousWaveletTransform(signal: np.ndarray, scales: np.ndarray = None, wavelet: str = 'morl'):
+    """
+    Computes the Continuous Wavelet Transform (CWT) scalogram of the spectral signal.
+    
+    Parameters:
+        signal (np.ndarray): 1D array representing the spectral intensity.
+        scales (np.ndarray): 1D array of scales to use. If None, defaults to np.arange(1, 64).
+        wavelet (str): The type of wavelet to use (default: 'morl').
+    
+    Returns:
+        tuple: A tuple (coefficients, frequencies), where:
+               - coefficients (np.ndarray): 2D array of CWT coefficients.
+               - frequencies (np.ndarray): 1D array of corresponding frequencies (or scales).
+    """
+    import pywt
+    if scales is None:
+        scales = np.arange(1, len(signal))
+    return pywt.cwt(signal, scales, wavelet)
+
+
+# 7. Self-Similarity (Distance) Matrix
+def toSelfSimilarityDistanceMatrix(signal: np.ndarray, metric: str = 'euclidean') -> np.ndarray:
+    """
+    Computes the self-similarity (distance) matrix of the spectral signal.
+    
+    Parameters:
+        signal (np.ndarray): 1D array representing the spectral intensity.
+        metric (str): The distance metric to use (default: 'euclidean').
+    
+    Returns:
+        np.ndarray: 2D self-similarity (distance) matrix.
+    """
+    from scipy.spatial.distance import pdist, squareform
+    # Reshape signal to ensure it is 2D (each point as a 1D vector)
+    return squareform(pdist(signal.reshape(-1, 1), metric=metric))
+

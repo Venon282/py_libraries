@@ -199,3 +199,87 @@ def idxSumOfTwo(nums, target):
             return [dict_[nums[i]], i]
         dict_[target - nums[i]] = i
     return []
+
+def describe(array):
+    """
+    Fonction similaire à pandas.describe() utilisant numpy.
+    
+    Calcule des statistiques descriptives sur un tableau numpy, en incluant:
+      - total_count      : nombre total d'éléments
+      - count            : nombre d'éléments finis (non NaN et non ±inf)
+      - nan_count        : nombre de NaN
+      - pos_inf_count    : nombre d'infinité positive
+      - neg_inf_count    : nombre d'infinité négative
+      - nan_rate         : taux de NaN (nan_count / total_count)
+      - pos_inf_rate     : taux d'infinité positive (pos_inf_count / total_count)
+      - neg_inf_rate     : taux d'infinité négative (neg_inf_count / total_count)
+      - min              : valeur minimale (parmi les valeurs finies)
+      - 25%              : premier quartile (25e percentile)
+      - median           : médiane (50e percentile)
+      - mean             : moyenne
+      - std              : écart-type
+      - 75%              : troisième quartile (75e percentile)
+      - max              : valeur maximale
+      
+    Paramètres:
+    -----------
+    array : array_like
+        Tableau numpy (peut être multidimensionnel)
+    
+    Retourne:
+    ---------
+    stats : dict
+        Dictionnaire contenant les statistiques calculées.
+    """
+    # Convertir l'entrée en array NumPy et l'aplatir
+    arr = np.asarray(array)
+    arr_flat = arr.flatten()
+    total_count = arr_flat.size
+
+    # Comptage des valeurs non finies
+    nan_count = np.isnan(arr_flat).sum()
+    pos_inf_count = np.isposinf(arr_flat).sum()
+    neg_inf_count = np.isneginf(arr_flat).sum()
+    non_finite_count = nan_count + pos_inf_count + neg_inf_count
+    finite_count = total_count - non_finite_count
+
+    # Calcul des taux
+    nan_rate = nan_count / total_count if total_count > 0 else np.nan
+    pos_inf_rate = pos_inf_count / total_count if total_count > 0 else np.nan
+    neg_inf_rate = neg_inf_count / total_count if total_count > 0 else np.nan
+
+    # Extraction des valeurs finies
+    finite_vals = arr_flat[np.isfinite(arr_flat)]
+
+    # Calcul des statistiques sur les valeurs finies
+    if finite_count > 0:
+        min_val    = np.min(finite_vals)
+        q1         = np.percentile(finite_vals, 25)
+        median_val = np.median(finite_vals)
+        mean_val   = np.mean(finite_vals)
+        std_val    = np.std(finite_vals)
+        q3         = np.percentile(finite_vals, 75)
+        max_val    = np.max(finite_vals)
+    else:
+        min_val = q1 = median_val = mean_val = std_val = q3 = max_val = np.nan
+
+    # Rassemblement des résultats dans un dictionnaire
+    stats = {
+        'total_count': total_count,
+        'count': int(finite_count),
+        'nan_count': int(nan_count),
+        'pos_inf_count': int(pos_inf_count),
+        'neg_inf_count': int(neg_inf_count),
+        'nan_rate': nan_rate,
+        'pos_inf_rate': pos_inf_rate,
+        'neg_inf_rate': neg_inf_rate,
+        'min': min_val,
+        '25%': q1,
+        'median': median_val,
+        'mean': mean_val,
+        'std': std_val,
+        '75%': q3,
+        'max': max_val
+    }
+
+    return stats
