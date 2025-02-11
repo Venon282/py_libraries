@@ -144,6 +144,15 @@ class BinaryTree:
             if node.left is not None and node.right is not None:
                 return False
             return isDegenerateRec(node.left) and isDegenerateRec(node.right)
+        
+    def isSame(self, tree):
+        def isSameRec(t1, t2):
+            if t1 is None and t2 is None:
+                return True
+            if t1 is not None and t2 is not None and t1.val == t2.val:
+                return isSameRec(t1.left, t2.left) and isSameRec(t1.right, t2.right)
+            return False
+        return isSameRec(self, tree)
 
     def toListMiddle(self):
         # Helper function to perform in-order traversal and collect values in a list
