@@ -187,19 +187,6 @@ def repartitionNbNeed(data1, data2, proportion):
         # Both tables have enough data to meet the target proportion
         return size1, size2
 
-def idxSumOfTwo(nums, target):
-    """
-        :type nums: List[int]
-        :type target: int
-        :rtype: List[int]
-    """
-    dict_ = {}
-    for i in range(len(nums)):
-        if nums[i] in dict_:
-            return [dict_[nums[i]], i]
-        dict_[target - nums[i]] = i
-    return []
-
 def describe(array):
     """
     Fonction similaire à pandas.describe() utilisant numpy.
