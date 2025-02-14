@@ -1,20 +1,37 @@
 from Stack import Stack
 from Queue import Queue
+from Graph import Graph
+from Edge import Edge
 from number import isPowerOfTwo
 
-class BinaryTree:
+# todo remake it Graph->Tree->BinaryTree
+# todo BinaryTree must be graph and not nodes
+class BinaryTree(Graph):
     def __init__(self, val=None, left=None, right=None, is_root=False):
+        super().__init__()
+        
         self.val = val
         self.left = left
         self.right = right
         self.height = 0
-        self.size = 1 + (self.left.size if self.left is not None else 0) + (self.right.size if self.right is not None else 0)
+        self.size = 1
         self.is_root = is_root
-
-        if None not in (right, left):
-            self.nb_leaf = (self.left.nb_leaf if self.left is not None else 0) + (self.right.nb_leaf if self.right is not None else 0)
-        else:
+        self.nb_leaf = 0
+        
+        if self.left is not None:
+            self.size += self.left.size
+            self.nb_leaf += self.left.nb_leaf
+            self.addEdge(Edge(self, self.left))
+            
+        if self.right is not None:
+            self.size += self.right.size
+            self.nb_leaf += self.right.nb_leaf
+            self.addEdge(Edge(self, self.right))
+            
+        if self.nb_leaf == 0:
             self.nb_leaf = 1
+            
+        self.addNode(self)
 
     def build(self, lst):
         def buildRec(index, height=0):
@@ -29,6 +46,11 @@ class BinaryTree:
             # Recursively build the left and right subtrees
             node.left, height_left = buildRec(2 * index + 1, height)
             node.right, height_right = buildRec(2 * index + 2, height)
+            
+            if node.left:
+                node.addEdge(Edge(node, node.left))
+            if node.right:
+                node.addEdge(Edge(node, node.right))
 
             # Set the node's height to the maximum of its own height and the height of its children
             node.height = max(height, height_left, height_right)

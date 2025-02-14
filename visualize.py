@@ -109,8 +109,8 @@ def dots(x_desire, y_real, title='Desire Vs real', x_label='Desire', y_label='Re
         save(plt, file_path=path)
       
 def dotsHeat(x_desire, y_real, title='Desire Vs real', x_label='Desire', y_label='Real', 
-            xlim=None, ylim=None,
-            color=None, cmap='Blues', gridsize=50, mincnt=1, additional_lines: list[dict]=[], show=True, path=None):
+            xlim=None, ylim=None, 
+            color=None, cmap='Blues', gridsize=50, mincnt=0, additional_lines: list[dict]=[], show=True, path=None):
     plt.hexbin(x_desire, y_real, cmap=cmap, mincnt=mincnt, gridsize=gridsize)
     for al in additional_lines:
         plt.plot(al['x'], al['y'], color=al['color'] if 'color' in al else color, linestyle=al['linestyle'] if 'linestyle' in al else '--')
@@ -123,6 +123,8 @@ def dotsHeat(x_desire, y_real, title='Desire Vs real', x_label='Desire', y_label
 
     if ylim is not None:
         plt.ylim(ylim)    
+
+        
     if show:
         plt.show()
         
