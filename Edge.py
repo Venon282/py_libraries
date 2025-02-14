@@ -2,7 +2,7 @@ import math
 
 class Edge:
     def __init__(self, start, end, weight=1, color='black', width=1,
-                 directed=False, name='Edge', properties=None):
+                 directed=False, name='Edge', properties=[]):
         """
         Initializes an Edge object that connects two nodes.
 

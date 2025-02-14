@@ -1,6 +1,6 @@
 class Node:
     def __init__(self, edges=[], x=0, y=0, size=10, color='white', border_color='black',
-                 border_width=1, name='Node', properties=None):
+                 border_width=1, name='Node', properties=[]):
         """
         Initializes a Node object with position, appearance, and additional properties.
 
@@ -27,7 +27,7 @@ class Node:
         # Identification and additional properties
         self.name = name
         self.edges = edges
-        self.properties = properties if properties is not None else []
+        self.properties = properties
 
     def move(self, dx, dy):
         """
