@@ -4,6 +4,7 @@ import statistics
 import joblib
 import numpy as np
 import math
+from scipy.stats import skew, kurtosis
 
 def proportions(lst):
     return {str(element): list(lst).count(element) / len(lst) for element in set(lst)}
@@ -187,26 +188,34 @@ def repartitionNbNeed(data1, data2, proportion):
         # Both tables have enough data to meet the target proportion
         return size1, size2
 
-def describe(array):
+def describeValues(array):
     """
     Fonction similaire à pandas.describe() utilisant numpy.
     
     Calcule des statistiques descriptives sur un tableau numpy, en incluant:
+      - shape            : dimensions du tableau
       - total_count      : nombre total d'éléments
       - count            : nombre d'éléments finis (non NaN et non ±inf)
       - nan_count        : nombre de NaN
       - pos_inf_count    : nombre d'infinité positive
       - neg_inf_count    : nombre d'infinité négative
+      - zero_count       : nombre de zéros parmi les valeurs finies
       - nan_rate         : taux de NaN (nan_count / total_count)
       - pos_inf_rate     : taux d'infinité positive (pos_inf_count / total_count)
       - neg_inf_rate     : taux d'infinité négative (neg_inf_count / total_count)
       - min              : valeur minimale (parmi les valeurs finies)
-      - 25%              : premier quartile (25e percentile)
+      - 25% (q1)         : premier quartile (25e percentile)
       - median           : médiane (50e percentile)
       - mean             : moyenne
       - std              : écart-type
-      - 75%              : troisième quartile (75e percentile)
+      - var              : variance
+      - IQR              : interquartile range (q3 - q1)
+      - 75% (q3)         : troisième quartile (75e percentile)
       - max              : valeur maximale
+      - range            : étendue (max - min)
+      - unique_count     : nombre de valeurs uniques parmi les valeurs finies
+      - skewness         : asymétrie de la distribution (si scipy est disponible)
+      - kurtosis         : aplatissement de la distribution (si scipy est disponible)
       
     Paramètres:
     -----------
@@ -218,8 +227,8 @@ def describe(array):
     stats : dict
         Dictionnaire contenant les statistiques calculées.
     """
-    # Convertir l'entrée en array NumPy et l'aplatir
-    arr = np.asarray(array)
+    # Conversion de l'entrée en tableau numpy et aplatir
+    arr = np.array(array)
     arr_flat = arr.flatten()
     total_count = arr_flat.size
 
@@ -237,26 +246,37 @@ def describe(array):
 
     # Extraction des valeurs finies
     finite_vals = arr_flat[np.isfinite(arr_flat)]
-
-    # Calcul des statistiques sur les valeurs finies
+    
+    # Calcul de statistiques supplémentaires sur les valeurs finies
     if finite_count > 0:
         min_val    = np.min(finite_vals)
         q1         = np.percentile(finite_vals, 25)
         median_val = np.median(finite_vals)
         mean_val   = np.mean(finite_vals)
         std_val    = np.std(finite_vals)
+        var_val    = np.var(finite_vals)
         q3         = np.percentile(finite_vals, 75)
         max_val    = np.max(finite_vals)
-    else:
-        min_val = q1 = median_val = mean_val = std_val = q3 = max_val = np.nan
+        iqr        = q3 - q1
+        range_val  = max_val - min_val
+        unique_count = np.unique(finite_vals).size
+        zero_count = np.count_nonzero(finite_vals == 0)
+    
+        skewness = skew(finite_vals)
+        kurt = kurtosis(finite_vals)
 
-    # Rassemblement des résultats dans un dictionnaire
+    else:
+        min_val = q1 = median_val = mean_val = std_val = var_val = q3 = max_val = iqr = range_val = unique_count = zero_count = np.nan
+        skewness = kurt = np.nan
+
     stats = {
+        'shape': arr.shape,
         'total_count': total_count,
         'count': int(finite_count),
         'nan_count': int(nan_count),
         'pos_inf_count': int(pos_inf_count),
         'neg_inf_count': int(neg_inf_count),
+        'zero_count': int(zero_count) if not np.isnan(zero_count) else np.nan,
         'nan_rate': nan_rate,
         'pos_inf_rate': pos_inf_rate,
         'neg_inf_rate': neg_inf_rate,
@@ -265,8 +285,38 @@ def describe(array):
         'median': median_val,
         'mean': mean_val,
         'std': std_val,
+        'var': var_val,
+        'IQR': iqr,
         '75%': q3,
-        'max': max_val
+        'max': max_val,
+        'range': range_val,
+        'unique_count': unique_count,
+        'skewness': skewness,
+        'kurtosis': kurt
     }
 
     return stats
+
+def describe(array, min_threshold=1e-4, max_threshold=1e5, n_decimals=4):
+    values = describeValues(array)
+    for key, value in values.items():
+        # Attempt to calculate the absolute value (for numerical cases)
+        try:
+            abs_val = abs(value)
+        except TypeError:
+            abs_val = None
+
+        # Use scientific notation if the value is not zero and its magnitude
+        # is less than min_threshold or greater than or equal to max_threshold
+        if abs_val is not None and value != 0 and (abs_val < min_threshold or abs_val >= max_threshold):
+            n = 2 if n_decimals is None else n_decimals
+            formatted = f"{value:.{n}e}"                # value at scientific format
+            parts = formatted.split("e")                # separate the mantissa and exponent
+            mantissa = parts[0].rstrip("0").rstrip(".") # remove useless 0
+            exponent = parts[1]                         
+            print(f"{key}: {mantissa}e{exponent}")
+        else:
+            if n_decimals is not None and isinstance(value, (int, float)):
+                print(f"{key}: {round(value, n_decimals)}")
+            else:
+                print(f"{key}: {value}")
