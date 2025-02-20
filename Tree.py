@@ -1,5 +1,5 @@
 from Graph import Graph
-import math
+from Edge import Edge
 
 class Tree(Graph):
     def __init__(self, root=None):

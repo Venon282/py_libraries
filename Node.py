@@ -1,6 +1,6 @@
 class Node:
     def __init__(self, edges=[], x=0, y=0, size=10, color='white', border_color='black',
-                 border_width=1, name='Node', properties=[]):
+                 border_width=1, value='Node', properties=[]):
         """
         Initializes a Node object with position, appearance, and additional properties.
 
@@ -11,7 +11,7 @@ class Node:
             color (str): The fill color of the node.
             border_color (str): The color of the node's border.
             border_width (int): The width of the node's border.
-            name (str): The name identifier for the node.
+            value (str): The value identifier for the node.
             properties (list): Additional properties for the node.
         """
         # Position
@@ -25,7 +25,7 @@ class Node:
         self.border_width = border_width
 
         # Identification and additional properties
-        self.name = name
+        self.value = value
         self.edges = edges
         self.properties = properties
 
@@ -67,7 +67,7 @@ class Node:
             dict: A dictionary containing the node's data.
         """
         return {
-            "name": self.name,
+            "value": self.value,
             "position": {"x": self.x, "y": self.y},
             "size": self.size,
             "color": self.color,
@@ -83,7 +83,7 @@ class Node:
         Returns:
             str: A string summarizing the node.
         """
-        return (f"{self.name}: Position ({self.x}, {self.y}), Size {self.size}, "
+        return (f"{self.value}: Position ({self.x}, {self.y}), Size {self.size}, "
                 f"Color {self.color}, Border {self.border_color} (width {self.border_width})")
 
     def draw(self, canvas):
@@ -107,5 +107,5 @@ class Node:
                            fill=self.color,
                            outline=self.border_color,
                            width=self.border_width)
-        # Draw the node's name at its center.
-        canvas.create_text(self.x, self.y, text=self.name)
+        # Draw the node's value at its center.
+        canvas.create_text(self.x, self.y, text=self.value)
