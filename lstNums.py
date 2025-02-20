@@ -51,3 +51,10 @@ def oddNumberInEvenList(nums):
     for i in nums:
         x^=i
     return x
+
+def pascalTriangle(n_rows):
+    triangle = [[1]]
+    for _ in range(n_rows - 1):
+        next_row = [1] + [a + b for a, b in zip(triangle[-1], triangle[-1][1:])] + [1]
+        triangle.append(next_row)
+    return triangle

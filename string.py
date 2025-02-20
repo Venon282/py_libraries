@@ -124,3 +124,21 @@ def isInterleave(s1, s2, s3):
     # The result is stored in dp[len(s1)][len(s2)]
     return dp[len(s1)][len(s2)]
 
+def longestPalindrome(s):
+        """
+        :type s: str
+        :rtype: str
+        """
+
+        ls = len(s)
+        ans = s[0]
+        for i in range(ls):
+            l,r = i,i
+            while r < ls-1 and s[r+1] == s[l]:
+                r +=1
+            while l >0 and r < ls-1 and s[l-1] == s[r+1]:
+                l -=1
+                r +=1
+            if r+1-l > len(ans):
+                ans = s[l:r+1]
+        return ans
