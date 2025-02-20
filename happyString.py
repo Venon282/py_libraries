@@ -1,71 +1,71 @@
 from typing import List
 
-
-def getHappyString( size: int, k: int) -> str:
-    """get the kème happy string of size size
-
-    Args:
-        size (int): _description_
-        k (int): _description_
-
-    Returns:
-        str: _description_
+class HappyString:
+    """Happy string is a string that doesn't have two adjacent characters are the same.
+        Args:
+            chars (string): list of the chars that can be used to build the happy string. (default: 'abc')
     """
-    total = 3 * (2 ** (size - 1))
-    if k > total:
-        return ""
-    k -= 1  # convert k to 0-index
+    def __init__(self, chars='abc'):
+        self.chars = chars
+                
 
-    # Determine the first character.
-    first_count = 2 ** (size - 1)
-    if k < first_count:
-        res = ['a']
-    elif k < 2 * first_count:
-        res = ['b']
-        k -= first_count
-    else:
-        res = ['c']
-        k -= 2 * first_count
+    def getHappyString(self, size: int, k: int) -> str:
+        """
+        Returns the kth happy string of length 'size' using the characters in self.chars.
+        A happy string is one where no two adjacent characters are the same.
+        """
+        m = len(self.chars)
+        if size == 0:
+            return ""
+        # Total number of happy strings: m * (m - 1)^(size - 1)
+        total = m * ((m - 1) ** (size - 1))
+        if k > total:
+            return ""
+        k -= 1  # convert k to 0-indexed
 
-    # Build the rest of the string.
-    for i in range(1, size):
-        count = 2 ** (size - i - 1)
-        prev = res[-1]
-        # Options are the two characters different from prev in lex order.
-        options = [c for c in "abc" if c != prev]
-        if k < count:
-            res.append(options[0])
-        else:
-            res.append(options[1])
-            k -= count
+        # Determine the first character.
+        first_count = (m - 1) ** (size - 1)
+        first_index = k // first_count
+        res = [self.chars[first_index]]
+        k %= first_count
 
-    return "".join(res)
+        # Build the rest of the string.
+        for i in range(1, size):
+            count = (m - 1) ** (size - i - 1)
+            prev = res[-1]
+            # Options: all characters in self.chars except the previous character.
+            options = [c for c in self.chars if c != prev]
+            index = k // count
+            res.append(options[index])
+            k %= count
 
-def happyStrings(n: int) -> List[str]:
-    """get all happy strings of size n
+        return "".join(res)
 
-    Args:
-        n (int): _description_
+    def happyStrings(self, n: int) -> List[str]:
+        """get all happy strings of size n
 
-    Returns:
-        List[str]: _description_
-    """
-    def happyStringsRec(word, n):
-        if len(word) == n:
-            return [word]
-        res = []
-        for c in "abc":
-            if not word or c != word[-1]:
-                res.extend(happyStringsRec(word + c, n))
-        return res
-    
-    return happyStringsRec("", n)
+        Args:
+            n (int): _description_
 
-def isHappyString(string):
-    if string[0] not in 'abc':
-        return False
-    
-    for i in range(1, len(string)):
-        if string[i] not in 'abc' or string[i] == string[i - 1]:
+        Returns:
+            List[str]: _description_
+        """
+        def happyStringsRec(word, n):
+            if len(word) == n:
+                return [word]
+            res = []
+            for c in self.chars:
+                if not word or c != word[-1]:
+                    res.extend(happyStringsRec(word + c, n))
+            return res
+        
+        return happyStringsRec("", n)
+
+    def isHappyString(self, string):
+        if string[0] not in self.chars:
             return False
-    return True
+        
+        for i in range(1, len(string)):
+            if string[i] not in self.chars or string[i] == string[i - 1]:
+                return False
+        return True
