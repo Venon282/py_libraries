@@ -43,3 +43,9 @@ def romanToInt(self, s):
 
 def isPowerOfTwo(n):
     return n > 0 and (n & (n - 1)) == 0
+
+def sign(n):
+    return (n > 0) - (n < 0)
+
+def reverse(n):
+    return int(str(abs(n))[::-1]) * sign(n)
