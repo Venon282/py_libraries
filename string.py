@@ -106,10 +106,10 @@ def isInterleave(s1, s2, s3):
     # If lengths do not match, return False
     if len(s1) + len(s2) != len(s3):
         return False
-    
+
     # DP table to store results for subproblems
     dp = [[False] * (len(s2) + 1) for _ in range(len(s1) + 1)]
-    
+
     # Base case: empty s1 and s2 interleave to form empty s3
     dp[0][0] = True
 
@@ -120,7 +120,7 @@ def isInterleave(s1, s2, s3):
                 dp[i][j] = dp[i][j] or dp[i - 1][j]
             if j > 0 and s2[j - 1] == s3[i + j - 1]:
                 dp[i][j] = dp[i][j] or dp[i][j - 1]
-    
+
     # The result is stored in dp[len(s1)][len(s2)]
     return dp[len(s1)][len(s2)]
 
@@ -142,3 +142,32 @@ def longestPalindrome(s):
             if r+1-l > len(ans):
                 ans = s[l:r+1]
         return ans
+
+def myAtoi(s: str) -> int:
+    sign = 1
+    res = 0
+    idx = 0
+
+    # Ignore leading whitespaces
+    while idx < len(s) and s[idx] == ' ':
+        idx += 1
+
+    # Store the sign of number
+    if idx < len(s) and (s[idx] == '-' or s[idx] == '+'):
+        if s[idx] == '-':
+            sign = -1
+        idx += 1
+
+    # Construct the number digit by digit
+    while idx < len(s) and '0' <= s[idx] <= '9':
+
+        # Append current digit to the result
+        res = 10 * res + (ord(s[idx]) - ord('0'))
+
+        # Handling overflow/underflow test case
+        if res > (2**31 - 1):
+            return sign * (2**31 - 1) if sign == 1 else -2**31
+
+        idx += 1
+
+    return res * sign
