@@ -1,3 +1,6 @@
+from typing import List
+
+
 def prefixCount(words:list[str], pref:str):
     """
     :type words: List[str]
@@ -120,3 +123,4 @@ def isInterleave(s1, s2, s3):
     
     # The result is stored in dp[len(s1)][len(s2)]
     return dp[len(s1)][len(s2)]
+
