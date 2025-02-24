@@ -58,3 +58,8 @@ def addDigitsUntilOnlyOne(num):
             Since 2 has only one digit, return it.
         """
         return 0 if num == 0 else (num % 9 or 9)
+def sign(n):
+    return (n > 0) - (n < 0)
+
+def reverse(n):
+    return int(str(abs(n))[::-1]) * sign(n)
