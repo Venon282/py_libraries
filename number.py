@@ -43,3 +43,18 @@ def romanToInt(self, s):
 
 def isPowerOfTwo(n):
     return n > 0 and (n & (n - 1)) == 0
+
+def addDigitsUntilOnlyOne(num):
+        """
+        :type num: int
+        :rtype: int
+        
+        Exemple:
+            Input: num = 38
+            Output: 2
+            Explanation: The process is
+            38 --> 3 + 8 --> 11
+            11 --> 1 + 1 --> 2 
+            Since 2 has only one digit, return it.
+        """
+        return 0 if num == 0 else (num % 9 or 9)

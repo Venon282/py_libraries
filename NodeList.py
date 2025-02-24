@@ -3,8 +3,7 @@ from Edge import Edge
 
 
 class ListNode(Node):
-    def __init__(self, edges=None, x=0, y=0, size=10, color='white', border_color='black',
-                 border_width=1, value='Node', properties=None, **kwargs):
+    def __init__(self, value=0, edges=[], **kwargs):
         """
         Initializes a ListNode with inherited graphical and positional properties.
         The node's data is stored in 'value'. Its list links (previous/next) are represented
@@ -22,19 +21,10 @@ class ListNode(Node):
             properties (list, optional): Additional properties.
             **kwargs: Any additional keyword arguments for Node.
         """
-        if edges is None:
-            edges = []
-        if properties is None:
-            properties = []
+            
         kwargs.setdefault('edges', edges)
-        kwargs.setdefault('x', x)
-        kwargs.setdefault('y', y)
-        kwargs.setdefault('size', size)
-        kwargs.setdefault('color', color)
-        kwargs.setdefault('border_color', border_color)
-        kwargs.setdefault('border_width', border_width)
         kwargs.setdefault('value', value)
-        kwargs.setdefault('properties', properties)
+        
         super().__init__(**kwargs)
     
     def next(self):
