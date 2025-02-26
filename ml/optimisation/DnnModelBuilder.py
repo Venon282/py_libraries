@@ -95,7 +95,7 @@ class DnnModelBuilder(BaseModelBuilder):
             x = BatchNormalization()(x)    
         return x
     
-    def block(self, hp, x, block_id):
+    def block(self, hp, x, block_id, min_layers=None, max_layers=None):
         """
         Build a dense block with a tunable number of layers.
         
@@ -110,16 +110,18 @@ class DnnModelBuilder(BaseModelBuilder):
         Returns:
             The output tensor after applying the dense block.
         """
+        max_layers_use = self.max_layers if max_layers is None else max_layers
+        min_layers_use = self.min_layers if min_layers is None else min_layers
         x_in = x  # For potential skip connection.
         
         # Option to use a residual connection for this block.
-        use_skip = hp.Boolean(f'use_skip_{block_id}', default=True)
+        use_skip = hp.Boolean(f'use_skip_{block_id}' , default=True) 
         
         # Choose how many layers to activate in this block
-        n_layers = hp.Int(f'n_layers_{block_id}', self.min_layers, self.max_layers, default=3) or 0
-        for i in range(self.max_layers):
+        n_layers = hp.Int(f'n_layers_{block_id}', min_layers_use, max_layers_use, default=3) or 0
+        for i in range(max_layers_use):
             # This scope is active only if the chosen n_layers is >= i+1.
-            with hp.conditional_scope(f'n_layers_{block_id}', list(range(i+1, self.max_layers+1))):
+            with hp.conditional_scope(f'n_layers_{block_id}', list(range(i+1, max_layers_use+1))):
                 choice = self._choices(hp, block_id, i)
                 
             # Only add the layer if it is within the active n_layers.
@@ -133,7 +135,7 @@ class DnnModelBuilder(BaseModelBuilder):
         return x
 
     def build_model(self, hp):
- 
+        merges_without_concat = [item for item in self.merges if item != 'concat']
         # Input layer
         inputs = Input(shape=(self.n_features,), name='input')
         x = inputs
@@ -142,20 +144,23 @@ class DnnModelBuilder(BaseModelBuilder):
         use_start_branch = hp.Boolean('use_start_branch', default=True)
         with hp.conditional_scope(f'use_start_branch', [True]):
             
-            merge_mode_start = hp.Choice('merge_mode_start', self.merges, default=self.merges[0])
-            if merge_mode_start not in ('concat',  None):
-                self.min_layers -= 1
-                self.min_layers -= 1
-                with hp.conditional_scope(f'merge_mode_start', [item for item in self.merges if item != 'concat']):
-                    choice = self._choices(hp, 'start_merge', '')                
-                    start_branches = [self.completeDenseLayer(self.block(hp, x, block_id=f'start_{i}'), choice["units"], choice["activation"], choice["dropout_rate"], choice["batch_norm"], choice["kernel_reg"], choice["bias_reg"], choice["activity_reg"]) for i in range(self.n_labels)]
-                self.min_layers += 1
-                self.min_layers += 1
-            elif merge_mode_start is not None:
-                start_branches = [self.block(hp, x, block_id=f'start_{i}') for i in range(self.n_labels)]
-                
+            merge_mode_start = hp.Choice('merge_mode_start', self.merges, default=merges_without_concat[0] if len(merges_without_concat) > 0 else self.merges[0])
             if merge_mode_start is not None:
+                max_layers_use = self.max_layers
+                min_layers_use = self.min_layers
+
+                if merge_mode_start != 'concat':
+                    max_layers_use -= 1
+                    min_layers_use -=1
+                    
+                start_branches = [self.block(hp, x, block_id=f'start_{i}', min_layers=min_layers_use, max_layers=max_layers_use) for i in range(self.n_labels)]
+                
+                with hp.conditional_scope(f'merge_mode_start', merges_without_concat):
+                    choice = self._choices(hp, 'start_merge', '')
+                    start_branches = [self.completeDenseLayer(block, choice["units"], choice["activation"], choice["dropout_rate"], choice["batch_norm"], choice["kernel_reg"], choice["bias_reg"], choice["activity_reg"]) for block in start_branches]
+                
                 x = getMerge(merge_mode_start, name='start')(start_branches)
+                
         # Optional main sequential dense block
         use_middle_block = hp.Boolean('use_middle_block', default=True)
         with hp.conditional_scope(f'use_middle_block', [True]):
