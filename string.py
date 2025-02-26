@@ -68,6 +68,22 @@ def longestUnicSubstringLength(s):
 
     return max_length
 
+def toPlurialFr(word):
+    if word[-1] in ('s', 'x', 'z'):
+        return word  # Pas de changement
+    elif word.endswith('au') or word.endswith('eau') or word.endswith('eu'):
+        return word + 'x'
+    elif word.endswith('al'):
+        return word[:-2] + 'aux'
+    elif word.endswith('ail'):
+        if word in ['travail']:  # Cas spécifique
+            return word[:-3] + 'aux'
+        else:
+            return word + 's'
+    else:
+        return word + 's'
+    
+
 def isValidParenthese(s, open_ = ['(', '[', '{'], close_ = [')', ']', '}']):
         """
         :type s: str
