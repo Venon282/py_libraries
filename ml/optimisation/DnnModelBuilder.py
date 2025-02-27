@@ -118,15 +118,15 @@ class DnnModelBuilder(BaseModelBuilder):
         use_skip = hp.Boolean(f'use_skip_{block_id}' , default=True) 
         
         # Choose how many layers to activate in this block
-        n_layers = hp.Int(f'n_layers_{block_id}', min_layers_use, max_layers_use, default=3) or 0
+        n_layers = hp.Int(f'n_layers_{block_id}', min_layers_use, max_layers_use, default=3)
         for i in range(max_layers_use):
             # This scope is active only if the chosen n_layers is >= i+1.
             with hp.conditional_scope(f'n_layers_{block_id}', list(range(i+1, max_layers_use+1))):
                 choice = self._choices(hp, block_id, i)
                 
-            # Only add the layer if it is within the active n_layers.
-            if i < n_layers:
-                x = self.completeDenseLayer(x, choice["units"], choice["activation"], choice["dropout_rate"], choice["batch_norm"], choice["kernel_reg"], choice["bias_reg"], choice["activity_reg"])
+                # Only add the layer if it is within the active n_layers.
+                if i < n_layers:
+                    x = self.completeDenseLayer(x, choice["units"], choice["activation"], choice["dropout_rate"], choice["batch_norm"], choice["kernel_reg"], choice["bias_reg"], choice["activity_reg"])
                     
         # Apply a residual connection if enabled.
         if use_skip:
@@ -157,22 +157,26 @@ class DnnModelBuilder(BaseModelBuilder):
                 
                 with hp.conditional_scope(f'merge_mode_start', merges_without_concat):
                     choice = self._choices(hp, 'start_merge', '')
-                    start_branches = [self.completeDenseLayer(block, choice["units"], choice["activation"], choice["dropout_rate"], choice["batch_norm"], choice["kernel_reg"], choice["bias_reg"], choice["activity_reg"]) for block in start_branches]
+                    if merge_mode_start in merges_without_concat:
+                        start_branches = [self.completeDenseLayer(block, choice["units"], choice["activation"], choice["dropout_rate"], choice["batch_norm"], choice["kernel_reg"], choice["bias_reg"], choice["activity_reg"]) for block in start_branches]
                 
                 x = getMerge(merge_mode_start, name='start')(start_branches)
                 
         # Optional main sequential dense block
         use_middle_block = hp.Boolean('use_middle_block', default=True)
         with hp.conditional_scope(f'use_middle_block', [True]):
-            x = self.block(hp, x, block_id='middle')
+            if use_middle_block:
+                x = self.block(hp, x, block_id='middle')
 
         # Optional end up by separate branchs
         use_end_branch = hp.Boolean('use_end_branch', default=True)
         with hp.conditional_scope(f'use_end_branch', [True]):
             # For each labels, create a separate branch for its prediction
-            outputs = Concatenate(name='output')([Dense(1, activation='linear', name=f'output_{i}')(self.block(hp, x, block_id=f'end_{i}'))  for i in range(self.n_labels)])
+            if use_end_branch:
+                outputs = Concatenate(name='output')([Dense(1, activation='linear', name=f'output_{i}')(self.block(hp, x, block_id=f'end_{i}'))  for i in range(self.n_labels)])
         with hp.conditional_scope(f'use_end_branch', [False]):
-            outputs = Dense(self.n_labels, activation='linear', name='output')(x)
+            if not use_end_branch:
+                outputs = Dense(self.n_labels, activation='linear', name='output')(x)
 
         model = Model(inputs=inputs, outputs=outputs, name='tunable_model')
 
