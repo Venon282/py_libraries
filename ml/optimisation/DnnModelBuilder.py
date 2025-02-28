@@ -7,111 +7,227 @@ from ..layer.module import activation as getActivation, residualConnection, merg
 
 class DnnModelBuilder(BaseModelBuilder):
     def __init__(self, n_features, n_labels, *args, **kwargs):
+        """
+        Initialize the DNN model builder with hyperparameter configurations.
+
+        Parameters:
+            n_features (int): Number of input features.
+            n_labels (int): Number of output labels.
+
+        Optional Keyword Arguments:
+            # Layer architecture settings
+            min_layers (int): Minimum number of layers. Default is 1.
+            max_layers (int): Maximum number of layers. Default is 10.
+            units_min (int): Minimum number of units per layer. Default is 32.
+            units_max (int): Maximum number of units per layer. Default is 2048.
+            units_step (int): Step increment for units per layer. Default is 32.
+
+            # Batch normalization settings
+            batch_norm (bool): Whether to use batch normalization. Default is True.
+            batch_norm_obligate (bool): Whether batch normalization is mandatory. Default is False.
+
+            # Dropout configuration
+            dropout_min (float): Minimum dropout rate. Default is 0.0.
+            dropout_max (float): Maximum dropout rate. Default is 0.6.
+            dropout_step (float): Step increment for dropout rate. Default is 0.1.
+
+            # Activation function (leaky variants) negative slope settings
+            negative_slope_min (float): Minimum negative slope. Default is 0.001.
+            negative_slope_max (float): Maximum negative slope. Default is 0.5.
+            negative_slope_step (float): Step increment for negative slope. Default is 0.001.
+
+            # Regularization settings
+            regularizer (bool): Enable regularization. Default is True.
+            regularizer_kernel (bool): Regularize kernel weights. Default is True.
+            regularizer_bias (bool): Regularize bias terms. Default is True.
+            regularizer_activity (bool): Regularize layer activations. Default is True.
+            regularizer_min (float): Minimum regularization factor. Default is 1e-6.
+            regularizer_max (float): Maximum regularization factor. Default is 0.01.
+
+            # Other hyperparameter options
+            merges (list): List of merge operations. Default is ['concat', 'add', 'average', 'weighted_avg'].
+            activations (list): List of activation functions to consider.
+                Default is ['relu', 'elu', 'selu', 'gelu', 'leaky_relu', 'prelu', 'mish', 'softplus'].
+            optimizers (list): List of optimizers to consider. Default is ['adam', 'sgd', 'rmsprop'].
+        """
+        # Input/Output dimensions
         self.n_features = n_features
         self.n_labels = n_labels
         
+        # ---- Layer Architecture ----
         self.min_layers = kwargs.pop('min_layers', 1)
         self.max_layers = kwargs.pop('max_layers', 10)
-
         self.units_min = kwargs.pop('units_min', 32)
         self.units_max = kwargs.pop('units_max', 2048)
         self.units_step = kwargs.pop('units_step', 32)
 
+        # ---- Batch Normalization Settings ----
+        self.batch_norm = kwargs.pop('batch_norm', True)
+        self.batch_norm_obligate = kwargs.pop('batch_norm_obligate', False)
+        
+        # ---- Dropout Settings ----
         self.dropout_min = kwargs.pop('dropout_min', 0.0)
         self.dropout_max = kwargs.pop('dropout_max', 0.6)
         self.dropout_step = kwargs.pop('dropout_step', 0.1)
 
+         # ---- Negative Slope for Leaky Activations ----
         self.negative_slope_min = kwargs.pop('negative_slope_min', 0.001)
         self.negative_slope_max = kwargs.pop('negative_slope_max', 0.5)
         self.negative_slope_step = kwargs.pop('negative_slope_step', 0.001)
 
-        self.regularizer_min = kwargs.pop('regularizer_min', 1e-6)
-        self.regularizer_max = kwargs.pop('regularizer_max', 0.01)
-
+        # ---- Regularization Settings ----
+        self.regularizer            = kwargs.pop('regularizer', True)
+        self.regularizer_kernel     = kwargs.pop('regularizer_kernel', True)
+        self.regularizer_bias       = kwargs.pop('regularizer_bias', True)
+        self.regularizer_activity   = kwargs.pop('regularizer_activity', True)
+        self.regularizer_min        = kwargs.pop('regularizer_min', 1e-6)
+        self.regularizer_max        = kwargs.pop('regularizer_max', 0.01)
+        
+         # If regularization is disabled, disable all specific regularizers
+        if self.regularizer is False:
+            self.regularizer_kernel, self.regularizer_bias, self.regularizer_activity = False, False, False
+        
+        # ---- Additional Hyperparameters ----
         self.merges = kwargs.pop('merges', ['concat','add','average','weighted_avg'])
-
         self.activations = kwargs.pop('activations', ['relu','elu','selu','gelu','leaky_relu','prelu','mish','softplus'])
-
         self.optimizers = kwargs.pop('optimizers', ['adam', 'sgd', 'rmsprop'])
         
+        # Initialize the base class with any remaining arguments.
         super().__init__(*args, **kwargs)
         
+    def _regularizer(self, hp, block_id, i, is_desire, name):
+        """
+        Configure a regularizer for a given hyperparameter tuning block if desired.
+
+        Parameters:
+            hp: Hyperparameter tuning object.
+            block_id (str): Identifier for the block.
+            i (int): Index of the current layer.
+            is_desire (bool): Flag indicating whether to apply this regularizer.
+            name (str): Name prefix for the regularizer type (e.g., 'kernel', 'bias', 'activity').
+
+        Returns:
+            A configured regularizer object (via getRegularizers) or None if not desired.
+        """
+        if is_desire:
+            # Determine if the regularizer should be applied.
+            use_reg = hp.Boolean(f'use_{name}_regularizer_{block_id}_{i}', default=True)
+            with hp.conditional_scope(f'use_{name}_regularizer_{block_id}_{i}', [True]):
+                # Choose the regularizer type: 'l1', 'l2', or 'l1_l2'
+                reg_choice = hp.Choice(f'{name}_regularizer_{block_id}_{i}', ['l1', 'l2', 'l1_l2'], default='l2')
+                
+                # Primary regularization factor.
+                reg_factor = hp.Float(f'{name}_regularizer_factor_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2)
+                
+                # Secondary factor needed only when using 'l1_l2'
+                reg_factor2 = hp.Float(f'{name}_regularizer_factor2_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2,
+                                            parent_name=f'{name}_regularizer_{block_id}_{i}', parent_values=['l1_l2'])
+            # If l1_l2 is not chosen, use the primary factor for both.
+            reg_factor2 = reg_factor2 if reg_choice == 'l1_l2' else reg_factor
+            return getRegularizers(reg_choice, reg_factor, reg_factor2) if use_reg else None
+        else:
+            return None
+        
     def _choices(self, hp, block_id, i):
+        """
+        Define a dictionary of hyperparameter choices for a given layer.
+
+        Parameters:
+            hp: Hyperparameter tuning object.
+            block_id (str): Identifier for the block.
+            i (int): Index of the layer within the block.
+
+        Returns:
+            A dictionary containing:
+                - units: Number of neurons.
+                - activation: Activation function.
+                - dropout_rate: Dropout rate.
+                - negative_slope: Negative slope for leaky activations (if applicable).
+                - batch_norm: Whether to use batch normalization.
+                - kernel_reg: Kernel regularizer.
+                - bias_reg: Bias regularizer.
+                - activity_reg: Activity regularizer.
+        """
         units = hp.Int(f'units_{block_id}_{i}', min_value=self.units_min, max_value=self.units_max,
                                step=self.units_step, default=(self.units_min + self.units_max) // 2)
+        
         activation = hp.Choice(f'activation_{block_id}_{i}', self.activations, default='relu')
+        
+        
         dropout_rate = hp.Float(f'dropout_{block_id}_{i}', self.dropout_min, self.dropout_max,
                                 step=self.dropout_step, default=(self.dropout_min + self.dropout_max) / 2)
+        
         # Define negative slope only if using leaky_relu.
         negative_slope = hp.Float(f'negative_slope_{block_id}_{i}', self.negative_slope_min, self.negative_slope_max, step=self.negative_slope_step, 
                                   default=(self.negative_slope_min+self.negative_slope_max)/2, parent_name=f'activation_{block_id}_{i}', parent_values=['leaky_relu'])
-        batch_norm = hp.Boolean(f'use_batchnorm_{block_id}_{i}', default=True)
+        
+        
+        batch_norm = hp.Boolean(f'use_batchnorm_{block_id}_{i}', default=True) if self.batch_norm else None
         
         # --- Regularization Options ---
-        # Kernel regularizer.
-        use_kernel_reg = hp.Boolean(f'use_kernel_regularizer_{block_id}_{i}', default=True)
-        with hp.conditional_scope(f'use_kernel_regularizer_{block_id}_{i}', [True]):
-            kernel_reg_choice = hp.Choice(f'kernel_regularizer_{block_id}_{i}', ['l1', 'l2', 'l1_l2'], default='l2')
-            kernel_reg_factor = hp.Float(f'kernel_regularizer_factor_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2)
-            kernel_reg_factor2 = hp.Float(f'kernel_regularizer_factor2_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2,
-                                        parent_name=f'kernel_regularizer_{block_id}_{i}', parent_values=['l1_l2'])
-        
-        # Bias regularizer.
-        use_bias_reg = hp.Boolean(f'use_bias_regularizer_{block_id}_{i}', default=True)
-        with hp.conditional_scope(f'use_bias_regularizer_{block_id}_{i}', [True]):
-            bias_reg_choice = hp.Choice(f'bias_regularizer_{block_id}_{i}', ['l1', 'l2', 'l1_l2'], default='l2')
-            bias_reg_factor = hp.Float(f'bias_regularizer_factor_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2)
-            bias_reg_factor2 = hp.Float(f'bias_regularizer_factor2_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2,
-                                        parent_name=f'bias_regularizer_{block_id}_{i}', parent_values=['l1_l2'])
-        # Activity regularizer.
-        use_activity_reg = hp.Boolean(f'use_activity_regularizer_{block_id}_{i}', default=True)
-        with hp.conditional_scope(f'use_activity_regularizer_{block_id}_{i}', [True]):
-            activity_reg_choice = hp.Choice(f'activity_regularizer_{block_id}_{i}', 
-                                            ['l1', 'l2', 'l1_l2'], default='l2')
-            activity_reg_factor = hp.Float(f'activity_regularizer_factor_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2)
-            activity_reg_factor2 = hp.Float(f'activity_regularizer_factor2_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2,
-                                        parent_name=f'activity_regularizer_{block_id}_{i}', parent_values=['l1_l2'])
-        
-        # if need two value stay else take the one value
-        kernel_reg_factor2 = kernel_reg_factor2 if kernel_reg_choice == 'l1_l2' else kernel_reg_factor
-        bias_reg_factor2 = bias_reg_factor2 if bias_reg_choice == 'l1_l2' else bias_reg_factor
-        activity_reg_factor2 = activity_reg_factor2 if activity_reg_choice == 'l1_l2' else activity_reg_factor
-        
-        # Build the regularizers if enabled.
-        kernel_reg = getRegularizers(kernel_reg_choice, kernel_reg_factor, kernel_reg_factor2) if use_kernel_reg else None
-        bias_reg = getRegularizers(bias_reg_choice, bias_reg_factor, bias_reg_factor2) if use_bias_reg else None
-        activity_reg = getRegularizers(activity_reg_choice, activity_reg_factor, activity_reg_factor2) if use_activity_reg else None
-        
-        return {'units':units, 'activation':activation, 'dropout_rate':dropout_rate, 'negative_slope':negative_slope, 'batch_norm':batch_norm, 'use_kernel_reg':use_kernel_reg, 'kernel_reg_choice':kernel_reg_choice, 'kernel_reg_factor':kernel_reg_factor, 'use_bias_reg':use_bias_reg, 'bias_reg_choice':bias_reg_choice, 'bias_reg_factor':bias_reg_factor, 'use_activity_reg':use_activity_reg, 'activity_reg_choice':activity_reg_choice, 'activity_reg_factor':activity_reg_factor, 'kernel_reg':kernel_reg, 'bias_reg':bias_reg, 'activity_reg':activity_reg}
+        kernel_reg      = self._regularizer(hp, block_id, i, is_desire=self.regularizer_kernel    , name='kernel')
+        bias_reg        = self._regularizer(hp, block_id, i, is_desire=self.regularizer_bias      , name='bias')
+        activity_reg    = self._regularizer(hp, block_id, i, is_desire=self.regularizer_activity  , name='activity')
+                
+        return {
+            'units':units, 
+            'activation':activation, 
+            'dropout_rate':dropout_rate,
+            'negative_slope':negative_slope, 
+            'batch_norm':batch_norm, 
+            'kernel_reg':kernel_reg, 
+            'bias_reg':bias_reg, 
+            'activity_reg':activity_reg}
         
     def completeDenseLayer(self, x, units, activation, dropout_rate, batch_norm, kernel_reg, bias_reg, activity_reg):
+        """
+        Build a dense layer with configurable activation, dropout, and batch normalization.
+
+        Parameters:
+            x: Input tensor.
+            units (int): Number of neurons in the layer.
+            activation (str): Activation function.
+            dropout_rate (float): Dropout rate to apply after activation.
+            batch_norm (bool): Whether to apply batch normalization.
+            kernel_reg: Regularizer for kernel weights.
+            bias_reg: Regularizer for bias.
+            activity_reg: Regularizer for activations.
+
+        Returns:
+            Output tensor after applying the Dense layer, activation, optional dropout, and batch normalization.
+        """
         x = Dense(units, activation=None, kernel_regularizer=kernel_reg, bias_regularizer=bias_reg, activity_regularizer=activity_reg)(x)
         x = getActivation(activation)(x)
             
         if dropout_rate > 0:
             x = Dropout(dropout_rate)(x)
-            
-        if batch_norm:
+        
+        # Apply batch normalization if enabled either by global settings or per-layer choice.
+        if (self.batch_norm and batch_norm) or self.batch_norm_obligate:
             x = BatchNormalization()(x)    
         return x
     
     def block(self, hp, x, block_id, min_layers=None, max_layers=None):
         """
-        Build a dense block with a tunable number of layers.
-        
-        For each layer index in 0...self.max_layers-1, we use hp.conditional_scope so that
-        the hyperparameters (units, activation, dropout, etc.) are only registered if the
-        current layer index is within the active number of layers.
-        
+        Build a dense block comprising multiple layers with tunable hyperparameters.
+
+        Hyperparameters for each layer are registered conditionally based on the chosen
+        number of active layers. Optionally, a residual (skip) connection is added.
+
         Parameters:
+            hp: Hyperparameter tuning object.
             x: Input tensor.
-            block_id: Identifier string for this block (used for hyperparameter naming).
-            
+            block_id (str): Unique identifier for the block.
+            min_layers (int, optional): Minimum layers to include (defaults to self.min_layers).
+            max_layers (int, optional): Maximum layers to include (defaults to self.max_layers).
+
         Returns:
-            The output tensor after applying the dense block.
+            Output tensor after applying the dense block (including a residual connection if enabled).
         """
+        # Determine effective layer limits.
         max_layers_use = self.max_layers if max_layers is None else max_layers
         min_layers_use = self.min_layers if min_layers is None else min_layers
+        
         x_in = x  # For potential skip connection.
         
         # Option to use a residual connection for this block.
@@ -120,7 +236,7 @@ class DnnModelBuilder(BaseModelBuilder):
         # Choose how many layers to activate in this block
         n_layers = hp.Int(f'n_layers_{block_id}', min_layers_use, max_layers_use, default=3)
         for i in range(max_layers_use):
-            # This scope is active only if the chosen n_layers is >= i+1.
+            # Only register hyperparameters if layer index i is within the active number.
             with hp.conditional_scope(f'n_layers_{block_id}', list(range(i+1, max_layers_use+1))):
                 choice = self._choices(hp, block_id, i)
                 
@@ -135,7 +251,21 @@ class DnnModelBuilder(BaseModelBuilder):
         return x
 
     def build_model(self, hp):
+        """
+        Construct and compile the tunable model using hyperparameter selections.
+
+        The model can optionally include a start branch (with separate branches per label),
+        a middle dense block, and an end branch. The optimizer is also selected and tuned.
+
+        Parameters:
+            hp: Hyperparameter tuning object.
+
+        Returns:
+            A compiled Keras model.
+        """
+        # Exclude 'concat' from alternative merge modes.
         merges_without_concat = [item for item in self.merges if item != 'concat']
+        
         # Input layer
         inputs = Input(shape=(self.n_features,), name='input')
         x = inputs
@@ -149,7 +279,7 @@ class DnnModelBuilder(BaseModelBuilder):
                 max_layers_use = self.max_layers
                 min_layers_use = self.min_layers
 
-                if merge_mode_start != 'concat':
+                if merge_mode_start in merges_without_concat:
                     max_layers_use -= 1
                     min_layers_use -=1
                     
@@ -183,8 +313,12 @@ class DnnModelBuilder(BaseModelBuilder):
         # Optimizer selection using conditional scopes.
         optimizer_choice = hp.Choice('optimizer', self.optimizers, default=self.optimizers[0])
         
-        lr = hp.Float(f'{optimizer_choice}_lr', min_value=self.learning_rate_min, max_value=self.learning_rate_max, sampling='log', default=1e-3)
-        
+        lrs = []
+        for optimizer in self.optimizers:
+            with hp.conditional_scope('optimizer', [optimizer]):
+                lrs.append(hp.Float(f'{optimizer}_lr', min_value=self.learning_rate_min, max_value=self.learning_rate_max, sampling='log', default=1e-3))
+
+        lr = lrs[self.optimizers.index(optimizer_choice)]
         model.compile(optimizer=getOptimizers(optimizer_choice, lr), loss='mse', metrics=['mae'])
         
         return model

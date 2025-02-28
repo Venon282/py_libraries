@@ -16,7 +16,7 @@ class BayesianTuner(kt.BayesianOptimization):
         self.batch_size_max = kwargs.get('batch_size_max', 2048)
         self.batch_size_step = kwargs.get('batch_size_step', 1)
         
-        self.early_stopping_patience_min = kwargs.get('early_stopping_patience_min', 10)
+        self.early_stopping_patience_min = kwargs.get('early_stopping_patience_min', 30)
         self.early_stopping_patience_max = kwargs.get('early_stopping_patience_max', 70)
         self.early_stopping_patience_step = kwargs.get('early_stopping_patience_step', 10)
         
@@ -24,7 +24,7 @@ class BayesianTuner(kt.BayesianOptimization):
         self.rlrop_factor_max = kwargs.get('rlrop_factor_max', 0.9)
         self.rlrop_factor_step = kwargs.get('rlrop_factor_step', 0.1)
         
-        self.rlrop_patience_min = kwargs.get('rlrop_patience_min', 3)
+        self.rlrop_patience_min = kwargs.get('rlrop_patience_min', 5)
         self.rlrop_patience_max = kwargs.get('rlrop_patience_max', 20)
         self.rlrop_patience_step = kwargs.get('rlrop_patience_step', 1)
         
