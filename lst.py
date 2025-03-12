@@ -311,10 +311,13 @@ def describe(array, min_threshold=1e-4, max_threshold=1e5, n_decimals=4):
         if abs_val is not None and value != 0 and (abs_val < min_threshold or abs_val >= max_threshold):
             n = 2 if n_decimals is None else n_decimals
             formatted = f"{value:.{n}e}"                # value at scientific format
-            parts = formatted.split("e")                # separate the mantissa and exponent
-            mantissa = parts[0].rstrip("0").rstrip(".") # remove useless 0
-            exponent = parts[1]                         
-            print(f"{key}: {mantissa}e{exponent}")
+            if 'e' in formatted:
+                parts = formatted.split("e")                # separate the mantissa and exponent
+                mantissa = parts[0].rstrip("0").rstrip(".") # remove useless 0
+                exponent = parts[1]                         
+                print(f"{key}: {mantissa}e{exponent}")
+            else:
+                print(f"{key}: {formatted}")
         else:
             if n_decimals is not None and isinstance(value, (int, float)):
                 print(f"{key}: {round(value, n_decimals)}")

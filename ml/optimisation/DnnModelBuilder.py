@@ -4,15 +4,25 @@ from tensorflow.keras.models import Model # type: ignore
 from .ModelBuilder import BaseModelBuilder
 from ..module import getRegularizers, getOptimizers
 from ..layer.module import activation as getActivation, residualConnection, merge as getMerge
+from .module import setHyperparameter
 
 class DnnModelBuilder(BaseModelBuilder):
-    def __init__(self, n_features, n_labels, *args, **kwargs):
+    def __init__(self, n_features, 
+                 n_labels_linear=0, n_labels_sigmoid=0, labels_softmax=[], 
+                 labels_linear_names=[], labels_sigmoid_names=[], labels_softmax_names=[],
+                 fixe_hparams={}, *args, **kwargs):
         """
         Initialize the DNN model builder with hyperparameter configurations.
 
         Parameters:
             n_features (int): Number of input features.
-            n_labels (int): Number of output labels.
+            n_labels_linear (int): Number of regression outputs (linear activation).
+            n_labels_sigmoid (int): Number of binary classification outputs (sigmoid activation).
+            labels_linear_names
+            labels_sigmoid_names
+            labels_softmax_names
+            labels_softmax (list of int): List specifying the number of classes for each multiclass output (softmax activation).
+            fixe_hparams (dict): Dictionary of fixed hyperparameters.
 
         Optional Keyword Arguments:
             # Layer architecture settings
@@ -52,7 +62,33 @@ class DnnModelBuilder(BaseModelBuilder):
         """
         # Input/Output dimensions
         self.n_features = n_features
-        self.n_labels = n_labels
+        
+        self.n_labels_linear = n_labels_linear 
+        self.n_labels_sigmoid= n_labels_sigmoid
+        self.labels_softmax = labels_softmax
+        
+        self.labels_linear_names = labels_linear_names
+        self.labels_sigmoid_names = labels_sigmoid_names
+        self.labels_softmax_names = labels_softmax_names
+        
+        self.fixe_hparams = fixe_hparams
+        
+        self._n_labels = sum([self.n_labels_linear, self.n_labels_sigmoid, len(self.labels_softmax)])
+        if self._n_labels == 0:
+            raise AttributeError('No outputs defined. Please set at least on of the following attributs: n_labels_linear, n_labels_sigmoid, labels_softmax')
+        
+        # define or complete the names if not done
+        for i in range(self.n_labels_linear):
+            if len(self.labels_linear_names) <= i:
+                self.labels_linear_names.append(f'output_linear_{i}')
+                
+        for i in range(self.n_labels_sigmoid):
+            if len(self.labels_sigmoid_name) <= i:
+                self.labels_sigmoid_name.append(f'output_sigmoid_{i}')
+                
+        for i in range(len(self.labels_softmax)):
+            if len(self.labels_softmax_names) <= i:
+                self.labels_softmax_names.append(f'output_softmax_{i}')
         
         # ---- Layer Architecture ----
         self.min_layers = kwargs.pop('min_layers', 1)
@@ -111,16 +147,16 @@ class DnnModelBuilder(BaseModelBuilder):
         """
         if is_desire:
             # Determine if the regularizer should be applied.
-            use_reg = hp.Boolean(f'use_{name}_regularizer_{block_id}_{i}', default=True)
+            use_reg = setHyperparameter(hp.Boolean, self.fixe_hparams, f'use_{name}_regularizer_{block_id}_{i}', default=True)
             with hp.conditional_scope(f'use_{name}_regularizer_{block_id}_{i}', [True]):
                 # Choose the regularizer type: 'l1', 'l2', or 'l1_l2'
-                reg_choice = hp.Choice(f'{name}_regularizer_{block_id}_{i}', ['l1', 'l2', 'l1_l2'], default='l2')
+                reg_choice = setHyperparameter(hp.Choice, self.fixe_hparams, f'{name}_regularizer_{block_id}_{i}', values=['l1', 'l2', 'l1_l2'], default='l2')
                 
                 # Primary regularization factor.
-                reg_factor = hp.Float(f'{name}_regularizer_factor_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2)
+                reg_factor = setHyperparameter(hp.Float, self.fixe_hparams, f'{name}_regularizer_factor_{block_id}_{i}', min_value=self.regularizer_min, max_value=self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2)
                 
                 # Secondary factor needed only when using 'l1_l2'
-                reg_factor2 = hp.Float(f'{name}_regularizer_factor2_{block_id}_{i}', self.regularizer_min, self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2,
+                reg_factor2 = setHyperparameter(hp.Float, self.fixe_hparams, f'{name}_regularizer_factor2_{block_id}_{i}', min_value=self.regularizer_min, max_value=self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2,
                                             parent_name=f'{name}_regularizer_{block_id}_{i}', parent_values=['l1_l2'])
             # If l1_l2 is not chosen, use the primary factor for both.
             reg_factor2 = reg_factor2 if reg_choice == 'l1_l2' else reg_factor
@@ -148,21 +184,21 @@ class DnnModelBuilder(BaseModelBuilder):
                 - bias_reg: Bias regularizer.
                 - activity_reg: Activity regularizer.
         """
-        units = hp.Int(f'units_{block_id}_{i}', min_value=self.units_min, max_value=self.units_max,
+        units = setHyperparameter(hp.Int, self.fixe_hparams, f'units_{block_id}_{i}', min_value=self.units_min, max_value=self.units_max,
                                step=self.units_step, default=(self.units_min + self.units_max) // 2)
         
-        activation = hp.Choice(f'activation_{block_id}_{i}', self.activations, default='relu')
+        activation = setHyperparameter(hp.Choice, self.fixe_hparams, f'activation_{block_id}_{i}', values=self.activations, default='relu')
         
         
-        dropout_rate = hp.Float(f'dropout_{block_id}_{i}', self.dropout_min, self.dropout_max,
+        dropout_rate = setHyperparameter(hp.Float, self.fixe_hparams, f'dropout_{block_id}_{i}', min_value=self.dropout_min, max_value=self.dropout_max,
                                 step=self.dropout_step, default=(self.dropout_min + self.dropout_max) / 2)
         
         # Define negative slope only if using leaky_relu.
-        negative_slope = hp.Float(f'negative_slope_{block_id}_{i}', self.negative_slope_min, self.negative_slope_max, step=self.negative_slope_step, 
+        negative_slope = setHyperparameter(hp.Float, self.fixe_hparams, f'negative_slope_{block_id}_{i}', min_value=self.negative_slope_min, max_value=self.negative_slope_max, step=self.negative_slope_step, 
                                   default=(self.negative_slope_min+self.negative_slope_max)/2, parent_name=f'activation_{block_id}_{i}', parent_values=['leaky_relu'])
         
         
-        batch_norm = hp.Boolean(f'use_batchnorm_{block_id}_{i}', default=True) if self.batch_norm else None
+        batch_norm = setHyperparameter(hp.Boolean, self.fixe_hparams, f'use_batchnorm_{block_id}_{i}', default=True) if self.batch_norm else None
         
         # --- Regularization Options ---
         kernel_reg      = self._regularizer(hp, block_id, i, is_desire=self.regularizer_kernel    , name='kernel')
@@ -231,10 +267,10 @@ class DnnModelBuilder(BaseModelBuilder):
         x_in = x  # For potential skip connection.
         
         # Option to use a residual connection for this block.
-        use_skip = hp.Boolean(f'use_skip_{block_id}' , default=True) 
+        use_skip = setHyperparameter(hp.Boolean, self.fixe_hparams, f'use_skip_{block_id}' , default=True) 
         
         # Choose how many layers to activate in this block
-        n_layers = hp.Int(f'n_layers_{block_id}', min_layers_use, max_layers_use, default=3)
+        n_layers = setHyperparameter(hp.Int, self.fixe_hparams, f'n_layers_{block_id}', min_value=min_layers_use, max_value=max_layers_use, default=3)
         for i in range(max_layers_use):
             # Only register hyperparameters if layer index i is within the active number.
             with hp.conditional_scope(f'n_layers_{block_id}', list(range(i+1, max_layers_use+1))):
@@ -271,10 +307,10 @@ class DnnModelBuilder(BaseModelBuilder):
         x = inputs
 
         # Optional separate start branch
-        use_start_branch = hp.Boolean('use_start_branch', default=True)
+        use_start_branch = setHyperparameter(hp.Boolean, self.fixe_hparams, 'use_start_branch', default=True)
         with hp.conditional_scope(f'use_start_branch', [True]):
             
-            merge_mode_start = hp.Choice('merge_mode_start', self.merges, default=merges_without_concat[0] if len(merges_without_concat) > 0 else self.merges[0])
+            merge_mode_start = setHyperparameter(hp.Choice, self.fixe_hparams, 'merge_mode_start', values=self.merges, default=merges_without_concat[0] if len(merges_without_concat) > 0 else self.merges[0])
             if merge_mode_start is not None:
                 max_layers_use = self.max_layers
                 min_layers_use = self.min_layers
@@ -283,7 +319,7 @@ class DnnModelBuilder(BaseModelBuilder):
                     max_layers_use -= 1
                     min_layers_use -=1
                     
-                start_branches = [self.block(hp, x, block_id=f'start_{i}', min_layers=min_layers_use, max_layers=max_layers_use) for i in range(self.n_labels)]
+                start_branches = [self.block(hp, x, block_id=f'start_{i}', min_layers=min_layers_use, max_layers=max_layers_use) for i in range(self._n_labels)]
                 
                 with hp.conditional_scope(f'merge_mode_start', merges_without_concat):
                     choice = self._choices(hp, 'start_merge', '')
@@ -293,40 +329,71 @@ class DnnModelBuilder(BaseModelBuilder):
                 x = getMerge(merge_mode_start, name='start')(start_branches)
                 
         # Optional main sequential dense block
-        use_middle_block = hp.Boolean('use_middle_block', default=True)
+        use_middle_block = setHyperparameter(hp.Boolean, self.fixe_hparams, 'use_middle_block', default=True)
         with hp.conditional_scope(f'use_middle_block', [True]):
             if use_middle_block:
                 x = self.block(hp, x, block_id='middle')
 
         # Optional end up by separate branchs
-        use_end_branch = hp.Boolean('use_end_branch', default=True)
+        use_end_branch = setHyperparameter(hp.Boolean, self.fixe_hparams, 'use_end_branch', default=True)
+
         with hp.conditional_scope(f'use_end_branch', [True]):
             # For each labels, create a separate branch for its prediction
             if use_end_branch:
-                outputs = Concatenate(name='output')([Dense(1, activation='linear', name=f'output_{i}')(self.block(hp, x, block_id=f'end_{i}'))  for i in range(self.n_labels)])
+                outputs = {
+                    **{name: Dense(1        , activation='linear' , name=name)(self.block(hp, x, block_id=f'end_linear_{i}' )) for i, name              in enumerate(self.labels_linear_names)},
+                    **{name: Dense(1        , activation='sigmoid', name=name)(self.block(hp, x, block_id=f'end_sigmoid_{i}')) for i, name              in enumerate(self.labels_sigmoid_names)},
+                    **{name: Dense(n_classes, activation='softmax', name=name)(self.block(hp, x, block_id=f'end_softmax_{i}')) for i, (n_classes, name) in enumerate(zip(self.labels_softmax, self.labels_softmax_names))}
+                }
+                
         with hp.conditional_scope(f'use_end_branch', [False]):
-            if not use_end_branch:
-                outputs = Dense(self.n_labels, activation='linear', name='output')(x)
+            if use_end_branch is False:
+                outputs = {
+                    **{name: Dense(1        , activation='linear' , name=name)(x) for name            in self.labels_linear_names},
+                    **{name: Dense(1        , activation='sigmoid', name=name)(x) for name            in self.labels_sigmoid_names},
+                    **{name: Dense(n_classes, activation='softmax', name=name)(x) for n_classes, name in zip(self.labels_softmax, self.labels_softmax_names)}
+                }
 
         model = Model(inputs=inputs, outputs=outputs, name='tunable_model')
+        
+        losses = {
+            **{name: 'mse'                      for name in self.labels_linear_names},
+            **{name: 'binary_crossentropy'      for name in self.labels_sigmoid_names},
+            **{name: 'categorical_crossentropy' for name in self.labels_softmax_names}
+        }
 
+        metrics = {
+            **{name: 'mae'      for name in self.labels_linear_names},
+            **{name: 'accuracy' for name in self.labels_sigmoid_names},
+            **{name: 'accuracy' for name in self.labels_softmax_names}
+        }
+        
+        # loss_weights = {
+        #     **{name: 1.0 for name in self.labels_linear_names},
+        #     **{name: 1.0 for name in self.labels_sigmoid_names},
+        #     **{name: 0.1 for name in self.labels_softmax_names}  # reduced weight for softmax outputs
+        # }
+        
         # Optimizer selection using conditional scopes.
-        optimizer_choice = hp.Choice('optimizer', self.optimizers, default=self.optimizers[0])
+        optimizer_choice = setHyperparameter(hp.Choice, self.fixe_hparams, 'optimizer', values=self.optimizers, default=self.optimizers[0])
         
         lrs = []
         for optimizer in self.optimizers:
             with hp.conditional_scope('optimizer', [optimizer]):
-                lrs.append(hp.Float(f'{optimizer}_lr', min_value=self.learning_rate_min, max_value=self.learning_rate_max, sampling='log', default=1e-3))
+                lrs.append(setHyperparameter(hp.Float, self.fixe_hparams, f'{optimizer}_lr', min_value=self.learning_rate_min, max_value=self.learning_rate_max, sampling='log', default=1e-3))
 
         lr = lrs[self.optimizers.index(optimizer_choice)]
-        model.compile(optimizer=getOptimizers(optimizer_choice, lr), loss='mse', metrics=['mae'])
+        model.compile(optimizer=getOptimizers(optimizer_choice, lr), loss=losses, metrics=metrics) # , loss_weights=loss_weights
         
         return model
     
 """Usage
 
 # Binding du constructeur de modèle avec les dimensions des données
-dnn_model_builder = ml.optimisation.DnnModelBuilder(n_features=train_data.shape[-1], n_labels=train_labels.shape[-1])
+dnn_model_builder = ml.optimisation.DnnModelBuilder(n_features=train_data.shape[-1], 
+                                                    n_labels_linear=2,
+                                                    n_labels_sigmoid=0,
+                                                    labels_softmax=[4, 2 , 1]]) # multiclassification. Numbers are the number of class for each
 model_builder = dnn_model_builder.build_model
 
 # Initialisation du tuner Hyperband

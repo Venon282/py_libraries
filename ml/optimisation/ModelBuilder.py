@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class BaseModelBuilder(ABC):
     def __init__(self):
-        
+
         self.learning_rate_min = 1e-6
         self.learning_rate_max = 0.01
 
