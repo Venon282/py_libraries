@@ -55,7 +55,7 @@ def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-',
 
     Parameters:
     -----------
-    *args : tuple
+    *args : tuple ornot
         Each argument can be:
           - (x, y): x and y data arrays.
           - (y, options): y data and a dict of options (x is generated as range(len(y))).
@@ -104,15 +104,21 @@ def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-',
         # Set default plot options
         options = {'color': color, 'linestyle': linestyle, 'linewidth': linewidth, 'label': None}
         # Support for (x, y, options) or (y, options) input formats
-        if len(arg) == 3 and isinstance(arg[2], dict):
-            options.update(arg[2])
-            x, y = arg[0], arg[1]
-        elif len(arg) == 2 and isinstance(arg[1], dict):
-            options.update(arg[1])
-            y = arg[0]
-            x = np.arange(len(y))
+        if isinstance(arg, tuple):
+            if len(arg) == 3 and isinstance(arg[2], dict):
+                options.update(arg[2])
+                x, y = arg[0], arg[1]
+            elif len(arg) == 2:
+                if isinstance(arg[1], dict):
+                    options.update(arg[1])
+                    y = arg[0]
+                    x = np.arange(len(y))
+                else:
+                    x, y = arg[0], arg[1]
+            else:
+                x , y = np.arange(len(arg[0])), arg[0]
         else:
-            x, y = arg[0], arg[1]
+            x, y = np.arange(len(arg)), arg
         
         # Normalize y values to [0, 1] if required
         if normalize_y:
