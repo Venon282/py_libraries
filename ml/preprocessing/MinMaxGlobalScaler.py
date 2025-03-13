@@ -48,26 +48,26 @@ class MinMaxGlobalScaler:
         """
         Recursively traverse nested lists/tuples (or object arrays) to yield numeric values.
         """
-        if isinstance(X, (list, tuple)):
+        if isinstance(X, (list, tuple, np.ndarray)):
             for item in X:
                 yield from self._flatten(item)
-        elif isinstance(X, np.ndarray) and X.dtype == np.object_:
-            for item in X:
-                yield from self._flatten(item)
+        # elif isinstance(X, np.ndarray) and X.dtype == np.object_:
+        #     for item in X:
+        #         yield from self._flatten(item)
         else:
             yield X
 
     def fit(self, X, y=None):
         """
         Compute the global minimum and maximum from the fitted data.
-        
+
         Parameters
         ----------
         X : any nested structure of numbers
             Data to compute the global minimum and maximum.
         y : None
             Ignored.
-        
+
         Returns
         -------
         self : object
@@ -119,12 +119,12 @@ class MinMaxGlobalScaler:
     def transform(self, X):
         """
         Scale the input data using the global minimum and maximum computed during fit.
-        
+
         Parameters
         ----------
         X : any nested structure of numbers
             Data to be transformed.
-        
+
         Returns
         -------
         Transformed data in the same structure (or as a numpy array if possible).
@@ -143,12 +143,12 @@ class MinMaxGlobalScaler:
     def inverse_transform(self, X):
         """
         Reverse the transformation.
-        
+
         Parameters
         ----------
         X : any nested structure of numbers
             Transformed data.
-        
+
         Returns
         -------
         Inverse transformed data in the same structure as the input.
@@ -177,14 +177,14 @@ class MinMaxGlobalScaler:
     def fit_transform(self, X, y=None):
         """
         Fit the scaler to X, then transform X.
-        
+
         Parameters
         ----------
         X : any nested structure of numbers
             Data to fit and transform.
         y : None
             Ignored.
-        
+
         Returns
         -------
         Transformed data in the same structure as X (or as a numpy array if possible).
