@@ -1,3 +1,5 @@
+from typing import List
+
 def tupleSameProduct(nums):
     """
     :type nums: List[int]
@@ -59,7 +61,7 @@ def pascalTriangle(n_rows):
         triangle.append(next_row)
     return triangle
 
-def minQueriesForZeroArray(nums, queries):
+def minQueriesForZeroArray(nums:List[int], queries:List[int]) -> int:
     """
     Determines the minimum number of queries required to transform the array `nums`
     into a zero array. Each query is represented as [left, right, val], and for each query,
