@@ -153,3 +153,59 @@ def maxItemsPerPerson(piles, k):
 
     # 'right' holds the maximum number of items each person can receive.
     return right
+
+def uniqueTriplesSumAt0(nums):
+    """
+    Find all unique triplets in the list `nums` that sum up to 0.
+
+    This function takes a list of integers `nums` and returns a list of all unique triplets 
+    [nums[i], nums[j], nums[k]] such that nums[i] + nums[j] + nums[k] == 0. The solution 
+    uses the two-pointer technique after sorting the input list, ensuring an efficient O(n^2) 
+    time complexity. Duplicate triplets are avoided by skipping repeated elements during 
+    the iteration.
+
+    Args:
+    nums (List[int]): A list of integers.
+
+    Returns:
+    List[List[int]]: A list of unique triplets that sum to 0.
+
+    Example:
+    >>> uniqueTriplesSumAt0([-1, 0, 1, 2, -1, -4])
+    [[-1, -1, 2], [-1, 0, 1]]
+    
+    Time Complexity:
+    - O(n^2): Sorting the array takes O(n log n), and the two-pointer traversal takes O(n) 
+      for each element, resulting in a total time complexity of O(n^2).
+
+    Space Complexity:
+    - O(1): The space complexity is constant, aside from the space used for the result list.
+    """
+    nums = sorted(nums)
+    triples = []
+
+    for i in range(len(nums)-2):
+        if i > 0 and nums[i] == nums[i - 1]:
+            continue
+
+        left, right = i + 1, len(nums)-1
+        while left < right:
+            total = nums[i] + nums[left] + nums[right]
+
+            if total == 0:
+                triples.append([nums[i], nums[left], nums[right]])
+
+                while left < right and nums[left] == nums[left + 1]:
+                    left +=1
+                while left < right and nums[right] == nums[right - 1]:
+                    right -=1
+
+                left +=1
+                right -=1
+            elif total < 0:
+                left +=1
+            else:
+                right -=1
+
+
+    return triples
