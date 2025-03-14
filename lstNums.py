@@ -110,3 +110,46 @@ def minQueriesForZeroArray(nums:List[int], queries:List[int]) -> int:
     
     # Return the total number of queries applied to achieve a zero array.
     return query_idx
+
+def maxItemsPerPerson(piles, k):
+    """
+    Calculates the maximum number of items that can be allocated to each person 
+    from a list of piles, given that:
+      - Each element in 'piles' represents the number of items in that pile.
+      - Each pile can be divided into sub-piles, but items from different piles 
+        cannot be merged.
+      - There are 'k' persons, and each person must receive items exclusively from a single pile.
+    
+    Parameters:
+    piles (List[int]): A list of integers where each integer represents the size of a pile.
+    k (int): The number of persons to allocate items to.
+    
+    Returns:
+    int: The maximum number of items each person can receive. Returns 0 if the total 
+         number of items is less than k.
+    """
+    # If there aren't enough items to allocate at least one item per person, return 0.
+    if sum(piles) < k:
+        return 0
+    
+    # Define binary search bounds:
+    # Lower bound: 1 (minimum allocation per person)
+    # Upper bound: the maximum number of items available in a single pile.
+    left, right = 1, max(piles)
+
+    # Perform binary search to determine the maximum valid allocation per person.
+    while left <= right:
+        # Candidate allocation for each person.
+        middle = left + (right - left) // 2
+        
+        # Calculate total number of persons that can be allocated 'middle' items.
+        # Each pile contributes floor(pile / middle) persons.
+        if sum(pile // middle for pile in piles) >= k:
+            # If it's possible to allocate 'middle' items per person, try a larger allocation.
+            left = middle + 1
+        else:
+            # Otherwise, reduce the allocation candidate.
+            right = middle - 1
+
+    # 'right' holds the maximum number of items each person can receive.
+    return right
