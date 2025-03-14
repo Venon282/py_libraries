@@ -9,7 +9,7 @@ class HappyString:
         self.chars = chars
                 
 
-    def getHappyString(self, size: int, k: int) -> str:
+    def nThHappyStringOfLength(self, size: int, k: int) -> str:
         """
         Returns the kth happy string of length 'size' using the characters in self.chars.
         A happy string is one where no two adjacent characters are the same.
@@ -41,7 +41,7 @@ class HappyString:
 
         return "".join(res)
 
-    def happyStrings(self, n: int) -> List[str]:
+    def happyStringsSizeN(self, n: int) -> List[str]:
         """get all happy strings of size n
 
         Args:
@@ -69,3 +69,17 @@ class HappyString:
             if string[i] not in self.chars or string[i] == string[i - 1]:
                 return False
         return True
+    
+    def substringsContainingAllC(self, string):
+        """
+        :type s: str
+        :rtype: int
+        """
+        last_seen = {c:-1 for c in self.chars} 
+
+        total = 0
+        for i in range(len(string)):
+            last_seen[string[i]] = i
+            total += min(last_seen.values()) + 1
+        
+        return total
