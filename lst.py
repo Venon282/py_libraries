@@ -325,4 +325,12 @@ def describe(array, min_threshold=1e-4, max_threshold=1e5, n_decimals=4):
                 print(f"{key}: {value}")
                 
 def flatten(lst):
-    return [flatten(l) if isinstance(l, list) else l.flatten() if isinstance(l, np.ndarray) else l for l in lst]
+    result = []
+    for l in lst:
+        if isinstance(l, list):
+            result.extend(flatten(l))  # Recursively flatten nested lists
+        elif isinstance(l, np.ndarray):
+            result.extend(l.flatten())  # Flatten NumPy arrays and extend the result list
+        else:
+            result.append(l)  # Append non-list and non-ndarray elements directly
+    return result
