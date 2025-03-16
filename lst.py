@@ -323,3 +323,6 @@ def describe(array, min_threshold=1e-4, max_threshold=1e5, n_decimals=4):
                 print(f"{key}: {round(value, n_decimals)}")
             else:
                 print(f"{key}: {value}")
+                
+def flatten(lst):
+    return [flatten(l) if isinstance(l, list) else l.flatten() if isinstance(l, np.ndarray) else l for l in lst]
