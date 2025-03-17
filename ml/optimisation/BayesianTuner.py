@@ -25,6 +25,7 @@ class BayesianTuner(kt.BayesianOptimization):
         self.rlrop_factor_max = kwargs.pop('rlrop_factor_max', 0.9)
         self.rlrop_factor_step = kwargs.pop('rlrop_factor_step', 0.1)
         
+        self.rlrop =  kwargs.pop('rlrop', True)
         self.rlrop_patience_min = kwargs.pop('rlrop_patience_min', 5)
         self.rlrop_patience_max = kwargs.pop('rlrop_patience_max', 20)
         self.rlrop_patience_step = kwargs.pop('rlrop_patience_step', 1)
@@ -44,11 +45,21 @@ class BayesianTuner(kt.BayesianOptimization):
             EarlyStopping(monitor='val_loss', 
                           patience=es_patience, 
                           restore_best_weights=True),
-            ReduceLROnPlateau(monitor='val_loss', 
-                              factor=setHyperparameter(hp.Float, self.fixe_hparams, 'rlrop_factor', min_value=self.rlrop_factor_min, max_value=self.rlrop_factor_max, step=self.rlrop_factor_step), 
-                              patience=setHyperparameter(hp.Int, self.fixe_hparams, 'rlrop_patience', min_value=self.rlrop_patience_min, max_value=min(es_patience, self.rlrop_patience_max), step=self.rlrop_patience_step), 
-                              min_lr=self.min_lr)
         ]
+
+        if self.rlrop is True:
+            # If early_stopping_patience is set, extract its numeric value
+            if hasattr(es_patience, 'value'):
+                es_value = es_patience.value
+            else:
+                es_value = None
+                
+            callbacks.append(
+                ReduceLROnPlateau(monitor='val_loss', 
+                              factor=setHyperparameter(hp.Float, self.fixe_hparams, 'rlrop_factor', min_value=self.rlrop_factor_min, max_value=self.rlrop_factor_max, step=self.rlrop_factor_step), 
+                              patience=setHyperparameter(hp.Int, self.fixe_hparams, 'rlrop_patience', min_value=self.rlrop_patience_min, max_value=min(es_patience, self.rlrop_patience_max) if es_patience is not None else self.rlrop_patience_max, step=self.rlrop_patience_step), 
+                              min_lr=self.min_lr)
+            )
         
         kwargs['callbacks'] = callbacks
         kwargs['batch_size'] = batch_size
