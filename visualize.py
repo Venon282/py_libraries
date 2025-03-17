@@ -57,9 +57,7 @@ def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-',
     -----------
     *args : tuple ornot
         Each argument can be:
-          - (x, y): x and y data arrays.
-          - (y, options): y data and a dict of options (x is generated as range(len(y))).
-          - (x, y, options): x and y data arrays with a dict of options.
+
     title : str, optional
         Title of the plot.
     x_label : str, optional
