@@ -7,7 +7,7 @@ def noise(size, noise_level=0.05):
     """Generate random Gaussian noise."""
     return np.random.normal(0, noise_level, size)
 
-def add_noise(signal, noise_level=0.05):
+def addNoise(signal, noise_level=0.05):
     """Add random Gaussian noise to the signal."""
     noise = np.random.normal(0, noise_level, size=signal.shape)
     return signal + noise
@@ -39,7 +39,7 @@ def quantize(signal, levels=10):
     indices = np.digitize(signal, interval) - 1
     return interval[indices]
 
-def random_erase(signal, erase_fraction=0.1):
+def randomErase(signal, erase_fraction=0.1):
     """Randomly set a fraction of the signal to zero."""
     signal_copy = signal.copy()
     num_erase = int(len(signal_copy) * erase_fraction)
@@ -57,7 +57,7 @@ def resample(signal, target_length):
         signal
     )
 
-def polynomial_distortion(signal, coefficients=[1, 0.5, -0.2]):
+def polynomialDistortion(signal, coefficients=[1, 0.5, -0.2]):
     """Apply polynomial distortion to the signal."""
     distorted_signal = np.zeros_like(signal, dtype=float)
     for i, coef in enumerate(coefficients):
@@ -69,7 +69,7 @@ def jitter(signal, std=0.01):
     jitter = np.random.normal(0, std, size=signal.shape)
     return signal + jitter
 
-def fourier_phase(signal, perturbation_level=0.1):
+def fourierPhase(signal, perturbation_level=0.1):
     """
     Perturb the phase component of the Fourier Transform.
     """
@@ -80,7 +80,7 @@ def fourier_phase(signal, perturbation_level=0.1):
     perturbed_signal = magnitude * np.exp(1j * phase)
     return np.fft.ifft(perturbed_signal).real
 
-def fourier_amplitude(signal, perturbation_level=0.1):
+def fourierAmplitude(signal, perturbation_level=0.1):
     """
     Perturb the amplitude component of the Fourier Transform.
     """
@@ -91,7 +91,7 @@ def fourier_amplitude(signal, perturbation_level=0.1):
     perturbed_signal = magnitude * np.exp(1j * phase)
     return np.fft.ifft(perturbed_signal).real
 
-def wavelet_augment(signal, wavelet_range=(5, 20), amplitude_range=(0.1, 0.5), width_range=(5, 20)):
+def waveletAugment(signal, wavelet_range=(5, 20), amplitude_range=(0.1, 0.5), width_range=(5, 20)):
     """Augment the signal by adding wavelets.
 
     Args:
@@ -106,7 +106,7 @@ def wavelet_augment(signal, wavelet_range=(5, 20), amplitude_range=(0.1, 0.5), w
     augmented_signal = signal.copy()
     signal_length = len(signal)
     num_wavelets = np.random.randint(*wavelet_range) if isinstance(wavelet_range, tuple) else wavelet_range
-    
+
     for _ in range(num_wavelets):
         # Randomly choose a center point for the wavelet
         center = np.random.randint(0, signal_length)
@@ -130,7 +130,7 @@ def derivative(y:Union[list, np.ndarray], x:Union[list, np.ndarray] = [0, 1]) ->
     dx = x[1] - x[0]
     return np.gradient(y, dx)
 
-def custom_average(*args):
+def customAverage(*args):
     """
     Compute the element-wise average of input arrays.
     
