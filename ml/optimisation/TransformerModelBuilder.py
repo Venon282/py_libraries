@@ -57,6 +57,6 @@ class TransformerModelBuilder(BaseModelBuilder):
         optimizer = tf.keras.optimizers.Adam(learning_rate) # beta_1=0.9, beta_2=0.98, epsilon=1e-9
         
         transformer.compile(optimizer=optimizer, loss=self.loss, metrics=self.metrics)
-
+        
         return transformer
     

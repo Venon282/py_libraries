@@ -1,6 +1,5 @@
 import keras_tuner as kt # type: ignore
 import sklearn.gaussian_process as gp # type: ignore
-from scipy.optimize import fmin_l_bfgs_b
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau # type: ignore
 from .module import setHyperparameter
 
@@ -44,25 +43,21 @@ class BayesianTuner(kt.BayesianOptimization):
         callbacks = [
             EarlyStopping(monitor='val_loss', 
                           patience=es_patience, 
-                          restore_best_weights=True),
+                          restore_best_weights=True)
         ]
 
         if self.rlrop is True:
-            # If early_stopping_patience is set, extract its numeric value
-            if hasattr(es_patience, 'value'):
-                es_value = es_patience.value
-            else:
-                es_value = None
-                
             callbacks.append(
                 ReduceLROnPlateau(monitor='val_loss', 
                               factor=setHyperparameter(hp.Float, self.fixe_hparams, 'rlrop_factor', min_value=self.rlrop_factor_min, max_value=self.rlrop_factor_max, step=self.rlrop_factor_step), 
-                              patience=setHyperparameter(hp.Int, self.fixe_hparams, 'rlrop_patience', min_value=self.rlrop_patience_min, max_value=min(es_patience, self.rlrop_patience_max) if es_patience is not None else self.rlrop_patience_max, step=self.rlrop_patience_step), 
+                              patience=setHyperparameter(hp.Int, self.fixe_hparams, 'rlrop_patience', min_value=self.rlrop_patience_min, max_value=min(es_patience, self.rlrop_patience_max), step=self.rlrop_patience_step), 
                               min_lr=self.min_lr)
             )
         
         kwargs['callbacks'] = callbacks
         kwargs['batch_size'] = batch_size
         kwargs['verbose'] = self.verbose # 0: silent, 1: progress bar, 2: one line per epoch
+    
         result = super(BayesianTuner, self).run_trial(trial, *args, **kwargs)
+        
         return result
