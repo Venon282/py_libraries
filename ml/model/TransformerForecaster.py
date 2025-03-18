@@ -103,6 +103,9 @@ class Encoder(tf.keras.layers.Layer):
         for layer in self.enc_layers:
             x = layer(x, training=training, mask=mask)
         return x
+    
+    def compute_output_shape(self, input_shape):
+        return (None, self.input_seq_len, self.d_model)
 
     def get_config(self):
         config = super(Encoder, self).get_config()
@@ -195,6 +198,9 @@ class Decoder(tf.keras.layers.Layer):
                       look_ahead_mask=look_ahead_mask, padding_mask=padding_mask)
         return x
 
+    def compute_output_shape(self, input_shape):
+        return (None, self.target_seq_len, self.d_model)
+
     def get_config(self):
         config = super(Decoder, self).get_config()
         config.update({
@@ -237,6 +243,12 @@ class TransformerForecaster(tf.keras.Model):
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, input_seq_len, dropout_rate)
         self.decoder = Decoder(num_layers, d_model, num_heads, dff, target_seq_len, dropout_rate)
         self.final_layer = Dense(num_features)
+        
+        # build the model
+        dummy_encoder_input = tf.zeros((1, self.input_seq_len, self.num_features))
+        dummy_decoder_input = tf.zeros((1, self.target_seq_len, self.num_features))
+        _ = self((dummy_encoder_input, dummy_decoder_input))
+ 
 
     def call(self, inputs, training=False):
         # Expecting inputs as a tuple: (encoder_input, decoder_input)
