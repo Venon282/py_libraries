@@ -103,6 +103,9 @@ class Encoder(tf.keras.layers.Layer):
         for layer in self.enc_layers:
             x = layer(x, training=training, mask=mask)
         return x
+    
+    def compute_output_shape(self, input_shape):
+        return (None, self.input_seq_len, self.d_model)
 
     def get_config(self):
         config = super(Encoder, self).get_config()
@@ -195,6 +198,9 @@ class Decoder(tf.keras.layers.Layer):
                       look_ahead_mask=look_ahead_mask, padding_mask=padding_mask)
         return x
 
+    def compute_output_shape(self, input_shape):
+        return (None, self.target_seq_len, self.d_model)
+
     def get_config(self):
         config = super(Decoder, self).get_config()
         config.update({
@@ -239,34 +245,10 @@ class TransformerForecaster(tf.keras.Model):
         self.final_layer = Dense(num_features)
         
         # build the model
-        self.build([(None, self.input_seq_len, self.num_features), 
-                    (None, self.target_seq_len, self.num_features)])
-    def build(self, input_shape):
-        """
-        Build the model components using the provided input shapes.
-        The expected input_shape is a tuple:
-          (encoder_input_shape, decoder_input_shape)
-        where each is a tuple of (batch_size, sequence_length, num_features).
-        """
-        encoder_input_shape, decoder_input_shape = input_shape
-
-        # Build the encoder. Its input shape is (None, input_seq_len, num_features).
-        self.encoder.build(encoder_input_shape)
-
-        # The encoder outputs a tensor of shape (None, input_seq_len, d_model).
-        encoder_output_shape = (encoder_input_shape[0], self.input_seq_len, self.d_model)
-
-        # Build the decoder.
-        # The decoder takes two inputs: one of shape (None, target_seq_len, num_features)
-        # and one of shape (None, input_seq_len, d_model).
-        self.decoder.build([decoder_input_shape, encoder_output_shape])
-
-        # Build the final Dense layer. Its input shape is (None, target_seq_len, d_model).
-        final_layer_input_shape = (decoder_input_shape[0], decoder_input_shape[1], self.d_model)
-        self.final_layer.build(final_layer_input_shape)
-
-        # Mark the model as built.
-        super(TransformerForecaster, self).build(input_shape)
+        dummy_encoder_input = tf.zeros((1, self.input_seq_len, self.num_features))
+        dummy_decoder_input = tf.zeros((1, self.target_seq_len, self.num_features))
+        _ = self((dummy_encoder_input, dummy_decoder_input))
+ 
 
     def call(self, inputs, training=False):
         # Expecting inputs as a tuple: (encoder_input, decoder_input)
