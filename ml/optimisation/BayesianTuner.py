@@ -57,7 +57,7 @@ class BayesianTuner(kt.BayesianOptimization):
         kwargs['callbacks'] = callbacks
         kwargs['batch_size'] = batch_size
         kwargs['verbose'] = self.verbose # 0: silent, 1: progress bar, 2: one line per epoch
-    
+
         result = super(BayesianTuner, self).run_trial(trial, *args, **kwargs)
         
         return result
