@@ -20,7 +20,7 @@ def save(plt, file_path):
     file_path = Path(file_path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
     file_path.touch(exist_ok=True)
-    plt.savefig(file_path)
+    plt.savefig(str(file_path))
 
 def curve(x, y, title=None, color='b', linestyle='-', linewidth=2, grid=True):
     """
