@@ -83,8 +83,8 @@ class DnnModelBuilder(BaseModelBuilder):
                 self.labels_linear_names.append(f'output_linear_{i}')
                 
         for i in range(self.n_labels_sigmoid):
-            if len(self.labels_sigmoid_name) <= i:
-                self.labels_sigmoid_name.append(f'output_sigmoid_{i}')
+            if len(self.labels_sigmoid_names) <= i:
+                self.labels_sigmoid_names.append(f'output_sigmoid_{i}')
                 
         for i in range(len(self.labels_softmax)):
             if len(self.labels_softmax_names) <= i:
@@ -96,6 +96,7 @@ class DnnModelBuilder(BaseModelBuilder):
         self.units_min = kwargs.pop('units_min', 32)
         self.units_max = kwargs.pop('units_max', 2048)
         self.units_step = kwargs.pop('units_step', 32)
+        self.units_default = (self.units_min + self.units_max) // 2
 
         # ---- Batch Normalization Settings ----
         self.batch_norm = kwargs.pop('batch_norm', True)
@@ -105,6 +106,7 @@ class DnnModelBuilder(BaseModelBuilder):
         self.dropout_min = kwargs.pop('dropout_min', 0.0)
         self.dropout_max = kwargs.pop('dropout_max', 0.6)
         self.dropout_step = kwargs.pop('dropout_step', 0.1)
+        self.dropout_default = round((self.dropout_min + self.dropout_max) / 2, 1)
 
          # ---- Negative Slope for Leaky Activations ----
         self.negative_slope_min = kwargs.pop('negative_slope_min', 0.001)
@@ -185,13 +187,13 @@ class DnnModelBuilder(BaseModelBuilder):
                 - activity_reg: Activity regularizer.
         """
         units = setHyperparameter(hp.Int, self.fixe_hparams, f'units_{block_id}_{i}', min_value=self.units_min, max_value=self.units_max,
-                               step=self.units_step, default=(self.units_min + self.units_max) // 2)
+                               step=self.units_step, default=self.units_default) or self.units_default 
         
         activation = setHyperparameter(hp.Choice, self.fixe_hparams, f'activation_{block_id}_{i}', values=self.activations, default='relu')
         
         
         dropout_rate = setHyperparameter(hp.Float, self.fixe_hparams, f'dropout_{block_id}_{i}', min_value=self.dropout_min, max_value=self.dropout_max,
-                                step=self.dropout_step, default=(self.dropout_min + self.dropout_max) / 2)
+                                step=self.dropout_step, default=(self.dropout_min + self.dropout_max) / 2) or self.dropout_default
         
         # Define negative slope only if using leaky_relu.
         negative_slope = setHyperparameter(hp.Float, self.fixe_hparams, f'negative_slope_{block_id}_{i}', min_value=self.negative_slope_min, max_value=self.negative_slope_max, step=self.negative_slope_step, 
@@ -386,6 +388,8 @@ class DnnModelBuilder(BaseModelBuilder):
         model.compile(optimizer=getOptimizers(optimizer_choice, lr), loss=losses, metrics=metrics) # , loss_weights=loss_weights
         
         return model
+
+
     
 """Usage
 
