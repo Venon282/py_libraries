@@ -6,10 +6,10 @@ from ..model import TransformerForecaster
 from ..optimizer.schedule import Noam
 
 class TransformerModelBuilder(BaseModelBuilder):
-    def __init__(self, n_features, n_source, n_target, fixe_hparams={}, *args, **kwargs):
+    def __init__(self, n_features, n_max_source, n_max_target, fixe_hparams={}, *args, **kwargs):
         self.n_features = n_features
-        self.n_source = n_source
-        self.n_target = n_target
+        self.n_max_source = n_max_source
+        self.n_max_target = n_max_target
         self.fixe_hparams = fixe_hparams
         
         self.loss = kwargs.pop('loss', 'mse')
@@ -51,7 +51,12 @@ class TransformerModelBuilder(BaseModelBuilder):
         warmup_steps    = setHyperparameter(hp.Int,   self.fixe_hparams, f'warmup_steps', min_value=self.warmup_steps_min, max_value=self.warmup_steps_max, step=self.warmup_steps_step)
         
         transformer = TransformerForecaster(num_layers, d_model, num_heads, dff,
-                                            self.n_source, self.n_target, self.n_features, dropout_rate)
+                                            self.n_max_source, self.n_max_target, self.n_features, dropout_rate)
+        
+        # transformer = tf.keras.Sequential([
+        #     tf.keras.layers.Input(shape=(100,)),
+        #     tf.keras.layers.Dense(100),
+        # ])
         # Use the custom Noam learning rate schedule
         learning_rate = Noam(d_model, warmup_steps=warmup_steps)
         optimizer = tf.keras.optimizers.Adam(learning_rate) # beta_1=0.9, beta_2=0.98, epsilon=1e-9
