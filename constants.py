@@ -9,6 +9,9 @@ class CONST(metaclass=ConstMeta):
     class REGEX(metaclass=ConstMeta):
         NUMBER = r'[-+]?\d+(?:[,\.]\d+)?'
         SCIENTIFIC_NUMBER = NUMBER + r'e[+-]?\d+'
+        
+        class PYTHON(metaclass=ConstMeta):
+            COMMENT_BLOCK = r'(?s)(?:\'\'\'[\s\S]*?\'\'\'|\"\"\"[\s\S]*?\"\"\")'
     
     EMPTY = (None, np.nan, "")
     OPERATORS_MAP = {
