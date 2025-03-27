@@ -64,7 +64,7 @@ def sign(n):
 def reverse(n):
     return int(str(abs(n))[::-1]) * sign(n)
 
-def formated(num: float, bound_min: float = 0.001, bound_max: float = 1e6, precision: int = 3) -> str:
+def formated(num: any, bound_min: float = 0.001, bound_max: float = 1e6, precision: int = 3) -> str:
     """
     Returns a human-readable string representation of a number.
 
@@ -90,6 +90,10 @@ def formated(num: float, bound_min: float = 0.001, bound_max: float = 1e6, preci
     Returns:
       str: The formatted number.
     """
+    if str(num).replace('.', '', 1).isdigit():
+        num = float(num)
+    else:
+        return str(num)
 
     def trimTrailingZeros(s: str) -> str:
         # Remove trailing zeros and an extraneous decimal point, if any.

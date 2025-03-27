@@ -20,7 +20,7 @@ def save(plt, file_path):
     file_path = Path(file_path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
     file_path.touch(exist_ok=True)
-    plt.savefig(file_path)
+    plt.savefig(str(file_path))
 
 def curve(x, y, title=None, color='b', linestyle='-', linewidth=2, grid=True):
     """
@@ -47,7 +47,7 @@ def curve(x, y, title=None, color='b', linestyle='-', linewidth=2, grid=True):
     plt.show()
     plt.close()
 
-def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-', 
+def curves(*args, labels=[], title=None, x_label='', y_label='', color=None, linestyle='-', 
            xlim=None, ylim=None, linewidth=2, grid=True, legend=True, show=True, path=None,
            normalize_y=False, **kwargs):
     """
@@ -96,11 +96,11 @@ def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-',
     if title:
         plt.title(title)
     
-    xs, ys = [], []
-    
-    for arg in args:
+    labels = [None] * len(args) if len(labels) == 0 else labels if len(labels) == len(args) else labels + [None] * (len(args) - len(labels))
+    for arg, label in zip(args, labels):
         # Set default plot options
-        options = {'color': color, 'linestyle': linestyle, 'linewidth': linewidth, 'label': None}
+        options = {'color': color, 'linestyle': linestyle, 'linewidth': linewidth, 'label': str(label) if label is not None else None}
+        
         # Support for (x, y, options) or (y, options) input formats
         if isinstance(arg, tuple):
             if len(arg) == 3 and isinstance(arg[2], dict):
@@ -129,11 +129,8 @@ def curves(*args, title=None, x_label='', y_label='', color=None, linestyle='-',
                 # For a constant curve, use a middle value
                 y = np.full_like(y, 0.5)
         
-        xs.append(x)
-        ys.append(y)
-        
-        plt.plot(x, y, color=options['color'], linestyle=options['linestyle'],
-                 linewidth=options['linewidth'], label=options['label'])
+        plt.plot(x, y, **options)
+
     
     # Apply grid and axis labels
     if grid:
