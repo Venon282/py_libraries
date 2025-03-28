@@ -144,6 +144,9 @@ class Encoder(tf.keras.layers.Layer):
             return x, encoder_attentions
         else:
             return x
+    
+    def compute_output_shape(self, input_shape):
+        return (None, None, self.d_model)
 
     def get_config(self):
         config = super(Encoder, self).get_config()
@@ -281,6 +284,9 @@ class Decoder(tf.keras.layers.Layer):
             return x, decoder_attentions
         else:
             return x
+        
+    def compute_output_shape(self, input_shape):
+        return (None, None, self.d_model)
 
     def get_config(self):
         config = super(Decoder, self).get_config()
@@ -290,6 +296,17 @@ class Decoder(tf.keras.layers.Layer):
             "d_model": self.d_model
         })
         return config
+    
+########################################################################
+# Final
+########################################################################
+@tf.keras.utils.register_keras_serializable()
+class Final(tf.keras.layers.Dense):
+    """
+
+    """
+    def compute_output_shape(self, input_shape):
+       return (None, None, self.units)
 
 ########################################################################
 # Transformer Forecaster
@@ -322,13 +339,13 @@ class TransformerForecaster(tf.keras.Model):
 
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, max_input_seq_len, dropout_rate)
         self.decoder = Decoder(num_layers, d_model, num_heads, dff, max_target_seq_len, dropout_rate)
-        self.final_layer = Dense(num_features)
+        self.final_layer = Final(num_features) #Dense(num_features)
 
         # Build the model
         dummy_encoder_input = tf.zeros((1, max_input_seq_len, num_features))
         dummy_decoder_input = tf.zeros((1, max_target_seq_len, num_features))
         _ = self((dummy_encoder_input, dummy_decoder_input))
-
+        
     def create_look_ahead_mask(self, size):
         """
         Creates a lower triangular mask of shape (size, size) to prevent attention being drawn to future tokens.
@@ -497,19 +514,6 @@ class TransformerForecaster(tf.keras.Model):
         
         If return_attention is True, returns (output, {"encoder_attentions":..., "decoder_attentions":...}).
         """
-        # def _convert_input(x):
-        #     if x is None or isinstance(x, (int, float, dict)):
-        #         return x
-        #     if not tf.is_tensor(x):
-        #         return tf.convert_to_tensor(x)
-        #     return x
-
-        # # Convert each element (except dicts) to a tensor.
-        # if isinstance(inputs, (list, tuple)):
-        #     inputs = tuple(_convert_input(x) if not isinstance(x, dict) else x for x in inputs)
-        # else:
-        #     inputs = _convert_input(inputs)
-        
         if isinstance(mask, (tuple, list)):
             mask = {
                 "encoder": mask[0],
