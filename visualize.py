@@ -5,6 +5,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
+import matplotlib.lines as mlines
 
 # ------------------------------------------
 # GENERAL FUNCTIONS
@@ -95,6 +96,22 @@ def _kwargs(ax, kwargs):
 
     return kwargs, kwargs2
 
+def _additionalLines(ax, additional_lines, global_options):
+    if len(additional_lines) == 0:
+        return
+    
+    # Get the list of all valid keyword arguments for Line2D
+    dummy_line = mlines.Line2D([], [])  # Create a dummy Line2D object to access its properties
+    valid_props = set(dummy_line.properties().keys())  # returns a set of valid property names
+
+    for al in additional_lines:
+        options = global_options.copy()
+        x, y, new_options = _arg2d(al)
+        options.update(new_options)
+        # Filter out options that are not valid for Line2D
+        valid_options = {key: value for key, value in options.items() if key in valid_props}
+        ax.plot(x, y, **valid_options)
+
 # ------------------------------------------
 # PLOTS
 # ------------------------------------------
@@ -140,6 +157,7 @@ def curves(*args, **kwargs):
     global_options, kwargs2 = _kwargs(ax, kwargs)
 
     path, show = kwargs.pop('path', None), kwargs.pop('show', True)
+    normalize_x, normalize_y = kwargs.pop('normalize_x', False), kwargs.pop('normalize_y', False)
     c = kwargs.pop('c', False)
 
     if c is not False:
@@ -159,9 +177,9 @@ def curves(*args, **kwargs):
         if c is not False:
             options['color'] = colors[i]
 
-        if kwargs.get('normalize_x', False):
+        if normalize_x:
             x = _normalise(x)
-        if kwargs.get('normalize_y', False):
+        if normalize_y:
             y = _normalise(y)
 
         ax.plot(x, y, **options)
@@ -187,6 +205,7 @@ def dots(*args, additional_lines=[], **kwargs):
     global_options, kwargs2 = _kwargs(ax, kwargs)
 
     path, show = kwargs.pop('path', None), kwargs.pop('show', True)
+    normalize_x, normalize_y = kwargs.pop('normalize_x', False), kwargs.pop('normalize_y', False)
     c = kwargs.get('c', False)
     
     if c is not False:
@@ -202,18 +221,14 @@ def dots(*args, additional_lines=[], **kwargs):
         x, y, new_options = _arg2d(arg)
         options.update(new_options)
 
-        if kwargs.get('normalize_x', False):
+        if normalize_x:
             x = _normalise(x)
-        if kwargs.get('normalize_y', False):
+        if normalize_y:
             y = _normalise(y)
 
         ax.scatter(x, y, **options)
         
-    for al in additional_lines:
-        options = global_options.copy()
-        x, y, new_options = _arg2d(al)
-        options.update(new_options)
-        plt.plot(x, y, **options)
+    _additionalLines(ax, additional_lines, global_options)
     
     if c is not False:
         sm = cm.ScalarMappable(norm=norm, cmap=cmap)
