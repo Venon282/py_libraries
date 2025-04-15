@@ -236,6 +236,58 @@ def dots(*args, additional_lines=[], **kwargs):
         fig.colorbar(sm, ax=ax, label=c_label)
         
     return _end(fig, ax, kwargs2, path, show)
+
+def candles(candles, *args, x_offset=0, alpha=1.0, open_color='green', close_color='red', body_width=0.6, wick_linewidth=1.0, **kwargs):
+    fig = kwargs.pop('fig', None)
+    ax = kwargs.pop('ax', None)
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 6))  # create new if none provided
+        
+    global_options, kwargs2 = _kwargs(ax, kwargs)
+
+    path, show = kwargs.pop('path', None), kwargs.pop('show', True)
+
+    candles = np.asarray(candles)
+    n = candles.shape[0]
+    
+    # Determine x positions.
+    if np.isscalar(x_offset):
+        xs = np.arange(n) + x_offset
+    else:
+        xs = np.asarray(x_offset)
+        if xs.shape[0] != n:
+            raise ValueError("x_offset must be a scalar or list-like of length equal to number of candles.")
+
+    # Determine alpha values.
+    if np.isscalar(alpha):
+        alphas = [alpha] * n
+    else:
+        alphas = np.asarray(alpha)
+        if alphas.shape[0] != n:
+            raise ValueError("alpha must be a scalar or list-like of length equal to number of candles.")
+    
+    for i, candle in enumerate(candles):
+        x = xs[i]
+        open_, high, low, close = candle
+        if close >= open_:
+            color = open_color
+            body_low = open_
+            body_high = close
+        else:
+            color = close_color
+            body_low = close
+            body_high = open_
+        curr_alpha = alphas[i]
+
+        # Plot the wick (vertical line from low to high)
+        ax.plot([x, x], [low, high], color=color, linewidth=wick_linewidth, alpha=curr_alpha)
+        # Plot the body (rectangle between open and close)
+        rect = plt.Rectangle((x - body_width / 2, body_low), body_width, body_high - body_low,
+                             facecolor=color, edgecolor=color, alpha=curr_alpha)
+        ax.add_patch(rect)
+  
+    return _end(fig, ax, kwargs2, path, show)
         
       
 # def dotsHeat(x, y, title='Desire Vs real', x_label='Desire', y_label='Real', 

@@ -363,6 +363,12 @@ class DnnModelBuilder(BaseModelBuilder):
             **{name: 'binary_crossentropy'      for name in self.labels_sigmoid_names},
             **{name: 'categorical_crossentropy' for name in self.labels_softmax_names}
         }
+        
+        loss_weights = {
+            **{name: 1.0 for name in self.labels_linear_names},
+            **{name: 0.5 for name in self.labels_sigmoid_names},
+            **{name: 0.5 for name in self.labels_softmax_names}
+        }
 
         metrics = {
             **{name: 'mae'      for name in self.labels_linear_names},
@@ -385,7 +391,7 @@ class DnnModelBuilder(BaseModelBuilder):
                 lrs.append(setHyperparameter(hp.Float, self.fixe_hparams, f'{optimizer}_lr', min_value=self.learning_rate_min, max_value=self.learning_rate_max, sampling='log', default=1e-3))
 
         lr = lrs[self.optimizers.index(optimizer_choice)]
-        model.compile(optimizer=getOptimizers(optimizer_choice, lr), loss=losses, metrics=metrics) # , loss_weights=loss_weights
+        model.compile(optimizer=getOptimizers(optimizer_choice, lr), loss=losses, metrics=metrics, loss_weights=loss_weights) # , loss_weights=loss_weights
         
         return model
 
