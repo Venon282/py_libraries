@@ -72,27 +72,34 @@ def _arg2d(arg):
     return x, y, options
 
 def _kwargs2(ax, kwargs):
+    
+
     if kwargs.pop('legend', False):
         ax.legend()
+
+    _apply(kwargs, 'xscale', ax.set_xscale)
+    _apply(kwargs, 'yscale', ax.set_yscale)
+    
+    ax.relim()          # Recalcule les limites des données
+    ax.autoscale_view() # Applique ces limites à la vue
+        
+def _apply(kwargs, label, function):
+    element =  kwargs.pop(label, False)
+    if element is not False:
+        function(element)
     
 def _kwargs(ax, kwargs):
-    def apply(kwargs, label, function):
-        element =  kwargs.pop(label, False)
-        if element is not False:
-            function(element)
+    
             
     ax.set_title(kwargs.pop('title', ''))
     ax.grid(kwargs.pop('grid', None))
     ax.set_xlabel(kwargs.pop('xlabel', None))
     ax.set_ylabel(kwargs.pop('ylabel', None))
     
-    apply(kwargs, 'ylim', ax.set_ylim)
-    apply(kwargs, 'xlim', ax.set_xlim)
-    
-    apply(kwargs, 'xscale', ax.set_xscale)
-    apply(kwargs, 'yscale', ax.set_yscale)
+    _apply(kwargs, 'ylim', ax.set_ylim)
+    _apply(kwargs, 'xlim', ax.set_xlim)
         
-    kwargs2 = {'legend': kwargs.pop('legend', False)}
+    kwargs2 = {'legend': kwargs.pop('legend', False), 'xscale': kwargs.pop('xscale', False), 'yscale': kwargs.pop('yscale', False)}
 
     return kwargs, kwargs2
 
