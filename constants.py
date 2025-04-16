@@ -8,7 +8,7 @@ class ConstMeta(type):
 class CONST(metaclass=ConstMeta):
     class REGEX(metaclass=ConstMeta):
         NUMBER = r'[-+]?\d+(?:[,\.]\d+)?'
-        SCIENTIFIC_NUMBER = NUMBER + r'e[+-]?\d+'
+        SCIENTIFIC_NUMBER = NUMBER + r'[eE][+-]?\d+'
         
         class PYTHON(metaclass=ConstMeta):
             COMMENT_BLOCK = r'(?s)(?:\'\'\'[\s\S]*?\'\'\'|\"\"\"[\s\S]*?\"\"\")'

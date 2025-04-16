@@ -1,4 +1,10 @@
 import tensorflow as tf
+
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
+        
 from tensorflow.keras.layers import Dense, LayerNormalization, Dropout, MultiHeadAttention # type: ignore
 import numpy as np
 
@@ -70,7 +76,7 @@ class EncoderLayer(tf.keras.layers.Layer):
         self.dff = dff
         self.dropout_rate = dropout_rate
 
-        self.mha = MultiHeadAttention(num_heads=num_heads, key_dim=d_model)
+        self.mha = MultiHeadAttention(num_heads=num_heads, key_dim=d_model  // num_heads)
         self.ffn = tf.keras.Sequential([
             Dense(dff, activation='relu'),
             Dense(d_model)
@@ -292,7 +298,7 @@ class Decoder(tf.keras.layers.Layer):
         config = super(Decoder, self).get_config()
         config.update({
             "max_target_seq_len": self.max_target_seq_len,
-            "dropout_rate": self.dropout.rate,
+            "dropout_rate": self.dropout_rate,
             "d_model": self.d_model
         })
         return config
@@ -344,7 +350,51 @@ class TransformerForecaster(tf.keras.Model):
         # Build the model
         dummy_encoder_input = tf.zeros((1, max_input_seq_len, num_features))
         dummy_decoder_input = tf.zeros((1, max_target_seq_len, num_features))
-        _ = self((dummy_encoder_input, dummy_decoder_input))
+        _ = self(encoder_input=dummy_encoder_input, decoder_input=dummy_decoder_input)
+    
+    def print_layers(self):
+        self._print_layers_rec(self, indent=0, visited=None)
+        
+        
+    def _print_layers_rec(self, module, indent=0, visited=None):
+        if visited is None:
+            visited = set()
+        # To avoid infinite loops, we can memorize the ID of objects already visited
+        if id(module) in visited:
+            return
+        visited.add(id(module))
+        
+        prefix = " " * indent
+        # Try to display some useful information
+        try:
+            params = module.count_params()
+        except Exception as e:
+            params = "?"
+        try:
+            name = module.name
+        except Exception as e:
+            name = module.__class__.__name__
+        print(f"{prefix}{name:40s} - {module.__class__.__name__:25s} - Params: {params}")
+
+        # For sub-layers, look at either the "layers" attribute or browse __dict__
+        if hasattr(module, "layers"):
+            sublayers = module.layers
+        else:
+            sublayers = []
+        # In some cases, lists stored in attributes (e.g. self.enc_layers) are not accessible via module.layers, so you have to iterate through __dict__
+        for attr_name, attr_value in vars(module).items():
+            if isinstance(attr_value, tf.keras.layers.Layer):
+                sublayers.append(attr_value)
+            elif isinstance(attr_value, list):
+                for item in attr_value:
+                    if isinstance(item, tf.keras.layers.Layer):
+                        sublayers.append(item)
+        # Eliminate duplicates (sometimes the same objects appear in module.layers and via __dict__)
+        sublayers = list({id(layer): layer for layer in sublayers}.values())
+
+        # Recursive call for each sub-layer
+        for layer in sublayers:
+            self._print_layers_rec(layer, indent + 2, visited)
         
     def create_look_ahead_mask(self, size):
         """
@@ -371,249 +421,246 @@ class TransformerForecaster(tf.keras.Model):
         combined_mask = mask_cols * tf.cast(decoder_mask_rows, mask_cols.dtype)
         return combined_mask
 
-    def autoregressive_predict(self, encoder_input, start_token, target_seq_len, mask=None):
-        """
-        Generates a sequence autoregressively given the encoder input.
-        
-        Args:
-            encoder_input: A tensor with dynamic shape. If its rank is 2, we add a batch dimension.
-            start_token: A tensor representing the start token (vector of size self.num_features).
-            target_seq_len: An integer (or scalar tensor) representing the target sequence length.
-            mask: Optional dictionary with keys "encoder" and/or "decoder" providing attention masks.
-                The decoder mask is expected to have shape [batch, target_seq_len], with zeros indicating padding.
-                
-        Returns:
-            predictions_stacked: A tensor of shape [batch, target_seq_len, self.num_features] containing the predicted tokens.
-        """
-        
-        # Ensure encoder_input has a batch dimension (dynamic check)
-        tf.cond(
-            tf.equal(tf.rank(encoder_input), 2),
-            lambda: tf.expand_dims(encoder_input, axis=0), 
-            lambda: encoder_input
-        )
+    def autoregressive_predict(self, encoder_input, target_seq_len, mask=None, return_attention=False):
         batch_size = tf.shape(encoder_input)[0]
         
-        # Prepare the initial decoder input by tiling the start token over the batch.
-        # The start token is reshaped to [1, 1, self.num_features] and tiled to [batch_size, 1, self.num_features].
-        decoder_input = tf.tile(tf.reshape(start_token, (1, 1, self.num_features)), [batch_size, 1, 1])
+        # Create a TensorArray for decoder input tokens with fixed size: target_seq_len + 1 (including the start token).
+        decoder_input_array = tf.TensorArray(
+            dtype=tf.float32, 
+            size=target_seq_len + 1, 
+            element_shape=tf.TensorShape([None, self.num_features])
+        )
         
-        # Create a TensorArray to hold predicted tokens for each generation step.
-        predictions_array = tf.TensorArray(dtype=tf.float32, size=target_seq_len)
+        dummy = tf.zeros([batch_size, self.num_features], dtype=tf.float32)
+        decoder_input_array = decoder_input_array.write(0, dummy)
         
-        # Initialize a "finished" flag for each batch element (False means not finished).
+        # Create a TensorArray to hold the predicted tokens.
+        predictions_array = tf.TensorArray(
+            dtype=tf.float32, 
+            size=target_seq_len, 
+            element_shape=tf.TensorShape([None, self.num_features])
+        )
+        
         finished = tf.zeros([batch_size], dtype=tf.bool)
         
-        # If a decoder mask is provided, extract it.
-        decoder_mask = mask["decoder"] if (mask is not None and "decoder" in mask) else None
-        # We already use the encoder mask in self((encoder_input, decoder_input, ext_mask), training=False)
+        # Loop counter 'i' represents the current length of decoder tokens (starts at 1 because of the start token).
+        def condition(i, *_):
+            return tf.less(i, target_seq_len + 1)
         
-        # The loop condition: continue until we've generated target_seq_len tokens (excluding the start token).
-        def condition(decoder_input, predictions_array, finished):
-            # The current number of generated tokens (excluding the initial start token)
-            current_generated = tf.shape(decoder_input)[1] - 1
-            return current_generated < target_seq_len
-
-        def loop_body(decoder_input, predictions_array, finished):
-            current_generated = tf.shape(decoder_input)[1] - 1  # Index of the token to be generated in this iteration
             
-            # Build the external mask dictionary for the model call
-            ext_mask = {"encoder": mask["encoder"]} if (mask is not None and "encoder" in mask) else None
+        def loop_body(i, decoder_input_array, predictions_array, finished):     
+            decoder_input = tf.cond(
+                tf.equal(i, 1),
+                lambda: tf.zeros([batch_size, 0, self.num_features], dtype=tf.float32),
+                lambda: tf.transpose(
+                    tf.slice(decoder_input_array.stack(), [1, 0, 0], [i - 1, batch_size, self.num_features]),
+                    perm=[1, 0, 2]
+                )
+            )
+          
+            preds = self(
+                encoder_input=encoder_input,
+                decoder_input=decoder_input,
+                mask={"encoder": mask["encoder"]},
+                training=False
+            )
+            next_token = preds[:, -1:, :]  # shape: [batch, 1, num_features]
             
-            # Run the model to obtain predictions given the current decoder input.
-            preds = self((encoder_input, decoder_input, ext_mask), training=False)
-            # The next token is assumed to be the last one in the output sequence
-            next_token = preds[:, -1:, :]  # shape: [batch_size, 1, num_features]
-            
-            # If a decoder mask is provided, check for padded positions.
-            if decoder_mask is not None:
-                # Get the mask value for the current generation step.
-                # Expected shape of decoder_mask: [batch_size, target_seq_len]
-                current_mask = decoder_mask[:, current_generated]  # shape: [batch_size]
-                # Determine which sequences are finished (mask value equals 0).
+            if mask['decoder'] is not None:
+                current_mask = mask['decoder'][:, i - 1]  # shape: [batch]
                 finished_step = tf.equal(current_mask, 0)
-                # Update the finished flag for each batch element.
                 finished = tf.logical_or(finished, finished_step)
-                # For finished sequences, force next_token to zeros.
-                # Reshape finished to broadcast over the token shape.
                 finished_expanded = tf.reshape(finished, [batch_size, 1, 1])
                 next_token = tf.where(finished_expanded, tf.zeros_like(next_token), next_token)
             
-            # Write the current prediction into the TensorArray.
-            predictions_array = predictions_array.write(current_generated, tf.squeeze(next_token, axis=1))
+            # Instead of squeezing, explicitly reshape next_token to [batch_size, num_features].
+            next_token_reshaped = tf.reshape(next_token, [batch_size, self.num_features])
+            predictions_array = predictions_array.write(i - 1, next_token_reshaped)
+            decoder_input_array = decoder_input_array.write(i, next_token_reshaped)
             
-            # Append the next token to the decoder input for the next iteration.
-            decoder_input = tf.concat([decoder_input, next_token], axis=1)
-            return decoder_input, predictions_array, finished
+            return i + 1, decoder_input_array, predictions_array, finished
 
-        # Run the while loop to generate tokens up to target_seq_len.
-        decoder_input, predictions_array, finished = tf.while_loop(
+        i0 = tf.constant(1)
+        i, decoder_input_array, predictions_array, finished = tf.while_loop(
             condition,
             loop_body,
-            loop_vars=[decoder_input, predictions_array, finished],
+            loop_vars=[i0, decoder_input_array, predictions_array, finished],
             shape_invariants=[
-                tf.TensorShape([None, None, self.num_features]),
+                i0.get_shape(),
+                tf.TensorShape(None),
                 tf.TensorShape(None),
                 tf.TensorShape([None])
             ]
         )
         
-        # Stack the predictions from the TensorArray and transpose to shape [batch, target_seq_len, self.num_features]
         predictions_stacked = predictions_array.stack()  # shape: [target_seq_len, batch, num_features]
         predictions_stacked = tf.transpose(predictions_stacked, perm=[1, 0, 2])
         return predictions_stacked
-    
-    def __call__(self, inputs, *args, **kwargs):
-        # Convert in tensort for accept normal python type in input
-        inputs = tf.nest.map_structure(
-            lambda x: tf.convert_to_tensor(x)
-            if (x is not None and not tf.is_tensor(x) and not isinstance(x, dict))
-            else x,
-            inputs,
-        )
-        return super().__call__(inputs, *args, **kwargs)
 
-    def _expand_dims_if(self, tensor, ndims_equal_to, axis):
+    def _expand_dims_if(self, tensor, ndims_equal_to, axis, error=False):
         if tensor.shape.ndims == ndims_equal_to:
             return tf.expand_dims(tensor, axis=axis)
+        elif error:
+            raise ValueError(f'Tensor should have {ndims_equal_to} ndims but have {tensor.shape.ndims}.')
         return tensor
     
-    # batch_size = tf.shape(encoder_input)[0]
-    def _mask(self, mask, key, batch_size):
-        if mask is not None and mask.get(key, None) is not None:
-            mask_key = tf.cast(tf.convert_to_tensor(mask[key]), tf.int32)
-            if mask_key.shape.ndims == 1:
-                mask_key = tf.tile(tf.expand_dims(mask_key, 0), [batch_size, 1])
-        else:
-            mask_key = None
-        return mask_key
+    def _mask(self, mask, batch_size):
+        for key, value in mask.items(): # encoder, decoder
+            # ignore if none
+            if value is None:
+                continue
 
-    def call(self, inputs, training=False, mask=None, return_attention=False):
+            mask[key] = tf.cast(tf.convert_to_tensor(value), tf.int32)  # convert to int tensor
+            
+            # If mask is 1D, expand it to 2D by repeating it for the batch size
+            if mask[key].shape.ndims == 1:
+                mask[key] = tf.tile(tf.expand_dims(mask[key], 0), [batch_size, 1])
+            elif mask[key].shape.ndims != 2:
+                raise ValueError(f"Invalid mask shape for {key}: {mask[key].shape}. Expected 1D or 2D tensor.")
+            
+        return mask
+    
+    #! return_attention is not yet availible for autoregression
+    def call(self, encoder_input, decoder_input=None, target_seq_len=None, mask=None, training=False, return_attention=False):
         """
-        Main call method supporting multiple input modes.
-        
-        Supported modes:
-        (A) Training mode:
-            (encoder_input, decoder_input)
-            (encoder_input, decoder_input, mask)
-            where:
-            - encoder_input: shape (batch, T_enc, n_features) or (T_enc, n_features)
-            - decoder_input: shape (batch, T_dec, n_features) or (T_dec, n_features)
-            - mask: optional dict with keys "encoder" and/or "decoder"
-        
-        (B) Autoregressive inference mode:
-            (encoder_input, mask)
-            (encoder_input, T_enc)
-            (encoder_input, T_enc, mask)
-            where T_enc can be:
-            - a Python int or scalar tensor (same target length for all samples),
-            - a 1D tensor of shape (batch,) (per-sample target lengths),
-            - a 2D tensor of shape (batch, L) (binary mask indicating valid target positions).
-        
-        Any 2D encoder_input or decoder_input is automatically expanded to 3D.
-        
-        If return_attention is True, returns (output, {"encoder_attentions":..., "decoder_attentions":...}).
+        Runs a forward pass through the TransformerForecaster model.
+
+        This method supports multiple input configurations in order to flexibly handle
+        encoder and decoder inputs, including autoregressive prediction.
+
+        Parameters
+        ----------
+        encoder_input : tf.Tensor or dict
+            - When a tensor: A 3D tensor of shape (batch_size, input_seq_len, num_features)
+            representing the encoder input. If a tensor of lower rank is passed (e.g. 2D),
+            it is expanded along a new axis at index 0.
+            - When a dict: Must contain the key 'encoder_input'. Other keys may include:
+            'decoder_input', 'target_seq_len', and 'mask'. These values are popped from the dict
+            and used as if passed as separate arguments.
+
+        decoder_input : tf.Tensor, optional
+            A 3D tensor of shape (batch_size, target_seq_len, num_features) representing the decoder
+            input. If not provided (i.e. None), the model will enter autoregressive prediction mode,
+            in which case `target_seq_len` must be provided or derived from the decoder mask.
+            
+        target_seq_len : int, list, or tf.Tensor, optional
+            Specifies the target sequence length for prediction. This is used only when
+            `decoder_input` is None (i.e. during autoregressive prediction). When a list or 1D tensor
+            is provided, the maximum value is taken to determine the final target sequence length.
+            If not provided and no decoder mask is available, `self.max_target_seq_len` is used.
+
+        mask : tuple, list, dict, or None
+            Specifies masks for attention operations:
+            - If a tuple or list is provided: The first element is used as the encoder mask and
+            the second as the decoder mask. If only one element is given, it is used for both.
+            - If a dict is provided: Expected keys are 'encoder' and 'decoder'. Missing keys default to None.
+            - If None is provided: Both encoder and decoder masks default to None.
+            In all cases, the mask is processed to ensure its shape is appropriate for the current batch.
+
+        training : bool, default False
+            Indicator for whether the model is running in training mode (affects dropout, etc.).
+
+        return_attention : bool, default False
+            If True, the method returns a tuple where the second element is a dictionary containing
+            the attention weights from the encoder and decoder layers.
+
+        Returns
+        -------
+        tf.Tensor or tuple
+            - In the typical case, returns the output tensor of the final layer with shape (batch_size, target_seq_len, num_features).
+            - If `return_attention` is True, returns a tuple (output, attentions), where "attentions" is a dict with keys:
+                * "encoder_attentions": List of attention scores from encoder layers.
+                * "decoder_attentions": List of attention scores from decoder layers.
+
+        Behavior
+        --------
+        - If `encoder_input` is provided as a dict, its keys ('encoder_input', 'decoder_input',
+        'target_seq_len', 'mask') are extracted and used.
+        - If the encoder input is not 3D, the input is expanded along axis 0.
+        - When `decoder_input` is None, autoregressive prediction is invoked using
+        `self.autoregressive_predict` with a derived or provided target sequence length.
+        - When a decoder mask is not provided but required, the target sequence length is inferred
+        from the mask dimensions or defaults to `self.max_target_seq_len`.
+        - The decoder input is adjusted by slicing off the last time step and prepending a start token
+        derived from the last time step of the encoder input.
+        - Appropriate look-ahead masks and encoder masks are generated for attention mechanisms.
+        - Finally, the encoder and decoder are run sequentially and the result is passed through the final layer.
         """
+        # can't pass more than one input for the training so a dict
+        if isinstance(encoder_input, dict):
+            encoder_input, decoder_input, target_seq_len, mask = encoder_input.pop('encoder_input'), encoder_input.pop('decoder_input',decoder_input), encoder_input.pop('target_seq_len', target_seq_len), encoder_input.pop('mask', mask)
+        
+        # Adjust the encoder shape
+        if encoder_input.shape.ndims != 3:
+            encoder_input = self._expand_dims_if(encoder_input, ndims_equal_to=2, axis=0, error=True)
+        
+        # get the batch size
+        batch_size = tf.shape(encoder_input)[0]
+        
+        # handle the mask
         if isinstance(mask, (tuple, list)):
             mask = {
                 "encoder": mask[0],
                 "decoder": mask[1] if len(mask) > 1 else mask[0]
             }
-
-        encoder_input = None
-        decoder_input = None
-        target_seq_len = None
-        start_token = tf.zeros((self.num_features,), dtype=tf.float32)
+        elif isinstance(mask, dict):
+            mask['decoder'] = mask.get('decoder', None)
+            mask['encoder'] = mask.get('encoder', None)
+        elif mask is None:
+            mask = {'encoder': None, 'decoder': None}
+        else:
+            raise ValueError("Mask should be a tuple, list, dict or None.")
         
-
-        if isinstance(inputs, (list, tuple)):
-            # if only input sequence
-            if len(inputs) == 1:
-                inputs = (inputs, self.max_target_seq_len)
-                
-            if len(inputs) == 2:
-                encoder_input, second = inputs
-
-                # If batch size == 1
-                encoder_input = self._expand_dims_if(encoder_input, ndims_equal_to=2, axis=0)
-                batch_size = tf.shape(encoder_input)[0]
-                    
-                # case encoder, mask
-                if isinstance(second, dict):
-                    mask = second
-                    
-                    # Compute target lengths from the decoder mask.
-                    if not 'decoder' in mask:
-                        raise AttributeError('If you don\'t provide an output size, you need to provide a decoder mask.')
-                    
-                    # Get the decoder mask
-                    mask = {'encoder':self._mask(mask, 'encoder', batch_size),
-                            'decoder':self._mask(mask, 'decoder', batch_size)}
-                    
-                    # define the target sequence (pad with 0 with mask at 0)
-                    target_seq_len = tf.shape(mask['decoder'])[1]
-
-                    # The autoregressive_predict loop will now generate target_seq_len tokens.
-                    return self.autoregressive_predict(encoder_input, start_token, target_seq_len, mask=mask)
-                
-                # case encoder, target_seq_len
-                elif isinstance(second, int) or (tf.is_tensor(second) and second.shape.ndims == 0):
-                    return self.autoregressive_predict(encoder_input, start_token, target_seq_len=second, mask=mask)
-                # case encoder, targets_seq_len
-                elif isinstance(second, list) or (tf.is_tensor(second) and second.shape.ndims == 1):
-                    target_seq_len = tf.reduce_max(second)  # tsl is the max value in the list
-                    
+        # Make sure of the mask shapes
+        mask = self._mask(mask, batch_size)
+        
+        # If not enough information, set the target sequence len to the max of the training
+        if decoder_input is None:
+            if target_seq_len is None:
+                if mask['decoder'] is None:
+                    target_seq_len = self.max_target_seq_len
+                else:
+                    target_seq_len = tf.shape(mask['decoder'])[1] 
+            elif isinstance(target_seq_len, list) or (tf.is_tensor(target_seq_len) and target_seq_len.shape.ndims == 1):
+                targets_seq_len = target_seq_len
+                target_seq_len = tf.reduce_max(target_seq_len)
+                if mask['decoder'] is None:
                     # Create a range from 0 to target_seq_len - 1
                     sequence_range = tf.range(target_seq_len)  # Shape: (target_seq_len,)
 
-                    # Expand dimensions to compare against second
+                    # Expand dimensions to compare against targets_seq_len
                     sequence_range = tf.expand_dims(sequence_range, axis=0)  # Shape: (1, target_seq_len)
 
-                    # Expand `second` (which contains sequence lengths for each batch) to match shape
-                    lengths_expanded = tf.expand_dims(second, axis=1)  # Shape: (batch_size, 1)
+                    # Expand `targets_seq_len` (which contains sequence lengths for each batch) to match shape
+                    lengths_expanded = tf.expand_dims(targets_seq_len, axis=1)  # Shape: (batch_size, 1)
 
-                    # Create the mask: 1 if sequence index < second[i], else 0
-                    mask = tf.cast(sequence_range < lengths_expanded, dtype=tf.float32)  # Shape: (batch_size, target_seq_len)
-                    return self.autoregressive_predict(encoder_input, start_token, target_seq_len, mask=mask)
-                # case encoder, decoder
-                else:
-                    decoder_input = self._expand_dims_if(second, ndims_equal_to=2, axis=0)
-            elif len(inputs) == 3:
-                encoder_input, second, mask = inputs
-                
-                # If batch size == 1
-                encoder_input = self._expand_dims_if(encoder_input, ndims_equal_to=2, axis=0)
-                batch_size = tf.shape(encoder_input)[0]
-                
-                mask = {'encoder':self._mask(mask, 'encoder', batch_size),
-                        'decoder':self._mask(mask, 'decoder', batch_size)}
-                
-                # case encoder, target_seq_len, mask
-                if isinstance(second, int) or (tf.is_tensor(second) and second.shape.ndims == 0):
-                    return self.autoregressive_predict(encoder_input, start_token, target_seq_len=second, mask=mask)
-                # case encoder, targets_seq_len, mask
-                elif isinstance(second, list) or (tf.is_tensor(second) and second.shape.ndims == 1):
-                    if mask['decoder'] is not None:
-                        decoder_mask_tensor = tf.convert_to_tensor(mask["decoder"])
-                        target_seq_len = tf.shape(decoder_mask_tensor)[1]
-                    else:
-                        target_seq_len = tf.reduce_max(tf.cast(second, tf.int32))
-                        
-                    return  self.autoregressive_predict(encoder_input, start_token, target_seq_len, mask)
-                else:
-                    decoder_input = self._expand_dims_if(second, ndims_equal_to=2, axis=0)
-            else:
-                raise ValueError("Unsupported input tuple length.")
-        else:
-            raise ValueError("Inputs must be provided as a tuple or list.")
+                    # Create the mask: 1 if sequence index < targets_seq_len[i], else 0
+                    mask['decoder'] = tf.cast(sequence_range < lengths_expanded, dtype=tf.float32)
+            elif not isinstance(target_seq_len, int) and not (tf.is_tensor(target_seq_len) and target_seq_len.shape.ndims == 0):
+                raise ValueError("target_seq_len should be an integer, a list of integers or None.")
+            
+            return self.autoregressive_predict(encoder_input, target_seq_len, mask=mask, return_attention=return_attention)
+        
+        if decoder_input is None:
+            raise ValueError("Decoder input is not supposed to be None at that step.")
+        
+        # Adjust the decoder shape    
+        if decoder_input.shape.ndims != 3:
+            decoder_input = self._expand_dims_if(decoder_input, ndims_equal_to=2, axis=0, error=True)
 
-        # Get masks
-        encoder_mask = mask.get('encoder', None) if mask is not None else None
-        decoder_mask = mask.get('decoder', None) if mask is not None else None
+        #start_token = tf.zeros((self.num_features,), dtype=tf.float32)
+        start_token = encoder_input[:, -1:, :]
+        
+        # Ensure decoder_input is 3D
+        decoder_input = self._expand_dims_if(decoder_input, ndims_equal_to=2, axis=0)
+        # Remove the last candle from decoder input (along time axis)
+        decoder_input_sliced = decoder_input[:, :-1, :]  # (batch, T_dec - 1, n_features)
+        # Prepend start token to decoder input
+        decoder_input = tf.concat([start_token, decoder_input_sliced], axis=1)
 
         # Build encoder self-attention mask.
-        if encoder_mask is not None:
-            encoder_mask_expanded = tf.expand_dims(encoder_mask, 1)
+        if mask['encoder'] is not None:
+            encoder_mask_expanded = tf.expand_dims(mask['encoder'], 1)
             target_seq_len = tf.shape(encoder_input)[1]
             encoder_mask_final = tf.tile(encoder_mask_expanded, [1, target_seq_len, 1])
             encoder_mask_final = tf.cast(encoder_mask_final, tf.bool)
@@ -623,8 +670,8 @@ class TransformerForecaster(tf.keras.Model):
         # Build look-ahead mask for decoder self-attention.
         target_seq_len = tf.shape(decoder_input)[1]
         look_ahead_mask = self.create_look_ahead_mask(target_seq_len)
-        if decoder_mask is not None:
-            combined_mask = self.create_combined_mask(decoder_mask)
+        if mask['decoder'] is not None:
+            combined_mask = self.create_combined_mask(mask['decoder'])
         else:
             combined_mask = tf.expand_dims(look_ahead_mask, 0)
 
@@ -643,8 +690,6 @@ class TransformerForecaster(tf.keras.Model):
             enc_output, encoder_attentions = enc_output
             dec_output, decoder_attentions = dec_output
             attentions = {"encoder_attentions": encoder_attentions, "decoder_attentions": decoder_attentions}
-        else:
-            encoder_attentions, decoder_attentions = None, None
 
         # Run final layer
         output = self.final_layer(dec_output)
