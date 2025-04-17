@@ -449,14 +449,26 @@ class TransformerForecaster(tf.keras.Model):
         
             
         def loop_body(i, decoder_input_array, predictions_array, finished):     
-            decoder_input = tf.cond(
-                tf.equal(i, 1),
-                lambda: tf.zeros([batch_size, 0, self.num_features], dtype=tf.float32),
-                lambda: tf.transpose(
-                    tf.slice(decoder_input_array.stack(), [1, 0, 0], [i - 1, batch_size, self.num_features]),
-                    perm=[1, 0, 2]
-                )
+            # decoder_input = tf.cond(
+            #     tf.equal(i, 1),
+            #     lambda: tf.zeros([batch_size, 0, self.num_features], dtype=tf.float32),
+            #     lambda: tf.transpose(
+            #         tf.slice(decoder_input_array.stack(), [1, 0, 0], [i - 1, batch_size, self.num_features]),
+            #         perm=[1, 0, 2]
+            #     )
+            # )
+            # Stack all previous tokens (excluding the dummy at index 0) into shape [batch, i-1, num_features]
+            prev_tokens = tf.transpose(
+                tf.slice(
+                    decoder_input_array.stack(),
+                    [1, 0, 0],  # skip the start_token slot when stacking for input
+                    [i - 1, batch_size, self.num_features]
+                ), perm=[1, 0, 2]
             )
+            # Add a dummy at the end so the model receives a full-length input. The teacher forcing of the call will remove the last token (dummy one)
+            dummy_step = tf.zeros([batch_size, 1, self.num_features], dtype=tf.float32)
+            decoder_input = tf.concat([prev_tokens, dummy_step], axis=1)
+            
           
             preds = self(
                 encoder_input=encoder_input,
@@ -640,9 +652,6 @@ class TransformerForecaster(tf.keras.Model):
                 raise ValueError("target_seq_len should be an integer, a list of integers or None.")
             
             return self.autoregressive_predict(encoder_input, target_seq_len, mask=mask, return_attention=return_attention)
-        
-        if decoder_input is None:
-            raise ValueError("Decoder input is not supposed to be None at that step.")
         
         # Adjust the decoder shape    
         if decoder_input.shape.ndims != 3:
