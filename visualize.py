@@ -23,7 +23,7 @@ def _end(fig, ax, kwargs2, path, show):
         plt: if don't want to save or show
         None: if show or save
     """
-    _kwargs2(ax, kwargs2)
+    _kwargs2(fig, ax, kwargs2)
     
     fig.tight_layout()
     # Save the plot if a path is provided
@@ -71,10 +71,12 @@ def _arg2d(arg):
 
     return x, y, options
 
-def _kwargs2(ax, kwargs):
+def _kwargs2(fig, ax, kwargs):
     
 
-    if kwargs.pop('legend', False):
+    if kwargs.pop('legend_fig', False) or kwargs.pop('legend', False):
+        fig.legend()
+    elif kwargs.pop('legend_ax', False):
         ax.legend()
 
     _apply(kwargs, 'xscale', ax.set_xscale)
@@ -99,7 +101,7 @@ def _kwargs(ax, kwargs):
     _apply(kwargs, 'ylim', ax.set_ylim)
     _apply(kwargs, 'xlim', ax.set_xlim)
         
-    kwargs2 = {'legend': kwargs.pop('legend', False), 'xscale': kwargs.pop('xscale', False), 'yscale': kwargs.pop('yscale', False)}
+    kwargs2 = {'legend': kwargs.pop('legend', False), 'legend_ax': kwargs.pop('legend_ax', False), 'legend_fig': kwargs.pop('legend_fig', False), 'xscale': kwargs.pop('xscale', False), 'yscale': kwargs.pop('yscale', False)}
 
     return kwargs, kwargs2
 

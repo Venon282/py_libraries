@@ -20,3 +20,4 @@ class Noam(tf.keras.optimizers.schedules.LearningRateSchedule):
             "d_model": self.d_model,
             "warmup_steps": self.warmup_steps,
         }
+            
