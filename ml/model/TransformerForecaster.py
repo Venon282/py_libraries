@@ -185,8 +185,8 @@ class DecoderLayer(tf.keras.layers.Layer):
         self.dff = dff
         self.dropout_rate = dropout_rate
 
-        self.mha1 = MultiHeadAttention(num_heads=num_heads, key_dim=d_model)
-        self.mha2 = MultiHeadAttention(num_heads=num_heads, key_dim=d_model)
+        self.mha1 = MultiHeadAttention(num_heads=num_heads, key_dim=d_model // num_heads)
+        self.mha2 = MultiHeadAttention(num_heads=num_heads, key_dim=d_model // num_heads)
         self.ffn = tf.keras.Sequential([
             Dense(dff, activation='relu'),
             Dense(d_model)
@@ -395,6 +395,42 @@ class TransformerForecaster(tf.keras.Model):
         # Recursive call for each sub-layer
         for layer in sublayers:
             self._print_layers_rec(layer, indent + 2, visited)
+            
+    class _DisplayLearningRate(tf.keras.callbacks.Callback):
+        def on_epoch_end(self, epoch, logs=None):
+            opt = self.model.optimizer
+            
+            # If optimizer implement _decayed_lr (TF ≥2.9) :
+            if hasattr(opt, "_decayed_lr"):
+                try:
+                    lr_t = opt._decayed_lr(tf.float32)
+                except Exception:
+                    lr_t = opt.learning_rate
+            else:
+                # Else get learning_rate which can be :
+                #    - a tf.Variable
+                #    - a LearningRateSchedule
+                lr_t = opt.learning_rate
+
+            # If a schedule, cann with the iteration number done
+            if isinstance(lr_t, tf.keras.optimizers.schedules.LearningRateSchedule):
+                lr_t = lr_t(opt.iterations)
+
+            # convert it to a float
+            # If eager mode, convert to numpy
+            try:
+                lr = lr_t.numpy()
+            except Exception:
+                lr = tf.keras.backend.get_value(lr_t)
+
+            print(f"Learning rate: {lr:.6e}")
+            
+    def fit(self, *args, **kwargs):
+        # get the callbacks list
+        callbacks = list(kwargs.pop('callbacks', []))
+        
+        callbacks.append(TransformerForecaster._DisplayLearningRate())
+        return super().fit(*args, callbacks=callbacks, **kwargs)
         
     def create_look_ahead_mask(self, size):
         """
@@ -449,14 +485,18 @@ class TransformerForecaster(tf.keras.Model):
         
             
         def loop_body(i, decoder_input_array, predictions_array, finished):     
-            decoder_input = tf.cond(
-                tf.equal(i, 1),
-                lambda: tf.zeros([batch_size, 0, self.num_features], dtype=tf.float32),
-                lambda: tf.transpose(
-                    tf.slice(decoder_input_array.stack(), [1, 0, 0], [i - 1, batch_size, self.num_features]),
-                    perm=[1, 0, 2]
-                )
+            # Stack all previous tokens (excluding the dummy at index 0) into shape [batch, i-1, num_features]
+            prev_tokens = tf.transpose(
+                tf.slice(
+                    decoder_input_array.stack(),
+                    [1, 0, 0],  # skip the start_token slot when stacking for input
+                    [i - 1, batch_size, self.num_features]
+                ), perm=[1, 0, 2]
             )
+            # Add a dummy at the end so the model receives a full-length input. The teacher forcing of the call will remove the last token (dummy one)
+            dummy_step = tf.zeros([batch_size, 1, self.num_features], dtype=tf.float32)
+            decoder_input = tf.concat([prev_tokens, dummy_step], axis=1)
+            
           
             preds = self(
                 encoder_input=encoder_input,
@@ -640,9 +680,6 @@ class TransformerForecaster(tf.keras.Model):
                 raise ValueError("target_seq_len should be an integer, a list of integers or None.")
             
             return self.autoregressive_predict(encoder_input, target_seq_len, mask=mask, return_attention=return_attention)
-        
-        if decoder_input is None:
-            raise ValueError("Decoder input is not supposed to be None at that step.")
         
         # Adjust the decoder shape    
         if decoder_input.shape.ndims != 3:
