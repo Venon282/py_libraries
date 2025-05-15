@@ -6,6 +6,7 @@ import seaborn as sns
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 import matplotlib.lines as mlines
+from matplotlib.patches import Patch
 
 # ------------------------------------------
 # GENERAL FUNCTIONS
@@ -246,7 +247,7 @@ def dots(*args, additional_lines=[], **kwargs):
         
     return _end(fig, ax, kwargs2, path, show)
 
-def candles(candles, *args, x_offset=0, alpha=1.0, open_color='green', close_color='red', body_width=0.6, wick_linewidth=1.0, **kwargs):
+def candles(candles, *args, x_offset=0, alpha=1.0, open_color='green', close_color='red', open_legend='', close_legend='', body_width=0.6, wick_linewidth=1.0, **kwargs):
     fig = kwargs.pop('fig', None)
     ax = kwargs.pop('ax', None)
 
@@ -295,6 +296,25 @@ def candles(candles, *args, x_offset=0, alpha=1.0, open_color='green', close_col
         rect = plt.Rectangle((x - body_width / 2, body_low), body_width, body_high - body_low,
                              facecolor=color, edgecolor=color, alpha=curr_alpha)
         ax.add_patch(rect)
+    
+    existing_legend = ax.get_legend()
+    prev_handles, prev_labels = [], []
+    if existing_legend is not None:
+        # pull its handles + labels
+        prev_handles = existing_legend.legend_handles
+        prev_labels  = [t.get_text() for t in existing_legend.get_texts()]
+        
+    # build your two new patches
+    new_handles = []
+    if open_legend:
+        new_handles.append(Patch(facecolor=open_color,  edgecolor=open_color,  label=open_legend))
+    if close_legend:
+        new_handles.append(Patch(facecolor=close_color, edgecolor=close_color, label=close_legend))
+    
+    if len(new_handles) > 0:
+        ax.legend(handles=prev_handles + new_handles, 
+                labels=prev_labels  + [open_legend, close_legend], 
+                loc='upper right')
   
     return _end(fig, ax, kwargs2, path, show)
         
