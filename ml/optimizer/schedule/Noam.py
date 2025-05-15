@@ -20,3 +20,39 @@ class Noam(tf.keras.optimizers.schedules.LearningRateSchedule):
             "d_model": self.d_model,
             "warmup_steps": self.warmup_steps,
         }
+        
+    def plot(self, max_steps: int = 20000, show: bool = False, save: str|None = None):
+        """
+        compute LR for steps [1..max_steps],
+        and plot via matplotlib.
+        """
+        import matplotlib.pyplot as plt
+        
+        # Prepare step tensor & compute lrs
+        steps = tf.range(1, max_steps + 1, dtype=tf.float32)
+        lrs   = self(steps)
+        
+        if not (save or show):
+            return steps, lrs
+
+        # plot
+        plt.figure(figsize=(8,4))
+        plt.plot(steps.numpy(), lrs.numpy(), linewidth=2)
+        plt.xlabel("Training Step")
+        plt.ylabel("Learning Rate")
+        plt.title(f"Noam Schedule (d_model={self.d_model}, warmup={self.warmup_steps})")
+        plt.grid(True, linestyle="--", alpha=0.5)
+        plt.tight_layout()
+        
+        if save:
+            from pathlib import Path
+            file_path = Path(save)
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.touch(exist_ok=True)
+            plt.savefig(save)
+        
+        if show:
+            plt.show()
+        plt.close()
+        
+        return steps, lrs
