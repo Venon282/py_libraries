@@ -5,3 +5,4 @@ def display(dct, indent='    ', index=0):
             display(value, indent, index+1)
         else:
             print(indent*index, key, ': ',value)
+  

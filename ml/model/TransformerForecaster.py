@@ -436,26 +436,45 @@ class TransformerForecaster(tf.keras.Model):
         """
         Creates a lower triangular mask of shape (size, size) to prevent attention being drawn to future tokens.
         """
-        mask = 1 - tf.linalg.band_part(tf.ones((size, size)), -1, 0)
-        return mask
+        # mask = 1 - tf.linalg.band_part(tf.ones((size, size)), -1, 0)
+        # return mask
+        mask = tf.linalg.band_part(tf.ones((size, size)), -1, 0)
+        return tf.cast(mask, tf.bool)
 
     def create_combined_mask(self, decoder_mask):
         """
         Combines look-ahead mask with decoder padding mask.
         Args:
-            decoder_mask: Shape tensor (batch, T_dec) or (T_dec,) with 1 for valid tokens.
+            decoder_mask: Tensor de forme (batch, T_dec) ou (T_dec,) avec 1 pour tokens valides.
         Returns:
-            combined_mask: Form tensor (batch, T_dec, T_dec)
+            combined_mask: Tensor booléen de forme (batch, T_dec, T_dec)
         """
-        if len(decoder_mask.shape) == 1:
-            decoder_mask = tf.expand_dims(decoder_mask, 0)
+        # S’assurer qu’on a bien (batch, T)
+        if decoder_mask.shape.ndims == 1:
+            decoder_mask = tf.expand_dims(decoder_mask, 0)           # (1, T)
+        # Taille temporelle
         T = tf.shape(decoder_mask)[1]
-        look_ahead_mask = self.create_look_ahead_mask(T)
-        decoder_mask_cols = tf.expand_dims(decoder_mask, 1)  # (batch, 1, T)
-        mask_cols = look_ahead_mask * tf.cast(decoder_mask_cols, look_ahead_mask.dtype)
-        decoder_mask_rows = tf.expand_dims(decoder_mask, 2)  # (batch, T, 1)
-        combined_mask = mask_cols * tf.cast(decoder_mask_rows, mask_cols.dtype)
+
+        # 1) Look-ahead mask booléen : True pour diag+passé, False pour futur
+        look_ahead = self.create_look_ahead_mask(T)                 # (T, T), bool
+
+        # 2) Padding mask du décodeur en booléen
+        dec_pad = tf.cast(decoder_mask, tf.bool)                    # (batch, T)
+
+        # 3) On broadcast pour les deux axes q et k
+        #    - Axis 1 pour q (requêtes)
+        #    - Axis 2 pour k (clé)
+        dec_pad_q = tf.expand_dims(dec_pad, 2)                      # (batch, T, 1)
+        dec_pad_k = tf.expand_dims(dec_pad, 1)                      # (batch, 1, T)
+
+        # 4) On étend look_ahead sur le batch
+        look_ahead = tf.expand_dims(look_ahead, 0)                  # (1, T, T)
+
+        # 5) ET logique entre les 3 masques
+        combined_mask = look_ahead & dec_pad_q & dec_pad_k          # (batch, T, T)
+
         return combined_mask
+
 
     def autoregressive_predict(self, encoder_input, target_seq_len, mask=None, return_attention=False):
         batch_size = tf.shape(encoder_input)[0]
@@ -550,7 +569,7 @@ class TransformerForecaster(tf.keras.Model):
             if value is None:
                 continue
 
-            mask[key] = tf.cast(tf.convert_to_tensor(value), tf.int32)  # convert to int tensor
+            mask[key] = tf.cast(tf.convert_to_tensor(value), tf.bool)  # convert to int tensor
             
             # If mask is 1D, expand it to 2D by repeating it for the batch size
             if mask[key].shape.ndims == 1:
@@ -705,12 +724,12 @@ class TransformerForecaster(tf.keras.Model):
             encoder_mask_final = None
 
         # Build look-ahead mask for decoder self-attention.
-        target_seq_len = tf.shape(decoder_input)[1]
-        look_ahead_mask = self.create_look_ahead_mask(target_seq_len)
+        
         if mask['decoder'] is not None:
             combined_mask = self.create_combined_mask(mask['decoder'])
         else:
-            combined_mask = tf.expand_dims(look_ahead_mask, 0)
+            target_seq_len = tf.shape(decoder_input)[1]
+            combined_mask = tf.expand_dims(self.create_look_ahead_mask(target_seq_len), 0)
 
         # Run encoder
         enc_output = self.encoder(encoder_input, training=training,
@@ -719,7 +738,7 @@ class TransformerForecaster(tf.keras.Model):
         
         # Run decoder
         dec_output = self.decoder(decoder_input, enc_output, training=training,
-                                look_ahead_mask=combined_mask, padding_mask=None,
+                                look_ahead_mask=combined_mask, padding_mask=encoder_mask_final,
                                 return_attention=return_attention)
 
         # Prepare attentions infos if desire
