@@ -722,6 +722,18 @@ class TransformerForecaster(tf.keras.Model):
             encoder_mask_final = tf.cast(encoder_mask_final, tf.bool)
         else:
             encoder_mask_final = None
+            
+        if mask['encoder'] is not None:
+            # Longueurs dynamiques
+            enc_len = tf.shape(encoder_input)[1]
+            dec_len = tf.shape(decoder_input)[1]
+            # Masque booléen du codeur de shape (batch, 1, enc_len)
+            enc_mask_bool = tf.cast(mask['encoder'], tf.bool)  # (batch, enc_len)
+            enc_mask_bool = tf.expand_dims(enc_mask_bool, 1)   # (batch, 1, enc_len)
+            # Construire le masque pour l'attention croisée (batch, dec_len, enc_len)
+            decoder_padding_mask = tf.tile(enc_mask_bool, [1, dec_len, 1])
+        else:
+            decoder_padding_mask = None
 
         # Build look-ahead mask for decoder self-attention.
         
@@ -731,26 +743,31 @@ class TransformerForecaster(tf.keras.Model):
             target_seq_len = tf.shape(decoder_input)[1]
             combined_mask = tf.expand_dims(self.create_look_ahead_mask(target_seq_len), 0)
 
-        # Run encoder
-        enc_output = self.encoder(encoder_input, training=training,
-                                mask=encoder_mask_final,
-                                return_attention=return_attention)
-        
-        # Run decoder
-        dec_output = self.decoder(decoder_input, enc_output, training=training,
-                                look_ahead_mask=combined_mask, padding_mask=encoder_mask_final,
-                                return_attention=return_attention)
-
-        # Prepare attentions infos if desire
         if return_attention:
-            enc_output, encoder_attentions = enc_output
-            dec_output, decoder_attentions = dec_output
-            attentions = {"encoder_attentions": encoder_attentions, "decoder_attentions": decoder_attentions}
+            enc_output_tensor, enc_attentions = self.encoder(encoder_input, training=training,
+                                                            mask=encoder_mask_final,
+                                                            return_attention=True)
+            dec_output_tensor, dec_attentions = self.decoder(decoder_input, enc_output_tensor,
+                                                            training=training,
+                                                            look_ahead_mask=combined_mask,
+                                                            padding_mask=decoder_padding_mask,
+                                                            return_attention=True)
+            output = self.final_layer(dec_output_tensor)
+            attentions = {"encoder_attentions": enc_attentions,
+                        "decoder_attentions": dec_attentions}
+            return output, attentions
+        else:
+            enc_output_tensor = self.encoder(encoder_input, training=training,
+                                            mask=encoder_mask_final,
+                                            return_attention=False)
+            dec_output_tensor = self.decoder(decoder_input, enc_output_tensor,
+                                            training=training,
+                                            look_ahead_mask=combined_mask,
+                                            padding_mask=decoder_padding_mask,
+                                            return_attention=False)
+            output = self.final_layer(dec_output_tensor)
+            return output
 
-        # Run final layer
-        output = self.final_layer(dec_output)
-
-        return (output, attentions) if return_attention else output
 
     def get_config(self):
         base_config = super(TransformerForecaster, self).get_config()

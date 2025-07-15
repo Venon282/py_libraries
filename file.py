@@ -1,6 +1,8 @@
 from pathlib import Path
 import numpy as np
 from tqdm import tqdm
+import pandas as pd
+import os
 
 def computeGlobalMeanVariance(data_dir, pattern="*.txt", delimiter=None, verbose=False):
     """
@@ -58,3 +60,63 @@ def computeGlobalMeanVariance(data_dir, pattern="*.txt", delimiter=None, verbose
     variance = M2 / n
 
     return mean, variance, n
+
+def excelSheetsToCsv(
+    excel_path: Path | str,
+    output_dir: Path | str,
+    sep: str = ",",
+    encoding: str = "utf-8",
+    include_index: bool = False,
+    sheet_name_to_filename: dict[str, str] | None = None,
+    **to_csv_kwargs
+) -> None:
+    """
+    Read an Excel file and export each sheet to its own CSV file.
+
+    :param excel_path:      Path to the .xlsx file.
+    :param output_dir:      Directory where CSVs will be written (created if needed).
+    :param sep:             Field delimiter for the CSV (default: ",").
+    :param encoding:        File encoding for the CSV (default: "utf-8").
+    :param include_index:   Whether to write row indices into the CSV (default: False).
+    :param sheet_name_to_filename:
+                             Optional mapping from sheet names -> desired filenames (without extension).
+                             If a sheet is not in the dict, its sheet name is used (sanitized).
+    :param to_csv_kwargs:   Any additional keyword args passed straight to DataFrame.to_csv().
+                            e.g. header=True/False, date_format="...", quoting=csv.QUOTE_ALL, etc.
+
+    :raises FileNotFoundError: If the given Excel file doesn’t exist.
+    """
+    # Prepare paths
+    excel_path = Path(excel_path)
+    if not excel_path.is_file():
+        raise FileNotFoundError(f"No such Excel file: {excel_path!s}")
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Load workbook (pandas will infer engine)
+    workbook = pd.ExcelFile(excel_path)
+
+    for sheet in workbook.sheet_names:
+        # Read sheet
+        df = pd.read_excel(workbook, sheet_name=sheet)
+
+        # Determine filename: use mapping if provided, else sheet name
+        if sheet_name_to_filename and sheet in sheet_name_to_filename:
+            name = sheet_name_to_filename[sheet]
+        else:
+            # sanitize: keep alnum, space, dot, underscore, dash
+            name = "".join(c if c.isalnum() or c in (" ", ".", "_", "-") else "_" for c in sheet).strip()
+            if not name:
+                name = f"sheet_{workbook.sheet_names.index(sheet)}"
+
+        csv_path = output_dir / f"{name}.csv"
+        
+        # Export
+        df.to_csv(
+            csv_path,
+            sep=sep,
+            encoding=encoding,
+            index=include_index,
+            **to_csv_kwargs
+        )

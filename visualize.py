@@ -318,7 +318,40 @@ def candles(candles, *args, x_offset=0, alpha=1.0, open_color='green', close_col
   
     return _end(fig, ax, kwargs2, path, show)
         
-      
+
+def heatmap(*args, additional_lines=[], **kwargs):
+    fig = kwargs.pop('fig', None)
+    ax = kwargs.pop('ax', None)
+    
+    bins = kwargs.pop('bins', 100)
+    cmap_label = kwargs.pop('cmap_label', '')
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 6))  # create new if none provided
+
+    global_options, kwargs2 = _kwargs(ax, kwargs)
+
+    path, show = kwargs.pop('path', None), kwargs.pop('show', True)
+    normalize_x, normalize_y = kwargs.pop('normalize_x', False), kwargs.pop('normalize_y', False)
+    
+    for i, arg in enumerate(args):
+        options = global_options.copy()
+        x, y, new_options = _arg2d(arg)
+        options.update(new_options)
+
+        if normalize_x:
+            x = _normalise(x)
+        if normalize_y:
+            y = _normalise(y)
+
+        heatmap, xedges, yedges = np.histogram2d(x, y, bins=bins)
+        extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+        plt.imshow(heatmap.T, extent=extent, origin='lower', aspect=(xedges[1]-xedges[0]) / (yedges[1]-yedges[0]), **options)
+        plt.colorbar(label=cmap_label)
+        
+    _additionalLines(ax, additional_lines, global_options)
+        
+    return _end(fig, ax, kwargs2, path, show)
 # def dotsHeat(x, y, title='Desire Vs real', x_label='Desire', y_label='Real', 
 #             xlim=None, ylim=None, xscale='linear', yscale='linear', 
 #             color=None, cmap='Blues', gridsize=50, bins=None,  mincnt=1, additional_lines: list[dict]=[], show=True, path=None): # 
