@@ -334,3 +334,22 @@ def flatten(lst):
         else:
             result.append(l)  # Append non-list and non-ndarray elements directly
     return result
+
+def sort(lst):
+    import re
+    def naturalKey(s):
+        """
+        Transforms string s into a list of tokens:
+        - each sequence of digits becomes a tuple (0, integer_value)
+        - each sequence of non-numbers becomes a tuple (1, lowercase_string)
+        In this way, all numeric blocks (0) come before letter blocks (1).
+        """
+        tokens = re.findall(r'\d+|\D+', s)
+        key = []
+        for tok in tokens:
+            if tok.isdigit():
+                key.append((0, int(tok)))
+            else:
+                key.append((1, tok.lower()))
+        return key
+    lst.sort(key=naturalKey)
