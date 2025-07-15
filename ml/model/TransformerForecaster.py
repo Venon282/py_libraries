@@ -440,41 +440,41 @@ class TransformerForecaster(tf.keras.Model):
         # return mask
         mask = tf.linalg.band_part(tf.ones((size, size)), -1, 0)
         return tf.cast(mask, tf.bool)
+    
 
-    def create_combined_mask(self, decoder_mask):
+    def create_combined_mask(self, seq):
         """
         Combines look-ahead mask with decoder padding mask.
         Args:
-            decoder_mask: Tensor de forme (batch, T_dec) ou (T_dec,) avec 1 pour tokens valides.
+            decoder_mask: Shape tensor (batch, T_dec) or (T_dec,) with 1 for valid tokens.
         Returns:
-            combined_mask: Tensor booléen de forme (batch, T_dec, T_dec)
+            combined_mask: Form tensor (batch, T_dec, T_dec)
         """
-        # S’assurer qu’on a bien (batch, T)
-        if decoder_mask.shape.ndims == 1:
-            decoder_mask = tf.expand_dims(decoder_mask, 0)           # (1, T)
-        # Taille temporelle
-        T = tf.shape(decoder_mask)[1]
-
-        # 1) Look-ahead mask booléen : True pour diag+passé, False pour futur
-        look_ahead = self.create_look_ahead_mask(T)                 # (T, T), bool
-
-        # 2) Padding mask du décodeur en booléen
-        dec_pad = tf.cast(decoder_mask, tf.bool)                    # (batch, T)
-
-        # 3) On broadcast pour les deux axes q et k
-        #    - Axis 1 pour q (requêtes)
-        #    - Axis 2 pour k (clé)
-        dec_pad_q = tf.expand_dims(dec_pad, 2)                      # (batch, T, 1)
-        dec_pad_k = tf.expand_dims(dec_pad, 1)                      # (batch, 1, T)
-
-        # 4) On étend look_ahead sur le batch
-        look_ahead = tf.expand_dims(look_ahead, 0)                  # (1, T, T)
-
-        # 5) ET logique entre les 3 masques
-        combined_mask = look_ahead & dec_pad_q & dec_pad_k          # (batch, T, T)
-
-        return combined_mask
-
+        # Assure seq en 2D : (batch, seq_len)
+        if seq.shape.ndims == 1:
+            seq = tf.expand_dims(seq, 0)
+            
+        # masque padding
+        pad_mask   = tf.not_equal(seq, 0)                                   # (batch, seq)
+        lookahead  = self.create_look_ahead_mask(tf.shape(seq)[1])     # (seq, seq)
+        
+        # broadcast & AND logique
+        combined = tf.logical_and(
+            pad_mask[:, tf.newaxis, :],    # (batch, 1, seq)
+            lookahead[tf.newaxis, :, :]    # (1, seq, seq)
+        )
+        
+        return combined 
+        
+        # if len(decoder_mask.shape) == 1:
+        #     decoder_mask = tf.expand_dims(decoder_mask, 0)
+        # T = tf.shape(decoder_mask)[1]
+        # look_ahead_mask = self.create_look_ahead_mask(T)
+        # decoder_mask_cols = tf.expand_dims(decoder_mask, 1)  # (batch, 1, T)
+        # mask_cols = look_ahead_mask * tf.cast(decoder_mask_cols, look_ahead_mask.dtype)
+        # decoder_mask_rows = tf.expand_dims(decoder_mask, 2)  # (batch, T, 1)
+        # combined_mask = mask_cols * tf.cast(decoder_mask_rows, mask_cols.dtype)
+        # return combined_mask
 
     def autoregressive_predict(self, encoder_input, target_seq_len, mask=None, return_attention=False):
         batch_size = tf.shape(encoder_input)[0]
@@ -569,7 +569,7 @@ class TransformerForecaster(tf.keras.Model):
             if value is None:
                 continue
 
-            mask[key] = tf.cast(tf.convert_to_tensor(value), tf.bool)  # convert to int tensor
+            mask[key] = tf.cast(tf.convert_to_tensor(value), tf.int32)  # convert to int tensor
             
             # If mask is 1D, expand it to 2D by repeating it for the batch size
             if mask[key].shape.ndims == 1:
@@ -715,6 +715,15 @@ class TransformerForecaster(tf.keras.Model):
         decoder_input = tf.concat([start_token, decoder_input_sliced], axis=1)
 
         # Build encoder self-attention mask.
+        enc_pad = None
+        if mask['encoder'] is not None:
+            # mask['encoder'] est int32 avec 1 = visible, 0 = pad
+            # on crée un booléen True = visible
+            pad_bool = tf.cast(mask['encoder'], tf.bool)             # (batch, src_len)
+            enc_pad = pad_bool[:, tf.newaxis, :]                     # (batch, 1, src_len)
+
+      
+        # Build encoder self-attention mask.
         if mask['encoder'] is not None:
             encoder_mask_expanded = tf.expand_dims(mask['encoder'], 1)
             target_seq_len = tf.shape(encoder_input)[1]
@@ -722,6 +731,18 @@ class TransformerForecaster(tf.keras.Model):
             encoder_mask_final = tf.cast(encoder_mask_final, tf.bool)
         else:
             encoder_mask_final = None
+            
+        if mask['encoder'] is not None:
+            # Longueurs dynamiques
+            enc_len = tf.shape(encoder_input)[1]
+            dec_len = tf.shape(decoder_input)[1]
+            # Masque booléen du codeur de shape (batch, 1, enc_len)
+            enc_mask_bool = tf.cast(mask['encoder'], tf.bool)  # (batch, enc_len)
+            enc_mask_bool = tf.expand_dims(enc_mask_bool, 1)   # (batch, 1, enc_len)
+            # Construire le masque pour l'attention croisée (batch, dec_len, enc_len)
+            decoder_padding_mask = tf.tile(enc_mask_bool, [1, dec_len, 1])
+        else:
+            decoder_padding_mask = None
 
         # Build look-ahead mask for decoder self-attention.
         
@@ -731,26 +752,30 @@ class TransformerForecaster(tf.keras.Model):
             target_seq_len = tf.shape(decoder_input)[1]
             combined_mask = tf.expand_dims(self.create_look_ahead_mask(target_seq_len), 0)
 
-        # Run encoder
-        enc_output = self.encoder(encoder_input, training=training,
-                                mask=encoder_mask_final,
-                                return_attention=return_attention)
-        
-        # Run decoder
-        dec_output = self.decoder(decoder_input, enc_output, training=training,
-                                look_ahead_mask=combined_mask, padding_mask=encoder_mask_final,
-                                return_attention=return_attention)
-
-        # Prepare attentions infos if desire
         if return_attention:
-            enc_output, encoder_attentions = enc_output
-            dec_output, decoder_attentions = dec_output
-            attentions = {"encoder_attentions": encoder_attentions, "decoder_attentions": decoder_attentions}
-
-        # Run final layer
-        output = self.final_layer(dec_output)
-
-        return (output, attentions) if return_attention else output
+            enc_output_tensor, enc_attentions = self.encoder(encoder_input, training=training,
+                                                            mask=encoder_mask_final,
+                                                            return_attention=True)
+            dec_output_tensor, dec_attentions = self.decoder(decoder_input, enc_output_tensor,
+                                                            training=training,
+                                                            look_ahead_mask=combined_mask,
+                                                            padding_mask=decoder_padding_mask,
+                                                            return_attention=True)
+            output = self.final_layer(dec_output_tensor)
+            attentions = {"encoder_attentions": enc_attentions,
+                        "decoder_attentions": dec_attentions}
+            return output, attentions
+        else:
+            enc_output_tensor = self.encoder(encoder_input, training=training,
+                                            mask=encoder_mask_final,
+                                            return_attention=False)
+            dec_output_tensor = self.decoder(decoder_input, enc_output_tensor,
+                                            training=training,
+                                            look_ahead_mask=combined_mask,
+                                            padding_mask=decoder_padding_mask,
+                                            return_attention=False)
+            output = self.final_layer(dec_output_tensor)
+            return output
 
     def get_config(self):
         base_config = super(TransformerForecaster, self).get_config()
@@ -775,3 +800,4 @@ class TransformerForecaster(tf.keras.Model):
                 if policy_name is not None:
                     config["dtype"] = tf.keras.mixed_precision.Policy(policy_name)
         return cls(**config)
+    
