@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import plotly.express as px
 import math
 from pathlib import Path
 import numpy as np
@@ -7,7 +8,410 @@ import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 import matplotlib.lines as mlines
 from matplotlib.patches import Patch
+from plotly.validator_cache import ValidatorCache
 
+import scipy.stats as scipy_stats
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+
+
+
+from matplotlib import cm, colors as mcolors
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from matplotlib.patches import Patch
+
+class Visualize:
+    class Maker:
+        @staticmethod
+        def _all_markers():
+            """
+            Retrieve the full raw list of all Plotly marker symbols (strings only).
+            In this Plotly build, the symbol name lives at raw[i+2] for each chunk of 3.
+            """
+            raw = ValidatorCache.get_validator("scatter.marker", "symbol").values
+            names = []
+            # values is [something, something, name, something, something, name, …]
+            for i in range(0, len(raw), 3):
+                candidate = raw[i + 2]
+                names.append(candidate)
+            return names
+
+        @staticmethod
+        def _filter(predicate):
+            """Helper: filter the full marker list by a predicate on the name."""
+            return [m for m in Visualize.Maker._all_markers() if predicate(m)]
+
+        @staticmethod
+        def simple():
+            """Markers without any suffix or prefix (e.g. 'circle', 'square')."""
+            return Visualize.Maker._filter(lambda m: '-' not in m)
+
+        @staticmethod
+        def open():
+            """Markers with '-open' suffix, excluding '-open-dot'."""
+            return Visualize.Maker._filter(lambda m: m.endswith('-open') and not m.endswith('-open-dot'))
+
+        @staticmethod
+        def dot():
+            """Markers with '-dot' suffix, excluding '-open-dot'."""
+            return Visualize.Maker._filter(lambda m: m.endswith('-dot') and not m.endswith('-open-dot'))
+
+        @staticmethod
+        def open_dot():
+            """Markers with '-open-dot' suffix."""
+            return Visualize.Maker._filter(lambda m: m.endswith('-open-dot'))
+
+        @staticmethod
+        def triangle():
+            """All triangle markers (all orientations)."""
+            return Visualize.Maker._filter(lambda m: m.startswith('triangle'))
+
+        @staticmethod
+        def polygon():
+            """Polygon markers: pentagon, hexagon, octagon, etc."""
+            prefixes = ('pentagon', 'hexagon', 'octagon')
+            return Visualize.Maker._filter(lambda m: any(m.startswith(p) for p in prefixes))
+
+        @staticmethod
+        def star():
+            """Star-shaped markers (including hexagram)."""
+            return Visualize.Maker._filter(lambda m: 'star' in m or 'hexagram' in m)
+
+        @staticmethod
+        def cross():
+            """Cross markers, excluding circle-cross/square-cross variants."""
+            return Visualize.Maker._filter(
+                lambda m: 'cross' in m and not m.startswith(('circle-cross', 'square-cross'))
+            )
+
+        @staticmethod
+        def x():
+            """X-shaped markers (including 'x' itself)."""
+            return Visualize.Maker._filter(lambda m: m == 'x' or m.endswith('-x'))
+
+        @staticmethod
+        def arrow():
+            """Simple arrow markers (no bar)."""
+            return Visualize.Maker._filter(lambda m: m.startswith('arrow-') and not m.startswith('arrow-bar-'))
+
+        @staticmethod
+        def arrow_bar():
+            """Arrow markers with a bar (e.g. 'arrow-bar-up')."""
+            return Visualize.Maker._filter(lambda m: m.startswith('arrow-bar-'))
+
+        @staticmethod
+        def line():
+            """Line markers (EW, NS, NE, NW, etc.)."""
+            return Visualize.Maker._filter(lambda m: m.startswith('line-'))
+
+        @staticmethod
+        def y():
+            """Y-shaped markers."""
+            return Visualize.Maker._filter(lambda m: m.startswith('y-'))
+
+        @staticmethod
+        def other():
+            """All markers not covered by the above categories."""
+            cats = set(
+                Visualize.Maker.simple() +
+                Visualize.Maker.open() +
+                Visualize.Maker.dot() +
+                Visualize.Maker.open_dot() +
+                Visualize.Maker.triangle() +
+                Visualize.Maker.polygon() +
+                Visualize.Maker.star() +
+                Visualize.Maker.cross() +
+                Visualize.Maker.x() +
+                Visualize.Maker.arrow() +
+                Visualize.Maker.arrow_bar() +
+                Visualize.Maker.line() +
+                Visualize.Maker.y()
+            )
+            return [m for m in Visualize.Maker._all_markers() if m not in cats]
+
+        @staticmethod
+        def all():
+            """Return the complete list of marker symbols."""
+            return Visualize.Maker._all_markers()
+        
+    class Cmap:
+        @staticmethod
+        def _get_scales(module):
+            """
+            Retrieve all list-attributes of a colors module (e.g. px.colors.sequential),
+            and separate normal and '_r' versions.
+            """
+            all_attrs = [name for name in dir(module) if not name.startswith('_')]
+            normal = [
+                name.lower()
+                for name in all_attrs
+                if isinstance(getattr(module, name), list) and not name.endswith('_r')
+            ]
+            reversed_ = [
+                name.lower()
+                for name in all_attrs
+                if isinstance(getattr(module, name), list) and name.endswith('_r')
+            ]
+            return normal, reversed_
+
+        @staticmethod
+        def cmaps():
+            """All named colorscales (with both normal and reversed names)."""
+            return px.colors.named_colorscales()
+
+        # Sequential (single-hue or multi-hue)
+        @staticmethod
+        def sequential():
+            normal, _ = Visualize.Cmap._get_scales(px.colors.sequential)
+            return normal
+
+        @staticmethod
+        def sequential_r():
+            _, rev = Visualize.Cmap._get_scales(px.colors.sequential)
+            return rev
+
+        # Diverging
+        @staticmethod
+        def diverging():
+            normal, _ = Visualize.Cmap._get_scales(px.colors.diverging)
+            return normal
+
+        @staticmethod
+        def diverging_r():
+            _, rev = Visualize.Cmap._get_scales(px.colors.diverging)
+            return rev
+
+        # Cyclical
+        @staticmethod
+        def cyclical():
+            normal, _ = Visualize.Cmap._get_scales(px.colors.cyclical)
+            return normal
+
+        @staticmethod
+        def cyclical_r():
+            _, rev = Visualize.Cmap._get_scales(px.colors.cyclical)
+            return rev
+
+        # Qualitative (discrete/category)
+        @staticmethod
+        def qualitative():
+            normal, _ = Visualize.Cmap._get_scales(px.colors.qualitative)
+            return normal
+
+        @staticmethod
+        def qualitative_r():
+            _, rev = Visualize.Cmap._get_scales(px.colors.qualitative)
+            return rev
+
+    @staticmethod
+    def save(fig, file_path, parents=True, exist_ok=True):
+        file_path = Path(file_path)
+        file_path.parent.mkdir(parents=parents, exist_ok=exist_ok)
+        file_path.touch(exist_ok=exist_ok)
+        fig.savefig(str(file_path)) 
+    
+    def _createPlot(**kwargs):
+        fig = kwargs.pop('fig', None)
+        ax = kwargs.pop('ax', None)
+
+        if fig is None and ax is None:
+            return plt.subplots(figsize=(10, 6))
+        elif fig is None:
+            return ax.figure, ax
+        elif ax is None:
+            print('WARNING: you provided the fig, but not the ax.')
+            return fig, fig.axes[-1]
+        else:
+            return fig, ax
+
+        
+    class Plot:
+        """Unified plotting interface. All methods accept:
+           - *args: each can be
+               • y-array
+               • (x, y)
+               • (x, y, {opts})
+           - fig, ax: pass existing fig/ax if desired.
+           - path (opt), show (bool)
+           - global styling kwargs: title, xlabel, ylabel, grid, xlim, ylim, legend, xscale, yscale
+        """
+
+        @staticmethod
+        def _init(kwargs: Dict[str, Any]) -> Tuple[Figure, Axes, Dict[str, Any], Dict[str, Any]]:
+            fig = kwargs.pop('fig', None)
+            ax  = kwargs.pop('ax', None)
+            if ax is None:
+                fig, ax = plt.subplots(figsize=kwargs.pop('figsize',(10,6)))
+            elif fig is None:
+                fig = ax.figure
+
+            # extract file/show
+            path = kwargs.pop('path', None)
+            show = kwargs.pop('show', True)
+
+            # styling
+            style = {
+                'title':  kwargs.pop('title', ''),
+                'xlabel': kwargs.pop('xlabel', ''),
+                'ylabel': kwargs.pop('ylabel', ''),
+                'grid':   kwargs.pop('grid', True),
+            }
+            extras = {
+                'xlim':  kwargs.pop('xlim', None),
+                'ylim':  kwargs.pop('ylim', None),
+                'xscale':kwargs.pop('xscale', None),
+                'yscale':kwargs.pop('yscale', None),
+                'legend':kwargs.pop('legend', False),
+            }
+            return fig, ax, style, extras, path, show
+
+        @staticmethod
+        def _apply_style(fig: Figure, ax: Axes,
+                         style: Dict[str, Any], extras: Dict[str, Any]) -> None:
+            ax.set_title(style['title'])
+            ax.set_xlabel(style['xlabel'])
+            ax.set_ylabel(style['ylabel'])
+            ax.grid(style['grid'])
+            if extras['xlim'] is not None:   ax.set_xlim(extras['xlim'])
+            if extras['ylim'] is not None:   ax.set_ylim(extras['ylim'])
+            if extras['xscale'] is not None: ax.set_xscale(extras['xscale'])
+            if extras['yscale'] is not None: ax.set_yscale(extras['yscale'])
+            if extras['legend']:
+                ax.legend()
+            fig.tight_layout()
+
+        @staticmethod
+        def _unwrap(arg: Any) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
+            """Support y-only, (x,y), or (x,y,opts)."""
+            opts: Dict[str, Any] = {}
+            if isinstance(arg, (list, np.ndarray)):
+                y = np.asarray(arg)
+                x = np.arange(len(y))
+            elif isinstance(arg, tuple) and len(arg) in (2,3):
+                x, y = arg[0], arg[1]
+                if len(arg)==3:
+                    opts = dict(arg[2])
+                x = np.asarray(x); y = np.asarray(y)
+            else:
+                raise ValueError(f"Can't parse argument {arg}")
+            return x, y, opts
+        
+        @staticmethod
+        def _end(fig, ax, style, extras, path, show):
+            Visualize.Plot._apply_style(fig, ax, style, extras)
+            if path:    Visualize.save(fig, path)
+            if show:    plt.show(); return None
+            return fig
+
+        @staticmethod
+        def curve(*args, **kwargs) -> Optional[Figure]:
+            """Simple line plot."""
+            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+            for arg in args:
+                x, y, opts = Visualize.Plot._unwrap(arg)
+                ax.plot(x, y, **opts)
+            return Visualize.Plot._end(fig, ax, style, extras, path, show)
+
+
+        @staticmethod
+        def scatter(*args, **kwargs) -> Optional[Figure]:
+            """Scatter / dot plot."""
+            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+            for arg in args:
+                x, y, opts = Visualize.Plot._unwrap(arg)
+                ax.scatter(x, y, **opts)
+            return Visualize.Plot._end(fig, ax, style, extras, path, show)
+        
+        @staticmethod
+        def scatter_density(*args, bw_method: Optional[Union[str, float]] = None, cbar_label: Optional[str] = None, **kwargs) -> Optional[Figure]:
+            """
+            Scatter plot colored by a 2D Gaussian KDE estimate of density.
+            
+            Parameters:
+            - *args: each of
+                • y-array
+                • (x, y)
+                • (x, y, {opts})
+            - bw_method: passed to gaussian_kde (None for scott's rule, or float/string)
+            - cbar_label: label for the density colorbar. If none no color bar
+            - plus all the usual kwargs (fig, ax, title, xlabel, path, show, etc.)
+            """
+            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+
+            for arg in args:
+                x, y, opts = Visualize.Plot._unwrap(arg)
+
+                # compute 2D KDE
+                xy = np.vstack([x, y])
+                kde = scipy_stats.gaussian_kde(xy, bw_method=bw_method)
+                z = kde(xy)
+
+                # sort the points by density, so that high-density points are on top
+                idx = z.argsort()
+
+                sc = ax.scatter(x[idx], y[idx],c=z[idx],**opts)
+
+            # add a colorbar for density
+            if cbar_label is not None:
+                fig.colorbar(sc, ax=ax, label=cbar_label)
+
+            return Visualize.Plot._end(fig, ax, style, extras, path, show)
+
+        @staticmethod
+        def histogram(data: Union[List, np.ndarray], bins: int=30, **kwargs) -> Optional[Figure]:
+            """Univariate histogram."""
+            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+            ax.hist(data, bins=bins, **kwargs.pop('histopts', {}))
+            return Visualize.Plot._end(fig, ax, style, extras, path, show)
+
+        @staticmethod
+        def heatmap(*args, bins: int=100, cmap: str='viridis', **kwargs) -> Optional[Figure]:
+            """2D density heatmap."""
+            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+            for arg in args:
+                x, y, opts = Visualize.Plot._unwrap(arg)
+                heat, xedges, yedges = np.histogram2d(x, y, bins=bins)
+                extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+                im = ax.imshow(
+                    heat.T, extent=extent, origin='lower',
+                    aspect='auto', cmap=cm.get_cmap(cmap),
+                    **opts
+                )
+                fig.colorbar(im, ax=ax, label=kwargs.get('cbar_label',''))
+            return Visualize.Plot._end(fig, ax, style, extras, path, show)
+
+        @staticmethod
+        def candles(data: np.ndarray,
+                    *,
+                    width: float=0.6,
+                    open_color: str='green', close_color: str='red',
+                    wick_width: float=1.0,
+                    legend: bool=True,
+                    **kwargs) -> Optional[Figure]:
+            """
+            OHLC candlestick chart.
+            `data` is an (N,4) array of [open, high, low, close].
+            """
+            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+            data = np.asarray(data)
+            xs = np.arange(len(data))
+            for i, (o, h, l, c) in enumerate(data):
+                color = open_color if c >= o else close_color
+                # wick
+                ax.plot([xs[i], xs[i]], [l, h], color=color, lw=wick_width)
+                # body
+                low, high = sorted((o, c))
+                rect = Patch((xs[i]-width/2, low), width, high-low,
+                             facecolor=color, edgecolor=color)
+                ax.add_patch(rect)
+            if legend:
+                ax.add_patch(Patch(facecolor=open_color, label='Up'))
+                ax.add_patch(Patch(facecolor=close_color, label='Down'))
+                ax.legend()
+            return Visualize.Plot._end(fig, ax, style, extras, path, show)
+            
+        
 # ------------------------------------------
 # GENERAL FUNCTIONS
 # ------------------------------------------
@@ -17,6 +421,11 @@ def save(fig, file_path):
     file_path.parent.mkdir(parents=True, exist_ok=True)
     file_path.touch(exist_ok=True)
     fig.savefig(str(file_path))
+    
+
+
+
+
     
 def _end(fig, ax, kwargs2, path, show):
     """
