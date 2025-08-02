@@ -12,197 +12,372 @@ from plotly.validator_cache import ValidatorCache
 
 import scipy.stats as scipy_stats
 from typing import Any, Dict, List, Optional, Tuple, Union
+import matplotlib.markers as mmarkers
+from matplotlib.lines import Line2D
 
-
-
-
+import colorsys
+import random
 from matplotlib import cm, colors as mcolors
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.patches import Patch
 
 class Visualize:
+
     class Maker:
         @staticmethod
-        def _all_markers():
-            """
-            Retrieve the full raw list of all Plotly marker symbols (strings only).
-            In this Plotly build, the symbol name lives at raw[i+2] for each chunk of 3.
-            """
-            raw = ValidatorCache.get_validator("scatter.marker", "symbol").values
-            names = []
-            # values is [something, something, name, something, something, name, …]
-            for i in range(0, len(raw), 3):
-                candidate = raw[i + 2]
-                names.append(candidate)
-            return names
+        def all():
+            """All named markers."""
+            return list(mmarkers.MarkerStyle.markers.keys())
+        
+        @staticmethod
+        def all_not_none():
+            """All named markers."""
+            return list(set(mmarkers.MarkerStyle.markers.keys()) - set(Visualize.Maker.none()))
+
+        # — filled vs. unfilled —————
 
         @staticmethod
-        def _filter(predicate):
-            """Helper: filter the full marker list by a predicate on the name."""
-            return [m for m in Visualize.Maker._all_markers() if predicate(m)]
+        def filled():
+            return list(mmarkers.MarkerStyle.filled_markers)
 
         @staticmethod
-        def simple():
-            """Markers without any suffix or prefix (e.g. 'circle', 'square')."""
-            return Visualize.Maker._filter(lambda m: '-' not in m)
+        def unfilled():
+            return [
+                m for m in Visualize.Maker.all()
+                if m not in Visualize.Maker.filled()
+            ]
 
         @staticmethod
-        def open():
-            """Markers with '-open' suffix, excluding '-open-dot'."""
-            return Visualize.Maker._filter(lambda m: m.endswith('-open') and not m.endswith('-open-dot'))
+        def fillstyles():
+            return list(mmarkers.MarkerStyle.fillstyles)
+
+        # — geometric shapes —————
 
         @staticmethod
-        def dot():
-            """Markers with '-dot' suffix, excluding '-open-dot'."""
-            return Visualize.Maker._filter(lambda m: m.endswith('-dot') and not m.endswith('-open-dot'))
+        def pixel():
+            return ['.', ',']
 
         @staticmethod
-        def open_dot():
-            """Markers with '-open-dot' suffix."""
-            return Visualize.Maker._filter(lambda m: m.endswith('-open-dot'))
+        def circle():
+            return ['o']
+
+        @staticmethod
+        def square():
+            return ['s']
+
+        @staticmethod
+        def diamond():
+            return ['D', 'd']
 
         @staticmethod
         def triangle():
-            """All triangle markers (all orientations)."""
-            return Visualize.Maker._filter(lambda m: m.startswith('triangle'))
+            return ['v', '^', '<', '>', '1', '2', '3', '4']
 
         @staticmethod
-        def polygon():
-            """Polygon markers: pentagon, hexagon, octagon, etc."""
-            prefixes = ('pentagon', 'hexagon', 'octagon')
-            return Visualize.Maker._filter(lambda m: any(m.startswith(p) for p in prefixes))
+        def pentagon():
+            return ['p', 'P']
+
+        @staticmethod
+        def hexagon():
+            return ['h', 'H']
 
         @staticmethod
         def star():
-            """Star-shaped markers (including hexagram)."""
-            return Visualize.Maker._filter(lambda m: 'star' in m or 'hexagram' in m)
+            return ['*', 'X']
 
         @staticmethod
         def cross():
-            """Cross markers, excluding circle-cross/square-cross variants."""
-            return Visualize.Maker._filter(
-                lambda m: 'cross' in m and not m.startswith(('circle-cross', 'square-cross'))
-            )
+            return ['+', 'x']
+
+        # — numeric / digit markers —————
 
         @staticmethod
-        def x():
-            """X-shaped markers (including 'x' itself)."""
-            return Visualize.Maker._filter(lambda m: m == 'x' or m.endswith('-x'))
+        def numeric():
+            return [
+                m for m in Visualize.Maker.all()
+                if isinstance(m, int) or (isinstance(m, str) and m.isdigit())
+            ]
+
+        # — text‐style / functional —————
 
         @staticmethod
-        def arrow():
-            """Simple arrow markers (no bar)."""
-            return Visualize.Maker._filter(lambda m: m.startswith('arrow-') and not m.startswith('arrow-bar-'))
+        def tick():
+            return ['|', '_']
 
         @staticmethod
-        def arrow_bar():
-            """Arrow markers with a bar (e.g. 'arrow-bar-up')."""
-            return Visualize.Maker._filter(lambda m: m.startswith('arrow-bar-'))
+        def none():
+            return ['None', 'none', ' ', '']
+
+        # —组合 for directional —————
 
         @staticmethod
-        def line():
-            """Line markers (EW, NS, NE, NW, etc.)."""
-            return Visualize.Maker._filter(lambda m: m.startswith('line-'))
+        def directional():
+            return Visualize.Maker.tick() + Visualize.Maker.caret()
 
-        @staticmethod
-        def y():
-            """Y-shaped markers."""
-            return Visualize.Maker._filter(lambda m: m.startswith('y-'))
+        # — everything else —————
 
         @staticmethod
         def other():
-            """All markers not covered by the above categories."""
-            cats = set(
-                Visualize.Maker.simple() +
-                Visualize.Maker.open() +
-                Visualize.Maker.dot() +
-                Visualize.Maker.open_dot() +
-                Visualize.Maker.triangle() +
-                Visualize.Maker.polygon() +
-                Visualize.Maker.star() +
-                Visualize.Maker.cross() +
-                Visualize.Maker.x() +
-                Visualize.Maker.arrow() +
-                Visualize.Maker.arrow_bar() +
-                Visualize.Maker.line() +
-                Visualize.Maker.y()
+            known = (
+                Visualize.Maker.pixel()   + Visualize.Maker.circle() +
+                Visualize.Maker.square()  + Visualize.Maker.diamond() +
+                Visualize.Maker.triangle()+ Visualize.Maker.pentagon() +
+                Visualize.Maker.hexagon() + Visualize.Maker.star()    +
+                Visualize.Maker.cross()   + Visualize.Maker.numeric() +
+                Visualize.Maker.tick()  +
+                Visualize.Maker.none()
             )
-            return [m for m in Visualize.Maker._all_markers() if m not in cats]
+            return [m for m in Visualize.Maker.all() if m not in known]
+
+        # — sanity check —————
 
         @staticmethod
-        def all():
-            """Return the complete list of marker symbols."""
-            return Visualize.Maker._all_markers()
-        
+        def verify():
+            recognized = (
+                Visualize.Maker.pixel()   + Visualize.Maker.circle() +
+                Visualize.Maker.square()  + Visualize.Maker.diamond() +
+                Visualize.Maker.triangle()+ Visualize.Maker.pentagon() +
+                Visualize.Maker.hexagon() + Visualize.Maker.star()    +
+                Visualize.Maker.cross()   + Visualize.Maker.numeric() +
+                Visualize.Maker.tick()    +
+                Visualize.Maker.none()
+            )
+            return [m for m in recognized if m not in Visualize.Maker.all()]
+
     class Cmap:
         @staticmethod
-        def _get_scales(module):
-            """
-            Retrieve all list-attributes of a colors module (e.g. px.colors.sequential),
-            and separate normal and '_r' versions.
-            """
-            all_attrs = [name for name in dir(module) if not name.startswith('_')]
-            normal = [
-                name.lower()
-                for name in all_attrs
-                if isinstance(getattr(module, name), list) and not name.endswith('_r')
-            ]
-            reversed_ = [
-                name.lower()
-                for name in all_attrs
-                if isinstance(getattr(module, name), list) and name.endswith('_r')
-            ]
-            return normal, reversed_
-
-        @staticmethod
-        def cmaps():
+        def all():
             """All named colorscales (with both normal and reversed names)."""
-            return px.colors.named_colorscales()
+            return list(plt.colormaps())
 
         # Sequential (single-hue or multi-hue)
         @staticmethod
         def sequential():
-            normal, _ = Visualize.Cmap._get_scales(px.colors.sequential)
-            return normal
+            return [
+                'magma', 'inferno', 'plasma', 'viridis', 'cividis',
+                'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+                'YlOrBr', 'YlOrRd', 'binary', 'BuGn', 'BuPu', 'GnBu', 'OrRd',
+                'PuBu', 'PuBuGn', 'PuRd', 'RdPu', 'YlGn', 'YlGnBu',
+                # additional sequential/miscellaneous
+                # 'afmhot', 'autumn', 'bone', 'brg', 'cool', 'copper',
+                # 'cubehelix', 'flag', 'gist_earth', 'gist_gray', 'gist_heat', 'gist_ncar',
+                # 'gnuplot', 'gnuplot2', 'gray', 'hot', 'jet', 'nipy_spectral',
+                # 'ocean', 'pink', 'prism', 'rainbow', 'summer', 'terrain', 'winter',
+                # 'turbo', 'spring', 'seismic', 'gist_rainbow', 'gist_stern', 'gist_yarg',
+                # 'grey', 'gist_grey', 'gist_yerg', 'Grays', 'rocket'
+            ]
 
         @staticmethod
         def sequential_r():
-            _, rev = Visualize.Cmap._get_scales(px.colors.sequential)
-            return rev
+            all_ = Visualize.Cmap.all()
+            return [m + '_r' for m in Visualize.Cmap.sequential() if m + '_r' in all_]
 
         # Diverging
         @staticmethod
         def diverging():
-            normal, _ = Visualize.Cmap._get_scales(px.colors.diverging)
-            return normal
+            return [
+                'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy',
+                'RdYlBu', 'RdBu', 'RdYlGn', 'Spectral',
+                'coolwarm', 'bwr'
+            ]
 
         @staticmethod
         def diverging_r():
-            _, rev = Visualize.Cmap._get_scales(px.colors.diverging)
-            return rev
+            all_ = Visualize.Cmap.all()
+            return [m + '_r' for m in Visualize.Cmap.diverging() if m + '_r' in all_]
 
         # Cyclical
         @staticmethod
         def cyclical():
-            normal, _ = Visualize.Cmap._get_scales(px.colors.cyclical)
-            return normal
+            return [
+                'twilight', 'twilight_shifted', 'hsv',
+                # additional cyclic
+                'flag', 'prism'
+            ]
 
         @staticmethod
         def cyclical_r():
-            _, rev = Visualize.Cmap._get_scales(px.colors.cyclical)
-            return rev
+            all_ = Visualize.Cmap.all()
+            return [m + '_r' for m in Visualize.Cmap.cyclical() if m + '_r' in all_]
 
         # Qualitative (discrete/category)
         @staticmethod
         def qualitative():
-            normal, _ = Visualize.Cmap._get_scales(px.colors.qualitative)
-            return normal
+            return [
+                'tab10', 'tab20', 'tab20b', 'tab20c',
+                'Pastel1', 'Pastel2', 'Paired', 'Accent',
+                'Dark2', 'Set1', 'Set2', 'Set3',
+                # others
+                'Wistia', 'CMRmap', 'flare', 'crest', 'icefire', 'mako', 'vlag'
+            ]
 
         @staticmethod
         def qualitative_r():
-            _, rev = Visualize.Cmap._get_scales(px.colors.qualitative)
-            return rev
+            all_ = Visualize.Cmap.all()
+            return [m + '_r' for m in Visualize.Cmap.qualitative() if m + '_r' in all_]
+
+        @staticmethod
+        def other():
+            all_ = Visualize.Cmap.all()
+            known = (
+                Visualize.Cmap.sequential() + Visualize.Cmap.sequential_r() +
+                Visualize.Cmap.diverging() + Visualize.Cmap.diverging_r() +
+                Visualize.Cmap.cyclical() + Visualize.Cmap.cyclical_r() +
+                Visualize.Cmap.qualitative() + Visualize.Cmap.qualitative_r()
+            )
+            return [a for a in all_ if a not in known]
+
+        @staticmethod
+        def verify():
+            all_ = Visualize.Cmap.all()
+            recognized = (
+                Visualize.Cmap.sequential() + Visualize.Cmap.sequential_r() +
+                Visualize.Cmap.diverging() + Visualize.Cmap.diverging_r() +
+                Visualize.Cmap.cyclical() + Visualize.Cmap.cyclical_r() +
+                Visualize.Cmap.qualitative() + Visualize.Cmap.qualitative_r()
+            )
+            return [r for r in recognized if r not in all_]
+
+    class Color:
+        @staticmethod
+        def all():
+            """All named colors from matplotlib (base, CSS4, Tableau, XKCD)."""
+            return list(mcolors.get_named_colors_mapping().keys())
+
+        @staticmethod
+        def base():
+            """Base colors (short names)."""
+            return list(mcolors.BASE_COLORS.keys())
+
+        @staticmethod
+        def tableau():
+            """Tableau colors (named palette colors)."""
+            return list(mcolors.TABLEAU_COLORS.keys())
+
+        @staticmethod
+        def css4():
+            """CSS4 named colors."""
+            return list(mcolors.CSS4_COLORS.keys())
+
+        @staticmethod
+        def xkcd():
+            """XKCD survey colors (prefixed names)."""
+            return list(mcolors.XKCD_COLORS.keys())
+
+        @staticmethod
+        def hex_values():
+            """All hex values of named colors."""
+            return list(mcolors.get_named_colors_mapping().values())
+
+        @staticmethod
+        def other():
+            """Colors not in base, tableau, CSS4, or XKCD."""
+            all_ = set(Visualize.Color.all())
+            known = set(Visualize.Color.base() + Visualize.Color.tableau() + Visualize.Color.css4() + Visualize.Color.xkcd())
+            return list(all_ - known)
+
+        @staticmethod
+        def luminance(color_name):
+            """Return relative luminance [0..1] of a named color."""
+            rgb = mcolors.to_rgb(mcolors.get_named_colors_mapping()[color_name])
+            # Standard Rec. 709 luminance
+            return 0.2126*rgb[0] + 0.7152*rgb[1] + 0.0722*rgb[2]
+
+        @staticmethod
+        def light():
+            """Named colors whose names start with 'light' (case-insensitive)."""
+            return [name for name in Visualize.Color.all() if name.lower().startswith('light')]
+
+        @staticmethod
+        def dark():
+            """Named colors whose names start with 'dark' (case-insensitive)."""
+            return [name for name in Visualize.Color.all() if name.lower().startswith('dark')]
+
+        @staticmethod
+        def dark(threshold=0.5):
+            """Named colors with luminance at or below threshold (dark colors)."""
+            return [name for name in Visualize.Color.all() if Visualize.Color.luminance(name) <= threshold]
+
+        @staticmethod
+        def grayscale(tolerance=1e-6):
+            """Named colors where R≈G≈B within tolerance."""
+            result = []
+            for name, hexcode in mcolors.get_named_colors_mapping().items():
+                r, g, b = mcolors.to_rgb(hexcode)
+                if abs(r-g) < tolerance and abs(g-b) < tolerance:
+                    result.append(name)
+            return result
+
+        @staticmethod
+        def primary(dominance=0.1):
+            """Colors where one channel exceeds the other two by 'dominance'."""
+            prim = {'red': [], 'green': [], 'blue': []}
+            for name, hexcode in mcolors.get_named_colors_mapping().items():
+                r, g, b = mcolors.to_rgb(hexcode)
+                if r - max(g, b) > dominance:
+                    prim['red'].append(name)
+                if g - max(r, b) > dominance:
+                    prim['green'].append(name)
+                if b - max(r, g) > dominance:
+                    prim['blue'].append(name)
+            return prim
+
+        @staticmethod
+        def complementary(color_name):
+            """Return hex code for the complementary color of a named color."""
+            hexcode = mcolors.get_named_colors_mapping()[color_name]
+            r, g, b = mcolors.to_rgb(hexcode)
+            comp = (1-r, 1-g, 1-b)
+            return mcolors.to_hex(comp)
+
+        @staticmethod
+        def lighten(color_name, factor=0.2):
+            """Lighten a named color by a given factor (0..1)."""
+            hexcode = mcolors.get_named_colors_mapping()[color_name]
+            r, g, b = mcolors.to_rgb(hexcode)
+            r, g, b = [min(1, c + factor*(1-c)) for c in (r, g, b)]
+            return mcolors.to_hex((r, g, b))
+
+        @staticmethod
+        def darken(color_name, factor=0.2):
+            """Darken a named color by a given factor (0..1)."""
+            hexcode = mcolors.get_named_colors_mapping()[color_name]
+            r, g, b = mcolors.to_rgb(hexcode)
+            r, g, b = [max(0, c*(1-factor)) for c in (r, g, b)]
+            return mcolors.to_hex((r, g, b))
+
+        @staticmethod
+        def sorted_by_hue(include_hex=False):
+            """Return colors sorted by HSV hue. Optionally include hex codes."""
+            items = []
+            for name, hexcode in mcolors.get_named_colors_mapping().items():
+                r, g, b = mcolors.to_rgb(hexcode)
+                h, l, s = colorsys.rgb_to_hls(r, g, b)
+                items.append((h, name, hexcode))
+            items.sort(key=lambda x: x[0])
+            return [(name, hex) if include_hex else name for _, name, hex in items]
+
+        @staticmethod
+        def random(n=5, seed=None):
+            """Random subset of n named colors."""
+            names = Visualize.Color.all()
+            if seed is not None:
+                random.seed(seed)
+            return random.sample(names, min(n, len(names)))
+
+        @staticmethod
+        def verify():
+            """Verify that named mappings are consistent and unique."""
+            mapping = mcolors.get_named_colors_mapping()
+            names = list(mapping.keys())
+            unique = len(names) == len(set(names))
+            duplicates = [name for name in set(names) if names.count(name) > 1]
+            return {
+                'total': len(names),
+                'unique': unique,
+                'duplicates': duplicates
+            }
 
     @staticmethod
     def save(fig, file_path, parents=True, exist_ok=True):
@@ -263,22 +438,23 @@ class Visualize:
                 'xscale':kwargs.pop('xscale', None),
                 'yscale':kwargs.pop('yscale', None),
                 'legend':kwargs.pop('legend', False),
+                'legend_opts':kwargs.pop('legend_opts', {}),
+                'close':kwargs.pop('close', False),
             }
-            return fig, ax, style, extras, path, show
+            return fig, ax, style, extras, path, show, kwargs
 
         @staticmethod
         def _apply_style(fig: Figure, ax: Axes,
                          style: Dict[str, Any], extras: Dict[str, Any]) -> None:
-            ax.set_title(style['title'])
-            ax.set_xlabel(style['xlabel'])
-            ax.set_ylabel(style['ylabel'])
+            if style['title'] != '': ax.set_title(style['title'])
+            if style['xlabel'] != '': ax.set_xlabel(style['xlabel'])
+            if style['ylabel'] != '': ax.set_ylabel(style['ylabel'])
             ax.grid(style['grid'])
             if extras['xlim'] is not None:   ax.set_xlim(extras['xlim'])
             if extras['ylim'] is not None:   ax.set_ylim(extras['ylim'])
             if extras['xscale'] is not None: ax.set_xscale(extras['xscale'])
             if extras['yscale'] is not None: ax.set_yscale(extras['yscale'])
-            if extras['legend']:
-                ax.legend()
+            if extras['legend']: ax.legend(**extras['legend_opts'])
             fig.tight_layout()
 
         @staticmethod
@@ -302,29 +478,41 @@ class Visualize:
             Visualize.Plot._apply_style(fig, ax, style, extras)
             if path:    Visualize.save(fig, path)
             if show:    plt.show(); return None
-            return fig
+            if extras['close']:   plt.close(fig)
+            return fig, ax
 
         @staticmethod
-        def curve(*args, **kwargs) -> Optional[Figure]:
+        def plot(*args, **kwargs) -> Optional[Figure]:
             """Simple line plot."""
-            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+            fig, ax, style, extras, path, show, gb_opts = Visualize.Plot._init(kwargs)
             for arg in args:
                 x, y, opts = Visualize.Plot._unwrap(arg)
-                ax.plot(x, y, **opts)
+                
+                ax.plot(x, y, **{**gb_opts, **opts})
             return Visualize.Plot._end(fig, ax, style, extras, path, show)
 
 
         @staticmethod
         def scatter(*args, **kwargs) -> Optional[Figure]:
             """Scatter / dot plot."""
-            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+            fig, ax, style, extras, path, show, gb_opts = Visualize.Plot._init(kwargs)
             for arg in args:
                 x, y, opts = Visualize.Plot._unwrap(arg)
-                ax.scatter(x, y, **opts)
+                ax.scatter(x, y, **{**gb_opts, **opts})
             return Visualize.Plot._end(fig, ax, style, extras, path, show)
         
         @staticmethod
-        def scatter_density(*args, bw_method: Optional[Union[str, float]] = None, cbar_label: Optional[str] = None, **kwargs) -> Optional[Figure]:
+        def errorbar(*args, **kwargs) -> Optional[Figure]:
+            """Scatter / dot plot."""
+            fig, ax, style, extras, path, show, gb_opts = Visualize.Plot._init(kwargs)
+            for arg in args:
+                x, y, opts = Visualize.Plot._unwrap(arg)
+                ax.errorbar(np.mean(x), np.mean(y), xerr=np.std(x), yerr=np.std(y), **{**gb_opts, **opts})
+            return Visualize.Plot._end(fig, ax, style, extras, path, show)
+        
+        
+        @staticmethod
+        def scatter_density(*args, alpha=False, rate=False, bw_method: Optional[Union[str, float]] = None, cbar_label: Optional[str] = None, **kwargs) -> Optional[Figure]:
             """
             Scatter plot colored by a 2D Gaussian KDE estimate of density.
             
@@ -337,8 +525,9 @@ class Visualize:
             - cbar_label: label for the density colorbar. If none no color bar
             - plus all the usual kwargs (fig, ax, title, xlabel, path, show, etc.)
             """
-            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
-
+            fig, ax, style, extras, path, show, gb_opts = Visualize.Plot._init(kwargs)
+            
+            legend_handles = []
             for arg in args:
                 x, y, opts = Visualize.Plot._unwrap(arg)
 
@@ -346,29 +535,56 @@ class Visualize:
                 xy = np.vstack([x, y])
                 kde = scipy_stats.gaussian_kde(xy, bw_method=bw_method)
                 z = kde(xy)
-
-                # sort the points by density, so that high-density points are on top
-                idx = z.argsort()
-
-                sc = ax.scatter(x[idx], y[idx],c=z[idx],**opts)
+                idx = z.argsort() # sort the points by density, so that high-density points are on top (of the plot, bottom of the list)
+                
+                if rate:
+                    if isinstance(rate, (float)):
+                        idx = idx[int(len(idx) * (1-rate)):]
+                    elif isinstance(rate, int):
+                        idx = idx[max(0, len(idx) - rate):]
+                    else:
+                        print(f'Warning: Rate of type {type(rate)} with the value {rate} can not take into consideration. Waiting a float or int.')
+                     
+                x, y, z = x[idx], y[idx], z[idx] # Apply the potential rate and order
+                # Allow do add a visibility lebel
+                if alpha:
+                    # z is sorted so we know where is the max and min
+                    z_norm = (z - z[0]) / (z[-1] - z[0])
+                else: z_norm = None
+                
+                    
+                sc = ax.scatter(x, y,c=z, alpha=z_norm,**opts)
+                if opts['label']:
+                    legend_handles.append(Line2D(
+                        [0], [0],
+                        marker=opts.get('marker', 'o'), # Match marker shape
+                        color='none',                 # No line
+                        markeredgecolor=opts.get('edgecolor', 'none'),
+                        markerfacecolor=sc.get_cmap()(0.5),   # Midpoint color
+                        markersize=sc.get_sizes()[0]**0.5,  # Convert area to radius
+                        label=opts['label']
+                    ))
 
             # add a colorbar for density
             if cbar_label is not None:
                 fig.colorbar(sc, ax=ax, label=cbar_label)
+                
+            if extras['legend']:
+                extras['legend_opts'].update({'handles':legend_handles})
 
             return Visualize.Plot._end(fig, ax, style, extras, path, show)
-
+        
         @staticmethod
         def histogram(data: Union[List, np.ndarray], bins: int=30, **kwargs) -> Optional[Figure]:
             """Univariate histogram."""
-            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
-            ax.hist(data, bins=bins, **kwargs.pop('histopts', {}))
+            fig, ax, style, extras, path, show, gb_opts = Visualize.Plot._init(kwargs)
+            ax.hist(data, bins=bins, **gb_opts)
             return Visualize.Plot._end(fig, ax, style, extras, path, show)
 
         @staticmethod
         def heatmap(*args, bins: int=100, cmap: str='viridis', **kwargs) -> Optional[Figure]:
             """2D density heatmap."""
-            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+            fig, ax, style, extras, path, show, gb_opts = Visualize.Plot._init(kwargs)
             for arg in args:
                 x, y, opts = Visualize.Plot._unwrap(arg)
                 heat, xedges, yedges = np.histogram2d(x, y, bins=bins)
@@ -376,7 +592,7 @@ class Visualize:
                 im = ax.imshow(
                     heat.T, extent=extent, origin='lower',
                     aspect='auto', cmap=cm.get_cmap(cmap),
-                    **opts
+                    **{**gb_opts, **opts}
                 )
                 fig.colorbar(im, ax=ax, label=kwargs.get('cbar_label',''))
             return Visualize.Plot._end(fig, ax, style, extras, path, show)
@@ -393,7 +609,7 @@ class Visualize:
             OHLC candlestick chart.
             `data` is an (N,4) array of [open, high, low, close].
             """
-            fig, ax, style, extras, path, show = Visualize.Plot._init(kwargs)
+            fig, ax, style, extras, path, show, gb_opts = Visualize.Plot._init(kwargs)
             data = np.asarray(data)
             xs = np.arange(len(data))
             for i, (o, h, l, c) in enumerate(data):

@@ -98,7 +98,7 @@ class Graph:
             for edge in node.edges:
                 if edge.end is node:
                     return forward(edge.start)
-            return False)
+            return False
 
         if len(self.nodes) == 0 and len(self.nodes[0].edges) == 0:
             return False

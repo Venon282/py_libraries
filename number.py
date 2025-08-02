@@ -90,9 +90,9 @@ def formated(num: any, bound_min: float = 0.001, bound_max: float = 1e6, precisi
     Returns:
       str: The formatted number.
     """
-    if str(num).replace('.', '', 1).isdigit():
+    try:
         num = float(num)
-    else:
+    except (TypeError, ValueError):
         return str(num)
 
     def trimTrailingZeros(s: str) -> str:
