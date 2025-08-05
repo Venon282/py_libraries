@@ -187,3 +187,7 @@ def myAtoi(s: str) -> int:
         idx += 1
 
     return res * sign
+
+def toCamelCase(s, separator=' '):
+    components = s.split(separator)
+    return components[0].lower() + ''.join(x.title() for x in components[1:])
