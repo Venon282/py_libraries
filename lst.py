@@ -353,3 +353,42 @@ def sort(lst):
                 key.append((1, tok.lower()))
         return key
     lst.sort(key=naturalKey)
+
+
+def longuestConsecutiveSubArraySize(lst, sub_size=2):
+    """
+    :type fruits: List[int]
+    :rtype: int
+    """
+
+    sub_unic = []
+    total = 0
+    total_cur = 0
+    n_prev = 0
+
+    for e in lst:
+        # If the element is in the current pair current total +1
+        if e in sub_unic:
+            total_cur += 1
+
+            # If it's not the last seen element put it as the last
+            if e != sub_unic[-1]:
+                e_remove = sub_unic.pop(sub_unic.index(e))
+                sub_unic.append(e)
+                n_prev = 1
+            else:
+                n_prev +=1
+        # Else if the element is not in the current pair
+        else:
+            # And the pair array is at it's final size
+            if len(sub_unic) == sub_size:
+                total = max(total, total_cur)       # Update the total
+                e_remove = sub_unic.pop(0)    # Remove the element from the previous pair
+                total_cur = 1+n_prev
+            else:
+                total_cur += 1
+                
+            n_prev = 1
+            sub_unic.append(e)
+
+    return max(total, total_cur)

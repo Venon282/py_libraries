@@ -414,6 +414,7 @@ class Visualize:
 
         @staticmethod
         def _init(kwargs: Dict[str, Any]) -> Tuple[Figure, Axes, Dict[str, Any], Dict[str, Any]]:
+            
             fig = kwargs.pop('fig', None)
             ax  = kwargs.pop('ax', None)
             if ax is None:
