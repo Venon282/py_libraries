@@ -16,7 +16,7 @@ import locale
 from py_libraries.web.UserAgentProvider import UserAgentProvider
 from py_libraries.string import toCamelCase
 
-class Scraping:
+class ScrapingPlaywright:
     """
     Tips:
         - Get the proxies from the same regions than your defined local time
