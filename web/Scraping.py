@@ -4,6 +4,7 @@ import random
 import math
 import requests
 from bs4 import BeautifulSoup
+import string
 from tzlocal import get_localzone
 from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 import json
@@ -19,6 +20,8 @@ class Scraping:
     """
     Tips:
         - Get the proxies from the same regions than your defined local time
+    
+    To verify manually: playwright codegen https://www.redbubble.com/auth/login
     """
     def __init__(self,
                  proxies: list[str] = None,
@@ -34,6 +37,7 @@ class Scraping:
         self.browser: Browser = None
         self.context: BrowserContext = None
         self.pages: list[Page] = []
+        self.mouses_position = []
         self.max_pages = max_pages
 
         # pool to limit concurrent page actions if needed
@@ -58,38 +62,41 @@ class Scraping:
         self.browser = await self.playwright.chromium.launch(**launch_args)
 
        # If not proxy, use real infos to avoid suspision
-        if proxy is None:
-           self.os=platform.system()
-           locale_time=locale_time if locale_time else locale.getdefaultlocale()[0]
-           timezone_id=timezone_id if timezone_id else str(get_localzone())
-        else:
+        if self.headless is True:
             self.os=None
-        self.locale_time= random.choice(Scraping.localeTime()) if locale_time is None else locale_time
-        self.timezone_id=random.choice(Scraping.timeZones()) if timezone_id is None else timezone_id
+            self.locale_time= random.choice(Scraping.localeTime()) if locale_time is None else locale_time
+            self.timezone_id=random.choice(Scraping.timeZones()) if timezone_id is None else timezone_id
+            
+            # set up the context
+            user_agent_provider = UserAgentProvider()
+            user_agent_provider.loadDefault()
+            self.user_agent_list = user_agent_provider.get(browser='chrome', device='desktop', os=self.os)
+            self.user_agent = user_agent if user_agent else random.choice(self.user_agent_list)
+            self.width, self.height = viewport
+            self.context = await self.browser.new_context(
+                viewport={"width": self.width, "height": self.height},
+                user_agent=self.user_agent,
+                locale=self.locale_time,
+                timezone_id=self.timezone_id,
+                device_scale_factor=1.0,
+                is_mobile=False,
+                has_touch=False,
+            )
+            # stealth init scripts
+            await self._apply_stealth_scripts(self.context)
+        else:
+            self.context = await self.browser.new_context()
         
-        # set up the context
-        user_agent_provider = UserAgentProvider()
-        user_agent_provider.loadDefault()
-        self.user_agent_list = user_agent_provider.get(browser='chrome', device='desktop', os=self.os)
-        self.user_agent = user_agent if user_agent else random.choice(self.user_agent_list)
-        self.width, self.height = viewport
-        self.context = await self.browser.new_context(
-            viewport={"width": self.width, "height": self.height},
-            user_agent=self.user_agent,
-            locale=self.locale_time,
-            timezone_id=self.timezone_id,
-            device_scale_factor=1.0,
-            is_mobile=False,
-            has_touch=False,
-        )
         
-        # stealth init scripts
-        await self._apply_stealth_scripts(self.context)
 
         # open initial page
         page = await self.context.new_page()
         self.pages = [page]
+        self.mouses_position = [self._newMousePosition(page)]
         return page
+    
+    def _newMousePosition(self, page: Page):
+        return random.uniform(0, page.viewport_size["width"]), random.uniform(0, page.viewport_size["height"])
     
     def isStarted(self) -> bool:
         """Check whether the browser and context are initialized and running."""
@@ -142,12 +149,15 @@ class Scraping:
                 raise RuntimeError("Context not started; call .start() first.")
             page = await self.context.new_page()
             self.pages.append(page)
+            self.mouses_position.append(self._newMousePosition(page))
             return page
 
     async def closePage(self, page: Page):
         """Close one of the managed pages."""
         await page.close()
+        page_idx = self.pages.index(page)
         self.pages.remove(page)
+        self.mouses_position.pop(page_idx)
         
         
     async def goTo(self, page: Page, url:str, wait_until:Literal[ "load", "domcontentloaded", "networkidle", "commit"]="networkidle",
@@ -161,6 +171,7 @@ class Scraping:
         for p in list(self.pages):
             await p.close()
         self.pages.clear()
+        self.mouses_position.clear()
         if self.context:
             await self.context.close()
             self.context = None
@@ -174,28 +185,106 @@ class Scraping:
     async def wait(self, a: float = 0.5, b: float = 2.0):
         """Random delay between a and b seconds."""
         await asyncio.sleep(random.uniform(a, b))
+        
+    async def type(self, page: Page, selector: str, text: str, delay_range=(0.05, 0.2), error_chance=0.05, focus_first=True, clear_first=False):
+        locator = page.locator(selector)
+        
+        if focus_first:
+            await self.click(page, selector)
 
-    async def humanType(self, page: Page, selector: str,
-                         text: str, delay_range=(0.05, 0.2)):
+        if clear_first:
+            existing = await locator.input_value()
+            if existing.strip():
+                await locator.click(click_count=3)
+                await self.wait(0.05, 0.1)
+                await page.keyboard.press("Backspace")
+                await self.wait(0.05, 0.1)
+
+        typed = ""
         for char in text:
-            await page.type(selector, char, delay=random.uniform(*delay_range))
-        await self.wait(0.2, 0.5)
+            if random.random() < error_chance:
+                # Type wrong character
+                wrong_char = random.choice(string.ascii_letters)
+                await page.keyboard.type(wrong_char)
+                await self.wait(delay_range[0]*2, delay_range[1]*2)
+                # Press backspace to correct
+                await page.keyboard.press("Backspace")
+                await self.wait(*delay_range)
 
-    async def humanMouseClick(self, page: Page, selector: str):
-        """Move along a Bézier curve to element, then click."""
-        box = await page.locator(selector).bounding_box()
+            await page.keyboard.type(char)
+            typed += char
+            await self.wait(*delay_range)
+
+        await self.wait()
+        
+    def getMousePosition(self, page):
+        if self.mouses_position is None:
+            raise RuntimeError("Context not started; call .start() first.") 
+        
+        if page in self.pages:
+            idx = self.pages.index(page)
+        else:
+            if isinstance(page, Page):
+                self.pages.append(page)
+                self.mouses_position.append(self._newMousePosition(page))
+                idx = self.pages.index(page)
+            else:
+                raise AttributeError(f'page must be of type Page but is {type(page)}')
+        
+        return self.mouses_position[idx]
+    
+    def setMousePosition(self, page, x, y):
+        if self.mouses_position is None:
+            raise RuntimeError("Context not started; call .start() first.") 
+        
+        if page in self.pages:
+            idx = self.pages.index(page)
+        else:
+            if isinstance(page, Page):
+                self.pages.append(page)
+                self.mouses_position.append(self._newMousePosition(page))
+                idx = self.pages.index(page)
+            else:
+                raise AttributeError(f'page must be of type Page but is {type(page)}')
+            
+        self.mouses_position[idx] = [x, y]
+    
+    def displayMouseMovment(self, page: Page, start, end, show=True, path=None, factor=0.1):
+        from py_libraries.visualize import Visualize
+        import numpy as np
+        
+        points = np.array([list(p) for p in Scraping._bezier_curve(start, end, steps=random.randint(20, 40))])
+        x, y = points[:, 0], points[:, 1]
+        Visualize.Plot.plot((x * factor, y * factor), show=show, path=path, figsize=(page.viewport_size["width"] * factor, page.viewport_size["height"] * factor))
+        
+    async def mouseToSelector(self, page: Page, selector: str):
+        locator = page.locator(selector)
+
+        await locator.scroll_into_view_if_needed()
+
+        box = await locator.bounding_box()
+        
         if not box:
             raise RuntimeError(f"{selector} not visible")
-        start = (random.uniform(0, page.viewport_size["width"]),
-                 random.uniform(0, page.viewport_size["height"]))
-        end = (box["x"] + box["width"]/2, box["y"] + box["height"]/2)
-        path = list(self._bezier_curve(start, end,
-                                       steps=random.randint(20, 40)))
-        await page.mouse.move(path[0]["x"], path[0]["y"])
-        for pt in path[1:]:
-            await page.mouse.move(pt["x"], pt["y"], steps=1)
+
+        start = self.getMousePosition(page)
+        
+        end = (random.uniform(box["x"], box["x"] + box["width"]), random.uniform(box["y"], box["y"] + box["height"]/2))
+        
+        path = list(Scraping._bezier_curve(start, end, steps=random.randint(20, 40)))
+        await page.mouse.move(path[0][0], path[0][1])
+        for x, y in path[1:]:
+            await page.mouse.move(x, y, steps=1)
+            self.setMousePosition(page, x, y)
         await self.wait(0.1, 0.3)
+        
+        return end
+
+    async def click(self, page: Page, selector: str):
+        """Move along a Bézier curve to element, then click."""
+        end = await self.mouseToSelector(page, selector)
         await page.mouse.click(end[0], end[1])
+        await self.wait()
 
     async def scroll(self, page: Page,
                      distance_range=(0.2, 1.0),
@@ -213,7 +302,11 @@ class Scraping:
         for t in [i/steps for i in range(steps+1)]:
             x = (1-t)**2*start[0] + 2*(1-t)*t*cx + t**2*end[0]
             y = (1-t)**2*start[1] + 2*(1-t)*t*cy + t**2*end[1]
-            yield {"x": x, "y": y}
+            yield x , y
+            
+    async def isSelector(self, page, selector):
+        count = await page.locator(selector).count()
+        return count > 0
 
     # ─── PROXY MANAGEMENT ──────────────────────────────────────────────────────
     @staticmethod

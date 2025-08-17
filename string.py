@@ -191,3 +191,22 @@ def myAtoi(s: str) -> int:
 def toCamelCase(s, separator=' '):
     components = s.split(separator)
     return components[0].lower() + ''.join(x.title() for x in components[1:])
+
+def maxOccurenceAdjacentChar(s):
+    prev=''
+    max_oc = 0
+    cur_oc = 0
+    for c in s:
+        if c == prev:
+            cur_oc += 1
+            max_oc = max(max_oc, cur_oc)
+        else:
+            prev = c
+            cur_oc = 1
+    return max_oc
+
+def containsChineseChar(s):
+    for char in s:
+        if '\u4e00' <= char <= '\u9fff':  # Common CJK Unified Ideographs range
+            return True
+    return False
