@@ -64,8 +64,8 @@ class ScrapingPlaywright:
        # If not proxy, use real infos to avoid suspision
         if self.headless is True:
             self.os=None
-            self.locale_time= random.choice(Scraping.localeTime()) if locale_time is None else locale_time
-            self.timezone_id=random.choice(Scraping.timeZones()) if timezone_id is None else timezone_id
+            self.locale_time= random.choice(ScrapingPlaywright.localeTime()) if locale_time is None else locale_time
+            self.timezone_id=random.choice(ScrapingPlaywright.timeZones()) if timezone_id is None else timezone_id
             
             # set up the context
             user_agent_provider = UserAgentProvider()
@@ -130,7 +130,7 @@ class ScrapingPlaywright:
         proxy = self.proxies.pop(0)
         if test:
             i=1
-            while not Scraping.testProxy(proxy):
+            while not ScrapingPlaywright.testProxy(proxy):
                 if verbose >= 1:
                     print(f'{proxy} failed the test. {i}', end=end)
                 if len(self.proxies) == 0:
@@ -253,7 +253,7 @@ class ScrapingPlaywright:
         from py_libraries.visualize import Visualize
         import numpy as np
         
-        points = np.array([list(p) for p in Scraping._bezier_curve(start, end, steps=random.randint(20, 40))])
+        points = np.array([list(p) for p in ScrapingPlaywright._bezier_curve(start, end, steps=random.randint(20, 40))])
         x, y = points[:, 0], points[:, 1]
         Visualize.Plot.plot((x * factor, y * factor), show=show, path=path, figsize=(page.viewport_size["width"] * factor, page.viewport_size["height"] * factor))
         
@@ -271,7 +271,7 @@ class ScrapingPlaywright:
         
         end = (random.uniform(box["x"], box["x"] + box["width"]), random.uniform(box["y"], box["y"] + box["height"]/2))
         
-        path = list(Scraping._bezier_curve(start, end, steps=random.randint(20, 40)))
+        path = list(ScrapingPlaywright._bezier_curve(start, end, steps=random.randint(20, 40)))
         await page.mouse.move(path[0][0], path[0][1])
         for x, y in path[1:]:
             await page.mouse.move(x, y, steps=1)
@@ -333,7 +333,7 @@ class ScrapingPlaywright:
     def getGeonodeProxies(limit:int=100, sort_by:str='lastChecked', sort_type:str='desc', 
                             anonymityLevel:str=None, country:str=None, filterPort:int=None, protocols:str=None, 
                             speed:int=None, filterUpTime:int=None, filterLastChecked:int=None, google:str=None) -> list[str]:
-        geonode_infos = Scraping.getGeonodeInfos(**locals())
+        geonode_infos = ScrapingPlaywright.getGeonodeInfos(**locals())
         return [f"http://{d['ip']}:{d['port']}" for d in geonode_infos]
     
     @staticmethod
@@ -357,7 +357,7 @@ class ScrapingPlaywright:
     @staticmethod
     def getFreeProxyProxies(limit:int=300, path_extension:str='', **kwargs) -> list[str]:
         """Scrape SSLProxies.org for fast list."""
-        rows = Scraping.getFreeProxyInfos(limit=limit, path_extension=path_extension, **kwargs)
+        rows = ScrapingPlaywright.getFreeProxyInfos(limit=limit, path_extension=path_extension, **kwargs)
         
         return [f"http://{row['ipAddress']}:{row['port']}" for row in rows]
     
@@ -391,13 +391,13 @@ class ScrapingPlaywright:
         updateLimit(free_proxy_kwargs)
         updateLimit(proxy_scraper_kwargs)
         
-        pool += getProxyList(geonode, Scraping.getGeonodeProxies, geonode_kwargs)
-        pool += getProxyList(free_proxy, Scraping.getFreeProxyProxies, free_proxy_kwargs)
-        pool += getProxyList(proxy_scraper, Scraping.getProxyScrapeProxies, proxy_scraper_kwargs)
+        pool += getProxyList(geonode, ScrapingPlaywright.getGeonodeProxies, geonode_kwargs)
+        pool += getProxyList(free_proxy, ScrapingPlaywright.getFreeProxyProxies, free_proxy_kwargs)
+        pool += getProxyList(proxy_scraper, ScrapingPlaywright.getProxyScrapeProxies, proxy_scraper_kwargs)
         
         random.shuffle(pool)
 
-        self.proxies = [p for p in pool if not test_proxies or Scraping.testProxy(p)][:pool_size]
+        self.proxies = [p for p in pool if not test_proxies or ScrapingPlaywright.testProxy(p)][:pool_size]
         
     @staticmethod
     def proxyInfos(proxy):

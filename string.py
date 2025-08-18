@@ -1,5 +1,5 @@
 from typing import List
-
+import regex
 
 def prefixCount(words:list[str], pref:str):
     """
@@ -204,6 +204,24 @@ def maxOccurenceAdjacentChar(s):
             prev = c
             cur_oc = 1
     return max_oc
+
+def maxOccurenceAdjacentEmoji(s: str) -> int:
+    """
+    Returns the maximum number of consecutive emojis (any emoji, not necessarily the same).
+    """
+    # Matches a grapheme cluster if it contains at least one emoji
+    max_count = 0
+    current_count = 0
+
+    for cluster in regex.findall(r"\X", s):
+        # check if the cluster contains an emoji
+        if any(regex.match(r"\p{Emoji}", c) for c in cluster):
+            current_count += 1
+            max_count = max(max_count, current_count)
+        else:
+            current_count = 0
+
+    return max_count
 
 def containsChineseChar(s):
     for char in s:
