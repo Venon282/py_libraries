@@ -26,7 +26,7 @@ import time
 from playwright.sync_api import sync_playwright
 
 import os
-from Pywinauto import Pywinauto
+from .Pywinauto import Pywinauto
 
 class ModeType(Enum):
     SCALE = 'Scale'
@@ -172,18 +172,21 @@ class GigaPixel(Pywinauto):
         button_size = (edit_filename_rec.right - edit_filename_rec.left) / 2
         positions = {btn_name: int(edit_filename_rec.left + (i + 0.5) * button_size) for i, btn_name in enumerate(['Source', 'Custom'])}
 
+        btn_change = self.main_win.child_window(title='Change')
+        
         if len(save_dir) > 0:
-
-            mouse.click(button='left', coords=(positions['Custom'], y))
-            btn_change = self.main_win.child_window(title='Change').click_input()
+            if not btn_change.exists():
+                mouse.click(button='left', coords=(positions['Custom'], y))
             
+            btn_change = self.main_win.child_window(title='Change').click_input()
             open_dlg = Desktop(backend='win32').window(title_re=".*Output Folder.*")
             open_dlg.wait('visible')
             
             self.fileSysWinGoToPath(save_dir)
             open_dlg['Select Folder'].click()
         else:
-            mouse.click(button='left', coords=(positions['Source'], y))
+            if btn_change.exists():
+                mouse.click(button='left', coords=(positions['Source'], y))
             
         if len(filename) > 0:
             edit_filename.set_edit_text(filename)
@@ -205,13 +208,14 @@ class GigaPixel(Pywinauto):
         save_btn = self.main_win.child_window(title='Start', control_type='Button') # If many images
     
         
-    def imageNotSavePopUp(self, save=False):
+    def imageNotSavePopUp(self, save:bool=False, verbose:int=0):
         save_btn = self.main_win.child_window(title="Save", control_type="Button")
         close_btn = self.main_win.child_window(title="Close Without Saving", control_type="Button")
         cancel_btn = self.main_win.child_window(title="Cancel", control_type="Button")
         
         if not close_btn.exists():
-            logger.debug("Close Without Saving do NOT exist")
+            if verbose:
+                print("Close Without Saving do NOT exist")
             return False
         
         if save:
@@ -281,7 +285,7 @@ class GigaPixel(Pywinauto):
     def upScaleImages(self):
         raise NotImplementedError()
         
-    def upScaleImage(self, mode_type:ModeType = ModeType.SCALE, mode:Mode|int = Mode.X2):
+    def upScaleImage(self, mode_type:ModeType = ModeType.SCALE, mode:Mode|int = Mode.X2, filename:str='', save_dir:str=''):
         if mode_type == ModeType.SCALE:
             if not isinstance(mode, Mode):
                 raise AttributeError(f'With ModeType.SCALE, the mode should be an instance of Mode.')
@@ -295,12 +299,12 @@ class GigaPixel(Pywinauto):
             self.selectModeType(mode_type)
             self.fillSize(size=mode)
         
-        self.saveImage()
+        self.saveImage(filename, save_dir)
         
     def upScaleImageWithMaximalSize(self):
         raise NotImplementedError()
         
-    def upScaleImageWithMinimalSize(self,image_path,  min_width, min_height):
+    def upScaleImageWithMinimalSize(self,image_path:str,  min_width:int, min_height:int, filename:str='', save_dir:str=''):
         self.closeImages(save=False)
         self.openImage(image_path)
         with Image.open(image_path) as img:
@@ -311,13 +315,10 @@ class GigaPixel(Pywinauto):
         if width_factor < 1 and height_factor < 1:
             raise Exception('The min sizes provided do not allow an upscale:\n- Width factor: {round(width_factor, 2)}\n- Height factor: {round(height_factor, 2)}')
         
-        print(width_factor, width, min_width)
-        print(height_factor, height, min_height)
-        
         if width_factor > height_factor:
-            self.upScaleImage(mode_type=ModeType.WIDTH, mode=min_width)
+            self.upScaleImage(mode_type=ModeType.WIDTH, mode=min_width, filename=filename, save_dir=save_dir)
         else:
-            self.upScaleImage(mode_type=ModeType.HEIGHT, mode=min_height)
+            self.upScaleImage(mode_type=ModeType.HEIGHT, mode=min_height, filename=filename, save_dir=save_dir)
             
     def removePopUp(self):
         send_keys('^,')
@@ -326,8 +327,9 @@ class GigaPixel(Pywinauto):
         
         
 if __name__ == '__main__':
+    user = 'user_name'
     gp = GigaPixel(r"C:\Program Files\Topaz Labs LLC\Topaz Gigapixel AI\Topaz Gigapixel AI.exe")
     gp.openApp()
-    gp.openImage(path=r'C:\Users\esto5\Downloads\original.png')
-    gp.saveImage('testtest',r'C:\Users\esto5\Downloads\save')
+    gp.openImage(path=r'C:\Users\{user}\Downloads\original.png')
+    gp.saveImage('testtest',fr'C:\Users\{user}\Downloads\save')
     

@@ -7,10 +7,12 @@ from selenium.common.exceptions import (
     ElementClickInterceptedException,
     WebDriverException,
     TimeoutException,
+    NoSuchElementException
 )
 import pyperclip
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.remote.webelement import WebElement
 import numpy as np
 import time
 import traceback
@@ -18,66 +20,173 @@ import pickle
 from pathlib import Path
 import pyautogui
 import logging
+import io
+import base64
+from PIL import Image
 
 class ScrapingSeleniumBase:
-    
+    """
+    Base class for web scraping using Selenium
+    """
+
     def __init__(self):
         self._started = False
         self._mouse_position = None
-        
-    def start(self, **kwargs):
+        self.sb_context = None
+        self.sb = None
+
+    def start(
+        self,
+        browser: str = "chrome",
+        uc: bool = True,
+        headless: bool = False,
+        agent: str = "random",
+        incognito: bool = True,
+        locale_code: str = "en-US",
+        recorder_ext: bool = False,
+        disable_csp: bool = True
+    ):
+        """
+        Start a Selenium browser session with specified configurations.
+
+        Parameters
+        ----------
+        browser : str, optional
+            Browser type to use (default 'chrome').
+        uc : bool, optional
+            Whether to use undetected Chromium (default True).
+        headless : bool, optional
+            Whether to run the browser in headless mode (default False).
+        agent : str, optional
+            User-agent string or 'random' (default 'random').
+        incognito : bool, optional
+            Whether to open the browser in incognito/private mode (default True).
+        locale_code : str, optional
+            Locale for the browser session (default 'en-US').
+        recorder_ext : bool, optional
+            Whether to enable a recorder extension (default False).
+        disable_csp : bool, optional
+            Whether to disable Content Security Policy (default True).
+        """
         self.sb_context = SB(
-            browser         =   kwargs.get('browser'        , 'chrome'),
-            uc              =   kwargs.get('uc'             , True),  # undetected chromium
-            headless        =   kwargs.get('headless'       , False),
-            agent           =   kwargs.get('agent'          , 'random'),
-            incognito       =   kwargs.get('incognito'      , True),
-            locale_code     =   kwargs.get('locale_code'    , 'en-US'),
-            recorder_ext    =   kwargs.get('recorder_ext'   , False),
-            disable_csp     =   kwargs.get('disable_csp'    , True),
-        ) 
-        
+            browser=browser,
+            uc=uc,
+            headless=headless,
+            agent=agent,
+            incognito=incognito,
+            locale_code=locale_code,
+            recorder_ext=recorder_ext,
+            disable_csp=disable_csp
+        )
+
         self.sb = self.sb_context.__enter__()
-        
-        if not kwargs.get('headless', False):
+
+        if not headless:
             self.sb.driver.maximize_window()
-        
-        vw, vh = self.getViewportSize()
-        self._mouse_position = random.uniform(0, vw), random.uniform(0, vh)
-        
+
+        self._mouse_position = pyautogui.position()
+
     def stop(self):
-        if hasattr(self, 'sb_context'):
+        """
+        Stop the Selenium browser session and release resources.
+        """
+        if self.sb_context:
             self.sb_context.__exit__(None, None, None)
+            self.sb_context = None
+            self.sb = None
         
-    def wait(self, lower=0.5, upper=3.0) -> float:
-        """Return a randomized delay sampled from a truncated normal distribution."""
-        mu = (lower + upper) / 2
-        sigma = (upper - lower) / 4
-        d = random.gauss(mu, sigma)
-        time.sleep(max(lower, min(d, upper)))
-        return max(lower, min(d, upper))
+    def wait(self, lower: float = 0.5, upper: float = 3.0) -> float:
+        """
+        Return a randomized delay sampled from a truncated normal distribution.
+
+        Parameters
+        ----------
+        lower : float
+            Minimum wait time in seconds (default 0.5).
+        upper : float
+            Maximum wait time in seconds (default 3.0).
+
+        Returns
+        -------
+        float
+            Randomized delay in seconds, truncated within [lower, upper].
+        """
+        mean = (lower + upper) / 2
+        std = (mean - lower) / 3
+        rand = np.random.normal(loc=mean, scale=std)
+        time.sleep(min(max(lower, rand), upper))
     
     def isXpath(self, selector: str) -> bool:
         """Quick heuristic to detect XPath-like selectors."""
         s = selector.strip()
         return s.startswith(("/", "//", ".//", "("))
+    
     def getElement(self, selector: str):
         """Find element using XPath if selector looks like XPath, otherwise CSS."""
         if self.isXpath(selector):
             return self.sb.driver.find_element(By.XPATH, selector)
         return self.sb.driver.find_element(By.CSS_SELECTOR, selector)
     
-    def waitForPresence(self, selector: str, timeout: int = 10):
+    def isElementPresent(self, selector):
+        """
+        Check if an element is present on the page.
+        
+        :param driver: Selenium WebDriver instance
+        :param selector: CSS selector or XPath
+        :param by: "css" or "xpath"
+        :return: True if element exists, False otherwise
+        """
+        try:
+            if self.isXpath(selector):
+                self.sb.driver.find_element("xpath", selector)
+            else:
+                self.sb.driver.find_element("css selector", selector)
+            return True
+        except NoSuchElementException:
+            return False
+    
+    def waitForPresence(self, element:str|WebElement, timeout: int|None = 10):
         """Wait for presence of element supporting CSS or XPath selectors."""
-        return WebDriverWait(self.sb.driver, timeout).until(lambda d: self.getElement(selector))
-    def waitForClickable(self, selector: str, timeout: int = 10):
+        return WebDriverWait(self.sb.driver, timeout).until(lambda d: self.getElement(element) if isinstance(element, str) else element)
+    
+    def waitUntilDisappear(self, element:str|WebElement, timeout=30):
+        """
+        Wait until an element disappears from the page (is no longer present or visible).
+        
+        :param selector: CSS or XPath string
+        :param by: "css" or "xpath"
+        :param timeout: max time to wait (seconds)
+        :return: True if the element disappeared, False if still present after timeout
+        """
+        try:
+            if isinstance(element, WebElement):
+                return WebDriverWait(self.sb.driver, timeout).until_not(
+                    EC.presence_of_element_located(element)
+                )
+            elif self.isXpath(element):
+                WebDriverWait(self.sb.driver, timeout).until_not(
+                    EC.presence_of_element_located(("xpath", element))
+                )
+            else:
+                WebDriverWait(self.sb.driver, timeout).until_not(
+                    EC.presence_of_element_located(("css selector", element))
+                )
+            return True
+        except TimeoutException:
+            return False
+    
+    def waitForClickable(self, element:str|WebElement, timeout: int = 10):
         """Wait for an element to be clickable (best-effort)."""
-        if self.isXpath(selector):
+        if isinstance(element, WebElement):
             return WebDriverWait(self.sb.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, selector))
+                EC.element_to_be_clickable(element)
+            )
+        elif self.isXpath(element):
+            return WebDriverWait(self.sb.driver, timeout).until(
+                EC.element_to_be_clickable((By.XPATH, element))
             )
         return WebDriverWait(self.sb.driver, timeout).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
+            EC.element_to_be_clickable((By.CSS_SELECTOR, element))
         )
     
     def _quadratic_bezier(self, p0, p1, p2, t):
@@ -142,8 +251,11 @@ class ScrapingSeleniumBase:
                 # best-effort move; ignore intermittent failures
                 pass
     
-    def move(self, selector: str, wait=(0.05, 0.25), pause_per_step=(0.006, 0.02), rupture_point_range=(0.3, 0.7), spread_range=(0.15, 0.25)):
-        el = self.waitForPresence(selector)
+    def move(self, element:str|WebElement, wait=(1, 3), pause_per_step=(0.006, 0.02), rupture_point_range=(0.3, 0.7), spread_range=(0.15, 0.25)):
+        """element can be the selector"""
+
+        el = self.waitForPresence(element)
+        self.wait(*wait)
         
         left, top, width, height = self.getElementClientRect(el)
 
@@ -151,19 +263,23 @@ class ScrapingSeleniumBase:
         target_x = left + random.uniform(0.15, 0.85) * width
         target_y = top + random.uniform(0.15, 0.85) * height
         
-        start = self._mouse_position
+        start = pyautogui.position()
         end = (target_x, target_y)
         path = self._bezier_path(start, end, steps=random.randint(8, 18), wobble=0.25)
         self._moveAlongPath(path, pause_per_step, rupture_point_range, spread_range)
         self.wait(*wait)
         
-    def click(self, selector: str, wait=(0.05, 0.3), pause_per_step=(0.006, 0.02), rupture_point_range=(0.3, 0.7), spread_range=(0.15, 0.25)):
-        self.scrollToElemen(selector)
-        el = self.waitForPresence(selector)
-        self.move(selector, wait=wait, pause_per_step=pause_per_step, rupture_point_range=rupture_point_range, spread_range=spread_range)
+    def click(self, element:str|WebElement, wait=(0.1, 0.3), pause_per_step=(0.006, 0.02), rupture_point_range=(0.3, 0.7), spread_range=(0.15, 0.25)):
+        """element can be the selector"""
+        self.scrollToElement(element, wait=wait)
+        
+        el = self.waitForPresence(element)
+        self.waitForClickable(el)
+        self.wait(*wait) # make sure the js position is actualise before move
 
         try:
             # ActionChains(self.sb.driver).click().perform()
+            self.move(element, wait=wait, pause_per_step=pause_per_step, rupture_point_range=rupture_point_range, spread_range=spread_range)
             pyautogui.click()
         except (ElementClickInterceptedException, WebDriverException):
             # fallback: JavaScript click as a last resort (still legitimate for testing)
@@ -175,6 +291,7 @@ class ScrapingSeleniumBase:
                 traceback.print_exc()
                 pass
         self.wait(*wait)
+        
     # def human_hover(self, selector: str, duration_range=(0.5, 2.0)):
     #     """Move to element and hold the cursor there for a human-like duration."""
     #     el = self.getElement(selector)
@@ -199,7 +316,7 @@ class ScrapingSeleniumBase:
     #     # final small pause
     #     self.wait((0.05, 0.3))
     
-    def type(self, selector: str, text: str, clear: bool = True, wait=(0.08, 0.2), delay_range=(0.04, 0.22), mistake_chance=0.03, fix_delay=(0.08, 0.18)):
+    def type(self, selector: str, text: str, clear: bool = True, wait=(1, 3), delay_range=(0.04, 0.22), mistake_chance=0.03, fix_delay=(0.08, 0.18)):
         """
         Click into field and type text char-by-char with randomized delays.
         Occasionally injects a small typo and corrects it to emulate human typing.
@@ -207,7 +324,7 @@ class ScrapingSeleniumBase:
         el = self.waitForPresence(selector)
 
         try:
-            self.click(selector)
+            self.click(selector, wait=wait)
         except WebDriverException:
             try:
                 el.click()
@@ -220,9 +337,10 @@ class ScrapingSeleniumBase:
             if current_val.strip():
                 # simulate ctrl+a + backspace
                 el.send_keys(Keys.CONTROL, "a")
-                time.sleep(self.wait(0.04, 0.1))
+                self.wait(*delay_range)
                 el.send_keys(Keys.BACKSPACE)
-                time.sleep(self.wait(0.05, 0.15))
+                self.wait(*delay_range)
+                
         for ch in text:
             # chance to make a typo
             if random.random() < mistake_chance and ch.isalnum():
@@ -273,27 +391,124 @@ class ScrapingSeleniumBase:
 
         self.wait(*wait)
         
-    def scroll(self, direction=1, distance=(120, 240), wait=(0.05, 0.25)):
+    def scroll(self, direction=1, distance=(120, 240), wait=(0.1, 0.3)):
+        """
+        Smoothly scroll the page vertically.
+
+        Parameters
+        ----------
+        direction : int, optional
+            Scroll direction (1 = down, -1 = up). Default is 1.
+        distance : tuple[int|float, int|float], optional
+            Range of scroll distance. If floats are provided, distance is
+            interpreted as a fraction of viewport height. Default is (120, 240).
+        wait : tuple[float, float], optional
+            Random wait time range between scroll actions in seconds. Default is (0.1, 0.3).
+        """
+        # pick random distance
         dist = random.randint(*distance)
         
+        # if distance specified as fraction of viewport height
         if isinstance(distance[0], float):
             _, vh = self.getViewportSize()
             dist *= vh
 
-        self.sb.execute_script(f"window.scrollBy(0, {dist * direction});")
+        # smooth scroll using native browser support
+        self.sb.execute_script(f"window.scrollBy(0, {dist * direction}, behavior: 'smooth');")
         self.wait(*wait)
         
-    def scrollToElemen(self, selector: str, distance=(120, 240), wait=(0.05, 0.25), max_scrolls=30):
+    def scroll(
+        self,
+        direction: int = 1,
+        distance: tuple = (120, 240),
+        wait: tuple = (0.1, 0.3),
+        method: str = "wheel"
+    ) -> None:
+        """
+        Scroll the page vertically with either smooth programmatic scrolling
+        or simulated human-like mouse wheel events.
+
+        Parameters
+        ----------
+        direction : int, optional
+            Scroll direction (1 = down, -1 = up). Default is 1.
+        distance : tuple[int|float, int|float], optional
+            Range of total scroll distance. If floats are provided, distance is
+            interpreted as a fraction of viewport height. Default is (120, 240).
+        wait : tuple[float, float], optional
+            Random wait time range between scroll actions in seconds. Default is (0.1, 0.3).
+        method : str, optional
+            Scrolling method:
+                - "smooth": uses window.scrollBy with smooth behavior.
+                - "wheel": dispatches multiple real mouse wheel events (human-like).
+        """
+        # pick total scroll distance
+        total_dist = random.uniform(*distance)
+
+        # if distance specified as fraction of viewport height
+        if any(isinstance(d, float) for d in distance):
+            _, vh = self.getViewportSize()
+            total_dist *= vh
+
+        if method == "smooth":
+            # native smooth scroll
+            self.sb.execute_script(
+                f"window.scrollBy({{top: {total_dist * direction}, behavior: 'smooth'}});"
+            )
+
+        elif method == "wheel":
+            # simulate human-like mouse wheel (multiple small ticks)
+            remaining = total_dist
+            while remaining > 0:
+                step = min(
+                    remaining,
+                    random.uniform(40, 120)  # typical wheel tick size
+                )
+                self.sb.execute_script(
+                    f"window.dispatchEvent(new WheelEvent('wheel', "
+                    f"{{deltaY: {step * direction}, bubbles: true}}));"
+                )
+                remaining -= step
+                # small, natural pause between ticks
+                self.wait(0.02, 0.15)
+
+        else:
+            raise ValueError("method must be 'smooth' or 'wheel'")
+        
+        self.wait(*wait)
+        
+    def waitForScrollEnd(self, timeout=5, interval=0.05):
+        """
+        Wait until the window scroll position stops changing.
+        Useful after calling scroll() or scrollIntoView() with smooth behavior.
+        """
+        end_time = time.time() + timeout
+        last_pos = None
+
+        while time.time() < end_time:
+            pos = self.sb.driver.execute_script("return window.pageYOffset;")
+            if last_pos is not None and abs(pos - last_pos) < 1:  # <1px difference
+                return True
+            last_pos = pos
+            time.sleep(interval)
+
+        return False  # timeout
+        
+    def scrollToElement(self, element:str|WebElement, distance=(120, 240), wait=(0.3, 1.0), max_scrolls=30):
         """
         Scrolls the page gradually and 'human-like' until the element is visible in viewport.
+        element can be the selector
         """
-        el = self.waitForPresence(selector)
+
+        el = self.waitForPresence(element)
         for i in range(max_scrolls):
             left, top, width, height = self.getElementClientRect(el)
             vw, vh = self.getViewportSize()
 
             # Check if fully in viewport
             if 0 <= top < vh - height and 0 <= left < vw - width:
+                self.waitForScrollEnd()
+                self.wait(*wait)
                 return True
 
             # scroll
@@ -304,6 +519,7 @@ class ScrapingSeleniumBase:
             else:
                 # partially visible, break
                 break
+     
 
         # final ensure it's visible (native scrollIntoView but smoother)
         try:
@@ -354,18 +570,30 @@ class ScrapingSeleniumBase:
             
     def loadCookies(self, path='./', not_exist_ok=True):
         path = Path(path)
+        
         if not path.is_file():
             path = path / "cookies.pkl"
+            
         if not path.exists():
             if not_exist_ok is False:
                 raise Exception(f'The file {path} do not exist.')
             else:
                 return
+            
         with open(path, "rb") as f:
             cookies = pickle.load(f)
+            
         self.sb.driver.delete_all_cookies()
+        
         for cookie in cookies:
-            self.sb.driver.add_cookie(cookie)
+            cookie.pop("sameSite", None)
+            cookie.pop("expiry", None)
+
+            try:
+                self.sb.driver.add_cookie(cookie)
+            except Exception as e:
+                print("Skipping cookie:", cookie.get("name"), "-", e)
+            
         self.sb.driver.refresh() 
         
     def getViewportSize(self):
@@ -390,4 +618,39 @@ class ScrapingSeleniumBase:
         self.wait(*wait)
         pyautogui.press("esc")
         self.wait(*wait)
+        
+    def getUrlImage(self, url: str, wait:tuple = (0.5, 3)) -> Image.Image:
+        """
+        Open a URL, capture the first <img> on the page, and return it as a PIL Image.
+
+        Parameters
+        ----------
+        url : str
+            URL of the webpage to capture the image from.
+
+        Returns
+        -------
+        PIL.Image.Image
+            The first <img> element on the page as an RGB PIL Image.
+        """
+        import base64, io
+
+        self.sb.open(url)
+        self.wait(*wait)
+
+        img_base64 = self.sb.execute_script("""
+            var img = document.querySelector('img');
+            if (!img) return null;
+            var canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            return canvas.toDataURL('image/png').split(',')[1];
+        """)
+        if not img_base64:
+            raise ValueError(f"No <img> found at {url}")
+
+        img_bytes = base64.b64decode(img_base64)
+        return Image.open(io.BytesIO(img_bytes)).convert("RGB")
 

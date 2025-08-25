@@ -1,3 +1,5 @@
+import numpy as np
+
 def nextMultipleOf(n, multiple):
     return n if n % multiple == 0 else (n // multiple + 1) * multiple
 
@@ -125,3 +127,32 @@ def formated(num: any, bound_min: float = 0.001, bound_max: float = 1e6, precisi
         s = f"{num:.{precision}f}"  # e.g. "1.00", "0.65"
         return trimTrailingZeros(s)
 
+def randomGaussianWithBorn(bound_min, bound_max, mean=None, std=None):
+    """
+    Generate a random number from a Gaussian distribution, 
+    then clamp it within [bound_min, bound_max].
+
+    Parameters
+    ----------
+    bound_min : float or int
+        Lower bound of the allowed range.
+    bound_max : float or int
+        Upper bound of the allowed range.
+    mean : float or int, optional
+        Mean of the Gaussian distribution. Default is midpoint of bounds.
+    std : float or int, optional
+        Standard deviation of the Gaussian distribution. Default is (mean - bound_min) / 3. 99.7% fall within ±3 standard deviations.
+
+    Returns
+    -------
+    float
+        Random value drawn from the Gaussian distribution, 
+        clamped within [bound_min, bound_max].
+    """
+    if mean is None:
+        mean = (bound_min + bound_max) / 2
+    if std is None:
+        std = (mean - bound_min) / 3
+
+    rand = np.random.normal(loc=mean, scale=std)
+    return min(max(bound_min, rand), bound_max)
