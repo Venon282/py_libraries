@@ -142,6 +142,7 @@ class Pywinauto:
                 c.get("name"),
                 c.get("class_name"),
                 c.get("control_type"),
+                str(c.get("rectangle"))
             )
 
         dict1 = {sig(c): c for c in cis1}
@@ -171,4 +172,6 @@ class Pywinauto:
         clipboard.copy(path)
         send_keys("^v{ENTER}")
         
+    def isSamePosition(self, r1, r2):
+        return r1.left == r2.left and r1.top == r2.top and r1.right == r2.right and r1.bottom == r2.bottom
     

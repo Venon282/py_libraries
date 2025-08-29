@@ -5,13 +5,9 @@ import math
 import requests
 from bs4 import BeautifulSoup
 import string
-from tzlocal import get_localzone
 from playwright.async_api import async_playwright, Browser, BrowserContext, Page
-import json
-import platform
 from typing import Literal
-import locale
-
+import logging
 
 from py_libraries.web.UserAgentProvider import UserAgentProvider
 from py_libraries.string import toCamelCase
@@ -131,8 +127,7 @@ class ScrapingPlaywright:
         if test:
             i=1
             while not ScrapingPlaywright.testProxy(proxy):
-                if verbose >= 1:
-                    print(f'{proxy} failed the test. {i}', end=end)
+                logging.warning(f'{proxy} failed the test. {i}', end=end)
                 if len(self.proxies) == 0:
                     raise RuntimeError("No proxies passing the test.")
                 i+=1

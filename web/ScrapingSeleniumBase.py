@@ -1,7 +1,6 @@
 from seleniumbase import SB
 from selenium.webdriver.common.by import By
 import random
-from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import (
     ElementClickInterceptedException,
@@ -19,10 +18,8 @@ import traceback
 import pickle
 from pathlib import Path
 import pyautogui
-import logging
-import io
-import base64
 from PIL import Image
+import win32api
 
 class ScrapingSeleniumBase:
     """
@@ -84,7 +81,7 @@ class ScrapingSeleniumBase:
         if not headless:
             self.sb.driver.maximize_window()
 
-        self._mouse_position = pyautogui.position()
+        self._mouse_position = self.getMousePosition() #pyautogui.position()
 
     def stop(self):
         """
@@ -127,6 +124,9 @@ class ScrapingSeleniumBase:
             return self.sb.driver.find_element(By.XPATH, selector)
         return self.sb.driver.find_element(By.CSS_SELECTOR, selector)
     
+    def getMousePosition(self):
+        return self.screenToViewport(*pyautogui.position())
+
     def isElementPresent(self, selector):
         """
         Check if an element is present on the page.
@@ -144,6 +144,7 @@ class ScrapingSeleniumBase:
             return True
         except NoSuchElementException:
             return False
+        
     
     def waitForPresence(self, element:str|WebElement, timeout: int|None = 10):
         """Wait for presence of element supporting CSS or XPath selectors."""
@@ -206,6 +207,15 @@ class ScrapingSeleniumBase:
             points.append(self._quadratic_bezier(start, control, end, t))
         return points
     
+    def screenToViewport(self, x, y):
+        window_pos = self.sb.execute_script("return [window.screenX, window.screenY];")
+        outer_offsets = self.sb.execute_script(
+            "return [window.outerWidth - window.innerWidth, window.outerHeight - window.innerHeight];"
+        )
+        vx = int(x - window_pos[0] - outer_offsets[0] / 2)
+        vy = int(y - window_pos[1] - outer_offsets[1] + (outer_offsets[0] / 2))
+        return vx, vy
+    
     def viewportToScreen(self, x, y):
         # browser window position on the screen
         window_pos = self.sb.execute_script("return [window.screenX, window.screenY];")
@@ -263,15 +273,15 @@ class ScrapingSeleniumBase:
         target_x = left + random.uniform(0.15, 0.85) * width
         target_y = top + random.uniform(0.15, 0.85) * height
         
-        start = pyautogui.position()
+        start = self.getMousePosition() #pyautogui.position()
         end = (target_x, target_y)
         path = self._bezier_path(start, end, steps=random.randint(8, 18), wobble=0.25)
         self._moveAlongPath(path, pause_per_step, rupture_point_range, spread_range)
         self.wait(*wait)
         
-    def click(self, element:str|WebElement, wait=(0.1, 0.3), pause_per_step=(0.006, 0.02), rupture_point_range=(0.3, 0.7), spread_range=(0.15, 0.25)):
+    def click(self, element:str|WebElement, wait=(0.1, 0.3), wait_scroll=(0.15, 0.3), pause_per_step=(0.006, 0.02), rupture_point_range=(0.3, 0.7), spread_range=(0.15, 0.25)):
         """element can be the selector"""
-        self.scrollToElement(element, wait=wait)
+        self.scrollToElement(element, wait=wait, wait_scroll=wait_scroll)
         
         el = self.waitForPresence(element)
         self.waitForClickable(el)
@@ -414,68 +424,68 @@ class ScrapingSeleniumBase:
             dist *= vh
 
         # smooth scroll using native browser support
-        self.sb.execute_script(f"window.scrollBy(0, {dist * direction}, behavior: 'smooth');")
+        self.sb.execute_script(f"window.scrollBy({{top: {dist * direction}, left: 0, behavior: 'smooth'}});")
         self.wait(*wait)
         
-    def scroll(
-        self,
-        direction: int = 1,
-        distance: tuple = (120, 240),
-        wait: tuple = (0.1, 0.3),
-        method: str = "wheel"
-    ) -> None:
-        """
-        Scroll the page vertically with either smooth programmatic scrolling
-        or simulated human-like mouse wheel events.
+    # def scroll(
+    #     self,
+    #     direction: int = 1,
+    #     distance: tuple = (120, 240),
+    #     wait: tuple = (0.1, 0.3),
+    #     method: str = "wheel"
+    # ) -> None:
+    #     """
+    #     Scroll the page vertically with either smooth programmatic scrolling
+    #     or simulated human-like mouse wheel events.
 
-        Parameters
-        ----------
-        direction : int, optional
-            Scroll direction (1 = down, -1 = up). Default is 1.
-        distance : tuple[int|float, int|float], optional
-            Range of total scroll distance. If floats are provided, distance is
-            interpreted as a fraction of viewport height. Default is (120, 240).
-        wait : tuple[float, float], optional
-            Random wait time range between scroll actions in seconds. Default is (0.1, 0.3).
-        method : str, optional
-            Scrolling method:
-                - "smooth": uses window.scrollBy with smooth behavior.
-                - "wheel": dispatches multiple real mouse wheel events (human-like).
-        """
-        # pick total scroll distance
-        total_dist = random.uniform(*distance)
+    #     Parameters
+    #     ----------
+    #     direction : int, optional
+    #         Scroll direction (1 = down, -1 = up). Default is 1.
+    #     distance : tuple[int|float, int|float], optional
+    #         Range of total scroll distance. If floats are provided, distance is
+    #         interpreted as a fraction of viewport height. Default is (120, 240).
+    #     wait : tuple[float, float], optional
+    #         Random wait time range between scroll actions in seconds. Default is (0.1, 0.3).
+    #     method : str, optional
+    #         Scrolling method:
+    #             - "smooth": uses window.scrollBy with smooth behavior.
+    #             - "wheel": dispatches multiple real mouse wheel events (human-like).
+    #     """
+    #     # pick total scroll distance
+    #     total_dist = random.uniform(*distance)
 
-        # if distance specified as fraction of viewport height
-        if any(isinstance(d, float) for d in distance):
-            _, vh = self.getViewportSize()
-            total_dist *= vh
+    #     # if distance specified as fraction of viewport height
+    #     if any(isinstance(d, float) for d in distance):
+    #         _, vh = self.getViewportSize()
+    #         total_dist *= vh
 
-        if method == "smooth":
-            # native smooth scroll
-            self.sb.execute_script(
-                f"window.scrollBy({{top: {total_dist * direction}, behavior: 'smooth'}});"
-            )
+    #     if method == "smooth":
+    #         # native smooth scroll
+    #         self.sb.execute_script(
+    #             f"window.scrollBy({{top: {total_dist * direction}, behavior: 'smooth'}});"
+    #         )
 
-        elif method == "wheel":
-            # simulate human-like mouse wheel (multiple small ticks)
-            remaining = total_dist
-            while remaining > 0:
-                step = min(
-                    remaining,
-                    random.uniform(40, 120)  # typical wheel tick size
-                )
-                self.sb.execute_script(
-                    f"window.dispatchEvent(new WheelEvent('wheel', "
-                    f"{{deltaY: {step * direction}, bubbles: true}}));"
-                )
-                remaining -= step
-                # small, natural pause between ticks
-                self.wait(0.02, 0.15)
+    #     elif method == "wheel":
+    #         # simulate human-like mouse wheel (multiple small ticks)
+    #         remaining = total_dist
+    #         while remaining > 0:
+    #             step = min(
+    #                 remaining,
+    #                 random.uniform(40, 120)  # typical wheel tick size
+    #             )
+    #             self.sb.execute_script(
+    #                 f"window.dispatchEvent(new WheelEvent('wheel', "
+    #                 f"{{deltaY: {step * direction}, bubbles: true}}));"
+    #             )
+    #             remaining -= step
+    #             # small, natural pause between ticks
+    #             self.wait(0.02, 0.15)
 
-        else:
-            raise ValueError("method must be 'smooth' or 'wheel'")
+    #     else:
+    #         raise ValueError("method must be 'smooth' or 'wheel'")
         
-        self.wait(*wait)
+    #     self.wait(*wait)
         
     def waitForScrollEnd(self, timeout=5, interval=0.05):
         """
@@ -494,7 +504,7 @@ class ScrapingSeleniumBase:
 
         return False  # timeout
         
-    def scrollToElement(self, element:str|WebElement, distance=(120, 240), wait=(0.3, 1.0), max_scrolls=30):
+    def scrollToElement(self, element:str|WebElement, distance=(120, 240), wait=(0.6, 1.0), wait_scroll=(0.15, 0.3), max_scrolls=30):
         """
         Scrolls the page gradually and 'human-like' until the element is visible in viewport.
         element can be the selector
@@ -513,9 +523,9 @@ class ScrapingSeleniumBase:
 
             # scroll
             if top > vh:   # element is below viewport
-                self.scroll(direction=1, distance=distance, wait=wait)
+                self.scroll(direction=1, distance=distance, wait=wait_scroll)
             elif top + height < 0:  # element is above viewport
-                self.scroll(direction=-1, distance=distance, wait=wait)
+                self.scroll(direction=-1, distance=distance, wait=wait_scroll)
             else:
                 # partially visible, break
                 break

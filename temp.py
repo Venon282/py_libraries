@@ -7,7 +7,7 @@ def scheduleTomorrowExecution(
     period,
     distribution: str = "gaussian",
     possibilities: dict | None = None,
-    verbose: int = 1
+    verbose: int = 0
 ):
     """
     Schedule execution for tomorrow within a specified time period.
@@ -103,7 +103,7 @@ def scheduleTomorrowExecution(
 
     sleep_seconds = (target_time - now).total_seconds()
 
-    if verbose > 0:
+    if verbose:
         print("Next execution time:", target_time.strftime("%d/%m/%Y %H:%M:%S"))
 
     time.sleep(sleep_seconds)

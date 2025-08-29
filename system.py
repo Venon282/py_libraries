@@ -59,3 +59,5 @@ def noSleep(display: bool = True):
     finally:
         # Restauration of the normal behavior
         ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS)
+        
+    
