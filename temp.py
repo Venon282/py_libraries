@@ -107,3 +107,24 @@ def scheduleTomorrowExecution(
         print("Next execution time:", target_time.strftime("%d/%m/%Y %H:%M:%S"))
 
     time.sleep(sleep_seconds)
+    
+def wait(lower: float = 0.5, upper: float = 3.0) -> float:
+        """
+        Return a randomized delay sampled from a truncated normal distribution.
+
+        Parameters
+        ----------
+        lower : float
+            Minimum wait time in seconds (default 0.5).
+        upper : float
+            Maximum wait time in seconds (default 3.0).
+
+        Returns
+        -------
+        float
+            Randomized delay in seconds, truncated within [lower, upper].
+        """
+        mean = (lower + upper) / 2
+        std = (mean - lower) / 3
+        rand = np.random.normal(loc=mean, scale=std)
+        time.sleep(min(max(lower, rand), upper))

@@ -1,6 +1,6 @@
 import os
 import ctypes
-from contextlib import contextmanager
+
 
 def deleteAll(path:str):
     for root, dirs, files in os.walk(path, topdown=False):
@@ -29,35 +29,6 @@ def unicDirsRec(path:str):
 def countFiles(directory:str):
     return len([name for name in os.listdir(directory) if os.path.isfile(os.path.join(directory, name))])
 
-@contextmanager
-def noSleep(display: bool = True):
-    """
-    Prevents Windows from going into standby mode while the `with` block is running.
 
-    Args:
-        display (bool): If True, also prevents the screen from turning off.
-        
-    Exemple:
-        with noSleep(display=True):
-            # my code
-    """
-    # Constant values
-    ES_CONTINUOUS       = 0x80000000
-    ES_SYSTEM_REQUIRED  = 0x00000001
-    ES_DISPLAY_REQUIRED = 0x00000002
-
-    flags = ES_CONTINUOUS | ES_SYSTEM_REQUIRED
-    
-    # Include the screen sleep ?
-    if display:
-        flags |= ES_DISPLAY_REQUIRED
-
-    # activate "no sleep"
-    ctypes.windll.kernel32.SetThreadExecutionState(flags)
-    try:
-        yield
-    finally:
-        # Restauration of the normal behavior
-        ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS)
         
     

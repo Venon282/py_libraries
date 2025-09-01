@@ -1,5 +1,6 @@
 import time
 import json
+import logging
 import requests
 from enum import Enum
 from urllib.parse import quote_plus
@@ -36,6 +37,16 @@ class Instagram:
         self.session.headers.update({
             "Accept": "application/json",
         })
+        
+    def publishImage(self, image_url:str, caption:str, alt_text:str, timeout_seconds:int=60):
+        resp = self.createMediaContainer(image_url=image_url, caption=caption, alt_text=alt_text)
+        container_id = resp.get("id")
+        
+        # optional: check readiness (images are usually quick)
+        self.pollContainerUntilReady(container_id, timeout_seconds=timeout_seconds)
+        publish_resp = self.publishMedia(container_id)
+        logging.info(f"Published media id: {publish_resp}")
+        return True
 
     def _req(self, method, path, params=None, json_data=None, headers=None, timeout=60, host=None):
         """Internal helper for GET/POST/DELETE requests."""
@@ -57,7 +68,7 @@ class Instagram:
     # -----------------------
     # Content publishing flows
     # -----------------------
-    def create_media_container(self, image_url: str = None, video_url: str = None,
+    def createMediaContainer(self, image_url: str = None, video_url: str = None,
                                caption: str = None, media_type: MediaType = None,
                                is_carousel_item: bool = False, upload_type: str = None,
                                children: list = None, alt_text: str = None, extra_fields: dict = None):
@@ -101,9 +112,9 @@ class Instagram:
         """
         if not (1 <= len(children_ids) <= 10):
             raise ValueError("Carousel children list must contain 1-10 media container IDs.")
-        return self.create_media_container(media_type=MediaType.CAROUSEL, children=children_ids, caption=caption)
+        return self.createMediaContainer(media_type=MediaType.CAROUSEL, children=children_ids, caption=caption)
 
-    def publish_media(self, creation_id: str):
+    def publishMedia(self, creation_id: str):
         """
         Publish media: POST /{ig_user_id}/media_publish with creation_id
         On success returns {'id': '<IG_MEDIA_ID>'}
@@ -112,7 +123,7 @@ class Instagram:
         payload = {"creation_id": creation_id}
         return self._req("POST", f"{self.api_version}/{path}", json_data=payload, host=self.graph_host)
 
-    def get_container_status(self, container_id: str):
+    def getContainerStatus(self, container_id: str):
         """
         GET /{ig_container_id}?fields=status_code (and optionally status)
         Returns container status (EXPIRED, ERROR, FINISHED, IN_PROGRESS, PUBLISHED)
@@ -121,14 +132,14 @@ class Instagram:
         params = {"fields": "status_code,status"}
         return self._req("GET", f"{self.api_version}/{path}", params=params, host=self.graph_host)
 
-    def poll_container_until_ready(self, container_id: str, timeout_seconds: int = 300, interval: int = 5):
+    def pollContainerUntilReady(self, container_id: str, timeout_seconds: int = 300, interval: int = 5):
         """
         Poll container status until FINISHED or timeout.
         Returns final status response.
         """
         start = time.time()
         while True:
-            status = self.get_container_status(container_id)
+            status = self.getContainerStatus(container_id)
             st = status.get("status_code") or (status.get("status", {}).get("status_code") if isinstance(status.get("status"), dict) else None)
             if st:
                 st = st.upper()
@@ -212,7 +223,7 @@ class Instagram:
     # -----------------------
     # Limits, insights, basic media fetch
     # -----------------------
-    def get_content_publishing_limit(self):
+    def getContentPublishingLimit(self):
         """GET /{ig_id}/content_publishing_limit"""
         return self._req("GET", f"{self.api_version}/{self.ig_id}/content_publishing_limit", host=self.graph_host)
 
@@ -273,26 +284,78 @@ class Instagram:
         # example public URL pattern - adjust if you use different bucket hosting / cloudfront
         return f"https://{bucket}.s3.amazonaws.com/{quote_plus(key)}"
 
+     
+    def getLongLifeUserAccessToken(self, app_id, app_secret, short_lived_token):
+        """
+        Interrogez le point de terminaison GET oauth/access_token.
+
+        curl -i -X GET "https://graph.facebook.com/{graph-api-version}/oauth/access_token?  
+            grant_type=fb_exchange_token&          
+            client_id={app-id}&
+            client_secret={app-secret}&
+            fb_exchange_token={your-access-token}" 
+        Exemple de réponse
+        {
+        "access_token":"{long-lived-user-access-token}",
+        "token_type": "bearer",
+        "expires_in": 5183944            //The number of seconds until the token expires
+        }
+        """
+        params = {
+            "grant_type": "fb_exchange_token",
+            "client_id": app_id,
+            "client_secret": app_secret,
+            "fb_exchange_token": short_lived_token
+        }
+        path = f"{self.api_version}/oauth/access_token"
+        
+        return self._req("GET", path,  params=params, host=self.graph_host)
+
+    def refreshLongLivedUserAccessToken(self, app_id: str, app_secret: str):
+        """
+        Refresh the current long-lived user access token.
+
+        Facebook allows re-exchanging an unexpired long-lived token to get a new 60-day token.
+        Returns:
+        {
+            "access_token": "<new-long-lived-token>",
+            "token_type": "bearer",
+            "expires_in": 5184000
+        }
+        """
+        if not self.access_token:
+            raise InstagramError("No access_token available to refresh.")
+
+        params = {
+            "grant_type": "fb_exchange_token",
+            "client_id": app_id,
+            "client_secret": app_secret,
+            "fb_exchange_token": self.access_token  # use current long-lived token
+        }
+        path = f"{self.api_version}/oauth/access_token"
+        return self._req("GET", path, params=params, host=self.graph_host)
+
+
 if __name__ == '__main__':
     ACCESS_TOKEN = "EAAC...LONGTOKEN"
     IG_ACCOUNT_ID = "1784...your_ig_business_id"
     api = Instagram(ACCESS_TOKEN, IG_ACCOUNT_ID, api_version="v17.0")
 
     # 1) publish a single image (must be on a public URL)
-    resp = api.create_media_container(image_url="https://cdn.example.com/photo.jpg", caption="Hello from API!", alt_text="A scenic view")
+    resp = api.createMediaContainer(image_url="https://cdn.example.com/photo.jpg", caption="Hello from API!", alt_text="A scenic view")
     container_id = resp.get("id")
     # optional: check readiness (images are usually quick)
-    api.poll_container_until_ready(container_id, timeout_seconds=60)
-    publish_resp = api.publish_media(container_id)
+    api.pollContainerUntilReady(container_id, timeout_seconds=60)
+    publish_resp = api.publishMedia(container_id)
     print("Published media id:", publish_resp)
 
     # 2) publish a carousel:
     # - create containers for each child (is_carousel_item=true),
-    c1 = api.create_media_container(image_url="https://cdn.example.com/i1.jpg", is_carousel_item=True).get("id")
-    c2 = api.create_media_container(image_url="https://cdn.example.com/i2.jpg", is_carousel_item=True).get("id")
+    c1 = api.createMediaContainer(image_url="https://cdn.example.com/i1.jpg", is_carousel_item=True).get("id")
+    c2 = api.createMediaContainer(image_url="https://cdn.example.com/i2.jpg", is_carousel_item=True).get("id")
     carousel = api.create_carousel_container([c1, c2], caption="Carousel post!")
-    api.poll_container_until_ready(carousel.get("id"))
-    api.publish_media(carousel.get("id"))
+    api.pollContainerUntilReady(carousel.get("id"))
+    api.publishMedia(carousel.get("id"))
 
     # 3) resumable video (reels):
     res = api.start_resumable_container(media_type=MediaType.REELS, caption="A reel")
@@ -300,5 +363,5 @@ if __name__ == '__main__':
     # upload local file (or upload_resumable_remote if hosted)
     upload_resp = api.upload_resumable_local(container_id, "/path/to/video.mp4")
     # poll
-    api.poll_container_until_ready(container_id, timeout_seconds=600, interval=10)
-    api.publish_media(container_id)
+    api.pollContainerUntilReady(container_id, timeout_seconds=600, interval=10)
+    api.publishMedia(container_id)
