@@ -2,6 +2,7 @@ import time
 import json
 import logging
 import requests
+from PIL import Image
 from enum import Enum
 from urllib.parse import quote_plus
 
@@ -334,6 +335,22 @@ class Instagram:
         }
         path = f"{self.api_version}/oauth/access_token"
         return self._req("GET", path, params=params, host=self.graph_host)
+    
+    def fixAspectRatio(self, img_path, min_ratio=0.8, max_ratio=1.91):
+        img = Image.open(img_path)
+        w, h = img.size
+        ratio = w / h
+        if ratio < min_ratio:
+            # too tall → crop height
+            new_h = int(w / min_ratio)
+            top = (h - new_h) // 2
+            img = img.crop((0, top, w, top + new_h))
+        elif ratio > max_ratio:
+            # too wide → crop width
+            new_w = int(h * max_ratio)
+            left = (w - new_w) // 2
+            img = img.crop((left, 0, left + new_w, h))
+        return img
 
 
 if __name__ == '__main__':
