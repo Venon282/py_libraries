@@ -3,6 +3,7 @@ from itertools import product
 from tqdm import tqdm
 import random
 from typing import Union
+import logging
 
 def _getChunks(bound_min, bound_max, n_values, method):
     """
@@ -89,7 +90,7 @@ def stratified(*args, verbose=0):
     return [[np.random.uniform(bounds[0], bounds[1]) for bounds in boxe] for boxe in boxes_iterator]
 
          
-def equilibrate(*args, method='max', fill_method='random', return_all=True, verbose=False):
+def equilibrate(*args, method='max', fill_method='random', return_all=True, trim_bound_excess=False, trim_cell_excess=False, verbose=False):
     """
     Equilibrate a multi-dimensional dataset by binning and filling under-populated cells.
 
@@ -98,8 +99,10 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, verb
     *args :
         Each argument must be one of:
           - (data_list, n_bins)
+          - (data_list, n_bins, chunk_method)
           - (data_list, bound_min, bound_max, n_bins)
           - (data_list, bound_min, bound_max, n_bins, chunk_method)
+          chunk_method can be  'linear','uniform','log','gaussian','exponential','beta'. Default is linear.
     method : {'max', 'mean'} or int, default='max'
         Target number of samples per occupied cell.
     fill_method : {'random', 'midpoint'}, default='random'
@@ -107,6 +110,10 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, verb
     return_all : bool, default=True
         If True, return original + synthetic samples.
         If False, return only synthetic samples.
+    trim_bound_excess: bool, default=False
+        If true, the original array will be trim based on bounds defined
+    trim_cell_excess : bool, default=False
+        If True, randomly downsample points in over-populated cells to match `method`. Process only when return_all is true
     verbose : bool, default=False
         If True, show a tqdm progress bar over all grid cells.
 
@@ -118,10 +125,14 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, verb
     # Parse inputs and normalize to (array, bound_min, bound_max, n_bins, chunk_method)
     data_arrays = []
     bound_specs = []
+    mask = np.full_like(np.asarray(args[0][0]), True, dtype=bool)
     for arg in args:
         if len(arg) == 2:
             arr, n = arg
             lo, hi, cm = arr.min(), arr.max(), 'linear'
+        elif len(arg) == 3:
+            arr, n, cm = arg
+            lo, hi = arr.min(), arr.max()
         elif len(arg) == 4:
             arr, lo, hi, n = arg
             cm = 'linear'
@@ -130,9 +141,12 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, verb
         else:
             raise ValueError("Each argument must have 2, 4, or 5 elements")
         arr = np.asarray(arr)
+        if trim_bound_excess:
+            mask = (mask) & (arr>=lo) & (arr <=hi)
         data_arrays.append(arr)
         bound_specs.append((lo, hi, int(n), cm))
-
+    if trim_bound_excess:
+        data_arrays = [arr[mask] for arr in data_arrays]
     nb_dim = len(data_arrays)
     nb_datas = len(data_arrays[0])
 
@@ -170,6 +184,7 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, verb
             target = int(round(counts.mean()))
         else:
             raise ValueError("method must be one of 'max', 'mean', or an integer")
+        logging.debug(f'Number of values by cells: {target}')
     else:
         target = int(method)
 
@@ -177,11 +192,23 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, verb
     synthetic = [[] for _ in range(nb_dim)]
     cell_iterator = product(*[range(n) for n in dims])
     if verbose:
-        cell_iterator = tqdm(list(cell_iterator), desc="Equilibrating cells")
+        cell_iterator = tqdm(list(cell_iterator), desc="Equilibrating cells", mininterval=1)
+    
+    # Track which original points to keep
+    keep_mask = np.ones(nb_datas, dtype=bool)
 
     for cell in cell_iterator:
         current = counts[cell]
         deficit = target - current
+
+        if deficit < 0 and trim_cell_excess and return_all:
+            # Sous-échantillonnage aléatoire
+            idx_in_cell = np.where(np.all([bin_indices[d] == cell[d] for d in range(nb_dim)], axis=0))[0]
+            keep = np.random.choice(idx_in_cell, size=target, replace=False)
+            remove = np.setdiff1d(idx_in_cell, keep)
+            keep_mask[remove] = False
+            continue
+
         if deficit <= 0:
             continue
 
@@ -205,7 +232,9 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, verb
     outputs = []
     for d in range(nb_dim):
         if return_all:
-            outputs.append(list(data_arrays[d]) + synthetic[d])
+            filtered = np.asarray(data_arrays[d])[keep_mask]
+            outputs.append(list(filtered) + synthetic[d])
+            #outputs.append(list(data_arrays[d]) + synthetic[d])
         else:
             outputs.append(synthetic[d])
 

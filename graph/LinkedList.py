@@ -1,5 +1,5 @@
 from Tree import Tree
-
+import heapq
 class LinkedList(Tree):
     """
     A doubly linked list implemented as a subclass of Tree.
@@ -215,3 +215,23 @@ class LinkedList(Tree):
             node = node.next
             i+=1
         return critical_points_positions
+
+    @staticmethod
+    def mergeAndSortNodeLists(self, lists):
+        min_heap = []
+
+        # Push all values from all lists into the min heap
+        for node in lists:
+            while node:
+                heapq.heappush(min_heap, node.val)
+                node = node.next
+
+        root = Node(0)
+        current = root
+
+        # Build the sorted list from heap
+        while min_heap:
+            current.next = Node(heapq.heappop(min_heap))
+            current = current.next
+
+        return root.next
