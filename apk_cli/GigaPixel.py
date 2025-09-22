@@ -444,7 +444,10 @@ class GigaPixel(Pywinauto):
             yield root, filenames
         
             
-    def upScaleImagesWithMinimalSize(self,images_path:list|dict,  min_width:int, min_height:int, suffix:str='', prefix:str='', save_dir:str=''):   
+    def upScaleImagesWithMinimalSize(self,images_path:list|dict,  min_width:int, min_height:int, filename_width:str='', filename_height:str='', suffix:str='', prefix:str='', save_dir:str=''):   
+        """
+        if only one file: filename else sufix and prefix
+        """
         images_width, images_height = defaultdict(list), defaultdict(list)
         for root, filenames in self.iterateImages(images_path):
             for filename in filenames:
@@ -462,17 +465,24 @@ class GigaPixel(Pywinauto):
                 else:
                     images_height[root.as_posix()].append(filename)
     
-        if len(images_width) > 0:
-            logging.info(f'{len(images_width)} images on the width will be process')
-            self.closeImages(save=False)
-            self.openImages(images_width)
-            self.upScaleImages(mode_type=ModeType.WIDTH, mode=min_width, suffix=suffix, prefix=prefix, save_dir=save_dir)
-            
         if len(images_height) > 0:
             logging.info(f'{len(images_height)} images on the height will be process')
             self.closeImages(save=False)
             self.openImages(images_height)
-            self.upScaleImages(mode_type=ModeType.HEIGHT, mode=min_height, suffix=suffix, prefix=prefix, save_dir=save_dir)
+            if len(images_height) > 1:
+                self.upScaleImages(mode_type=ModeType.HEIGHT, mode=min_height, suffix=suffix, prefix=prefix, save_dir=save_dir)
+            else:
+                self.upScaleImage(mode_type=ModeType.HEIGHT, mode=min_height, filename=filename_height, save_dir=save_dir)
+            
+        if len(images_width) > 0:
+            logging.info(f'{len(images_width)} images on the width will be process')
+            self.closeImages(save=False)
+            self.openImages(images_width)
+            if len(images_width) > 1:
+                self.upScaleImages(mode_type=ModeType.WIDTH, mode=min_width, suffix=suffix, prefix=prefix, save_dir=save_dir)
+            else:
+                self.upScaleImage(mode_type=ModeType.WIDTH, mode=min_width, filename=filename_width, save_dir=save_dir)
+            
             
         return images_width, images_height
 
