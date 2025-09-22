@@ -127,7 +127,7 @@ def formated(num: any, bound_min: float = 0.001, bound_max: float = 1e6, precisi
         s = f"{num:.{precision}f}"  # e.g. "1.00", "0.65"
         return trimTrailingZeros(s)
 
-def randomGaussianWithBorn(bound_min, bound_max, mean=None, std=None):
+def randomGaussianWithBorn(bound_min, bound_max, mean=None, std=None, retry=False, dispersion=3):
     """
     Generate a random number from a Gaussian distribution, 
     then clamp it within [bound_min, bound_max].
@@ -142,7 +142,11 @@ def randomGaussianWithBorn(bound_min, bound_max, mean=None, std=None):
         Mean of the Gaussian distribution. Default is midpoint of bounds.
     std : float or int, optional
         Standard deviation of the Gaussian distribution. Default is (mean - bound_min) / 3. 99.7% fall within ±3 standard deviations.
-
+    retry : bool, optional
+        If True, will retry generating a number if it falls outside the bounds. Default is False.
+    dispersion : int, optional 
+        Factor to determine default std if not provided. Default is 3. More dispersion means a smaller std.
+    
     Returns
     -------
     float
@@ -152,7 +156,11 @@ def randomGaussianWithBorn(bound_min, bound_max, mean=None, std=None):
     if mean is None:
         mean = (bound_min + bound_max) / 2
     if std is None:
-        std = (mean - bound_min) / 3
+        std = (mean - bound_min) / dispersion
 
     rand = np.random.normal(loc=mean, scale=std)
+    
+    while retry and (rand < bound_min or rand > bound_max):
+        rand = np.random.normal(loc=mean, scale=std)
+        
     return min(max(bound_min, rand), bound_max)
