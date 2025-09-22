@@ -1,5 +1,5 @@
 from typing import List
-
+import regex
 
 def prefixCount(words:list[str], pref:str):
     """
@@ -191,3 +191,40 @@ def myAtoi(s: str) -> int:
 def toCamelCase(s, separator=' '):
     components = s.split(separator)
     return components[0].lower() + ''.join(x.title() for x in components[1:])
+
+def maxOccurenceAdjacentChar(s):
+    prev=''
+    max_oc = 0
+    cur_oc = 0
+    for c in s:
+        if c == prev:
+            cur_oc += 1
+            max_oc = max(max_oc, cur_oc)
+        else:
+            prev = c
+            cur_oc = 1
+    return max_oc
+
+def maxOccurenceAdjacentEmoji(s: str) -> int:
+    """
+    Returns the maximum number of consecutive emojis (any emoji, not necessarily the same).
+    """
+    # Matches a grapheme cluster if it contains at least one emoji
+    max_count = 0
+    current_count = 0
+
+    for cluster in regex.findall(r"\X", s):
+        # check if the cluster contains an emoji
+        if any(regex.match(r"\p{Emoji}", c) for c in cluster):
+            current_count += 1
+            max_count = max(max_count, current_count)
+        else:
+            current_count = 0
+
+    return max_count
+
+def containsChineseChar(s):
+    for char in s:
+        if '\u4e00' <= char <= '\u9fff':  # Common CJK Unified Ideographs range
+            return True
+    return False
