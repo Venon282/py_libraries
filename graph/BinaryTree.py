@@ -374,6 +374,34 @@ class BinaryTree(Tree):
             children.append(right)
         return children
 
+    # def isUnivalTree(root):
+    #     """
+    #     :type root: Optional[TreeNode]
+    #     :rtype: bool
+    # A binary tree is uni-valued if every node in the tree has the same value.
+
+    # Given the root of a binary tree, return true if the given tree is uni-valued, or false otherwise.
+
+    
+
+    # Example 1:
+
+
+    # Input: root = [1,1,1,1,1,null,1]
+    # Output: true
+    # Example 2:
+
+
+    # Input: root = [2,2,2,5,2]
+    # Output: false
+    #     """
+    #     cond = True
+    #     if root.left:
+    #         cond = cond and root.val == root.left.val and self.isUnivalTree(root.left)
+    #     if root.right:
+    #         cond = cond and root.val == root.right.val and self.isUnivalTree(root.right)
+    #     return cond
+
     def __str__(self):
         """
         Returns a string representation of the binary tree, including the root and
