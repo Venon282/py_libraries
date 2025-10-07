@@ -39,7 +39,6 @@ def _filesToNpy(iterator, replace: bool = False):
             npy_file = file.with_suffix('.npy')
             data = np.loadtxt(file)
             np.save(npy_file, data)
-               
             if replace:
                 file.unlink()
         except Exception as e:
@@ -51,7 +50,7 @@ def filesToNpy(
     replace: bool = False,
     extensions: str | list | tuple = '.txt',
     progress_bar: bool = False,
-    n_workers: int|None = 0,
+    max_workers: int|None = 0,
     chunk_size: int = 1
 ):
     """
@@ -103,11 +102,11 @@ def filesToNpy(
     else: 
         raise TypeError("source must be a folder path or a list of file paths")
     
-    if n_workers == 0:
+    if max_workers == 0:
         iterator = files if not progress_bar else tqdm(files, mininterval=1, desc='Converting files', unit='file')
         _filesToNpy(iterator=iterator, replace=replace)
     else:
-        with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
             chunks = [files[i:i + chunk_size] for i in range(0, len(files), chunk_size)]
             futures = [executor.submit(_filesToNpy, chunk, replace) for chunk in chunks]
             iterator = concurrent.futures.as_completed(futures) 
