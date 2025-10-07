@@ -20,6 +20,7 @@ from pathlib import Path
 import pyautogui
 from PIL import Image
 import win32api
+from ..number import  randomGaussianWithBorn
 
 class ScrapingSeleniumBase:
     """
@@ -108,10 +109,7 @@ class ScrapingSeleniumBase:
         float
             Randomized delay in seconds, truncated within [lower, upper].
         """
-        mean = (lower + upper) / 2
-        std = (mean - lower) / 3
-        rand = np.random.normal(loc=mean, scale=std)
-        time.sleep(min(max(lower, rand), upper))
+        time.sleep(randomGaussianWithBorn(lower, upper, retry=True, dispersion=3))
     
     def isXpath(self, selector: str) -> bool:
         """Quick heuristic to detect XPath-like selectors."""
