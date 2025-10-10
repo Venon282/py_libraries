@@ -5,6 +5,15 @@ from tqdm import tqdm
 from pathlib import Path
 from itertools import chain
 import concurrent.futures
+import platform
+import sys
+
+is_windows = platform.system().lower().startswith("win")
+if is_windows:
+    import msvcrt
+else:
+    import select
+
 
 def deleteAll(path:str):
     for root, dirs, files in os.walk(path, topdown=False):
@@ -133,3 +142,34 @@ def filesDifferents(dir1: str|Path, dir2: str|Path, same_extension: bool=True):
 
     return dir1_files - dir2_files
     
+
+def inputNoBlocking(buffer=['']):
+    """
+    Non-blocking console input that returns a full line once Enter is pressed.
+    Otherwise returns None.
+    Keeps internal buffer between calls (via default arg trick).
+    """
+
+    # Windows version
+    if is_windows:
+        while msvcrt.kbhit():
+            c = msvcrt.getwch()
+            if c in ('\r', '\n'):  # Enter
+                line = buffer[0]
+                buffer[0] = ''
+                print(line, end=' ' * 20)
+                return line.strip()
+            elif c == '\b':  # Backspace
+                buffer[0] = buffer[0][:-1]
+                print(buffer[0], end=' ' * 20 + '\r')
+            else:
+                buffer[0] += c
+                print(buffer[0], end=' ' * 20 + '\r')
+        return None
+
+    # Unix / Linux / macOS version
+    else:
+        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+            line = sys.stdin.readline().strip()
+            return line
+        return None
