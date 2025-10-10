@@ -5,8 +5,7 @@ from pathlib import Path
 from typing import Union
 from pywinauto.application import Application
 from pywinauto.keyboard import send_keys
-from pywinauto import Desktop
-from pywinauto import mouse
+from pywinauto import Desktop, mouse
 from PIL import Image
 from .Pywinauto import Pywinauto
 from collections import defaultdict
@@ -120,12 +119,15 @@ class GigaPixel(Pywinauto):
             
             # Go to folder
             self.fileSysWinGoToPath(path = root.as_posix())
+            time.sleep(wait)
             
             # Enter filenames directly into File name box 
             open_dlg['File name:Edit'].set_edit_text(' '.join(['"'+filename+'"'for filename in filenames]))
+            time.sleep(wait)
             
             # Click Open button explicitly 
             open_dlg['Open'].click()
+            time.sleep(wait)
         
     def closeImage(self):
         raise NotImplementedError

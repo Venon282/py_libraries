@@ -9,7 +9,7 @@ from pathlib import Path
 import shutil
 
 @contextmanager
-def temporaryPublicServer(folder: str, port: int = 8000):
+def temporaryPublicServer(folder: str, port: int = 8000, timeout: int = 15):
     """
     Start a local HTTP server for 'folder' and expose it via ngrok.
     Returns a function to get public URLs for files in that folder.
@@ -39,11 +39,27 @@ def temporaryPublicServer(folder: str, port: int = 8000):
 
     # --- Start ngrok ---
     ngrok_proc = subprocess.Popen(["ngrok", "http", str(port)], stdout=subprocess.PIPE)
-    time.sleep(2)  # give ngrok time to start
 
     # --- Get public URL ---
-    resp = requests.get("http://localhost:4040/api/tunnels")
-    public_url = resp.json()["tunnels"][0]["public_url"]
+    public_url = None
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            resp = requests.get("http://localhost:4040/api/tunnels")
+            tunnels = resp.json().get("tunnels", [])
+            if tunnels:
+                public_url = tunnels[0]["public_url"]
+                break
+        except requests.exceptions.ConnectionError:
+            # ngrok API not yet up
+            pass
+        time.sleep(0.2)
+
+    if not public_url:
+        # If timeout reached, stop everything
+        ngrok_proc.terminate()
+        httpd.shutdown()
+        raise RuntimeError("ngrok tunnel did not come up in time")
 
     def get_public_url(filename: str):
         file_path = folder_path / filename
