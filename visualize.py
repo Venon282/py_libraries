@@ -555,7 +555,7 @@ class Visualize:
                 
                     
                 sc = ax.scatter(x, y,c=z, alpha=z_norm,**opts)
-                if opts['label']:
+                if opts.get('label', None):
                     legend_handles.append(Line2D(
                         [0], [0],
                         marker=opts.get('marker', 'o'), # Match marker shape
