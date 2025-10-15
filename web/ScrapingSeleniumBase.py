@@ -205,6 +205,31 @@ class ScrapingSeleniumBase:
             points.append(self._quadratic_bezier(start, control, end, t))
         return points
     
+    def _bezier_path_multi(self, start, end, steps=12, segments=3, wobble=0.3):
+        """Create a multi-segment bezier path for more human-like curves."""
+        points = [start]
+        last = start
+        
+        for i in range(segments):
+            # interpolate segment end
+            t = (i + 1) / segments
+            seg_end = (last[0] + t * (end[0] - start[0]),
+                    last[1] + t * (end[1] - start[1]))
+            
+            # random control point around the line
+            cx = (last[0] + seg_end[0]) / 2 + random.uniform(-wobble, wobble) * abs(seg_end[0] - last[0])
+            cy = (last[1] + seg_end[1]) / 2 + random.uniform(-wobble, wobble) * abs(seg_end[1] - last[1])
+            control = (cx, cy)
+            
+            # add segment points
+            for j in range(steps):
+                t_seg = j / (steps - 1)
+                points.append(self._quadratic_bezier(last, control, seg_end, t_seg))
+            
+            last = seg_end
+        
+        return points
+    
     def screenToViewport(self, x, y):
         window_pos = self.sb.execute_script("return [window.screenX, window.screenY];")
         outer_offsets = self.sb.execute_script(
@@ -273,7 +298,7 @@ class ScrapingSeleniumBase:
         
         start = self.getMousePosition() #pyautogui.position()
         end = (target_x, target_y)
-        path = self._bezier_path(start, end, steps=random.randint(8, 18), wobble=0.25)
+        path = self._bezier_path(start, end, steps=random.randint(8, 28), wobble=0.31)
         self._moveAlongPath(path, pause_per_step, rupture_point_range, spread_range)
         self.wait(*wait)
         
