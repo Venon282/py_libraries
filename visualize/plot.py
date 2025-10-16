@@ -59,6 +59,15 @@ class Plot:
         if style['title'] != '': ax.set_title(style['title'])
         if style['xlabel'] != '': ax.set_xlabel(style['xlabel'])
         if style['ylabel'] != '': ax.set_ylabel(style['ylabel'])
+        grid = style['grid']
+        
+        ax.minorticks_on()
+        if isinstance(grid, bool):
+            ax.grid(grid)
+        elif isinstance(grid, dict):
+            ax.grid(True, **grid)
+        else: raise TypeError(f'Unsupported grid type {type(grid)}. Should be either a bool or a dict.')
+        
         ax.grid(style['grid'])
         if extras['xlim'] is not None:   ax.set_xlim(extras['xlim'])
         if extras['ylim'] is not None:   ax.set_ylim(extras['ylim'])
@@ -122,7 +131,7 @@ class Plot:
     
     
     @staticmethod
-    def scatter_density(*args, alpha=False, rate=False, bw_method: Optional[Union[str, float]] = None, cbar_label: Optional[str] = None, **kwargs) -> Optional[Figure]:
+    def scatter_density(*args, alpha=False, center=False, rate=False, bw_method: Optional[Union[str, float]] = None, cbar_label: Optional[str] = None, **kwargs) -> Optional[Figure]:
         """
         Scatter plot colored by a 2D Gaussian KDE estimate of density.
         
@@ -134,6 +143,7 @@ class Plot:
         - bw_method: passed to gaussian_kde (None for scott's rule, or float/string)
         - cbar_label: label for the density colorbar. If none no color bar
         - plus all the usual kwargs (fig, ax, title, xlabel, path, show, etc.)
+        - center: If true, center (the last plot, useless if many args) on the 90% denser values. If a number on it's pourcentage or rate
         """
         import scipy.stats as scipy_stats
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
@@ -163,9 +173,22 @@ class Plot:
                 z_norm = (z - z[0]) / (z[-1] - z[0])
             else: z_norm = None
             
+            if center:
+                rate = 0.9 if center is True else center if 0.0 < center <= 1.0 else float(center) / 100
+                sub_idx = int((1.0-rate) * len(x))
+                sub_x, sub_y = x[sub_idx:], y[sub_idx:]
+                x_min, x_max = min(sub_x), max(sub_x)
+                y_min, y_max = min(sub_y), max(sub_y)
+                x_center, y_center = sub_x[-1], sub_y[-1]
+                x_diffs, y_diffs = np.abs([x_center - x_min, x_max - x_center]), np.abs([y_center - y_min, y_max - y_center])
+                x_max_diff, y_max_diff = max(x_diffs), max(y_diffs)
+                extras['xlim'] = [x_center - x_max_diff, x_center + x_max_diff]
+                extras['ylim'] = [y_center - y_max_diff, y_center + y_max_diff]
+                
+            
                 
             sc = ax.scatter(x, y,c=z, alpha=z_norm,**opts)
-            if opts['label']:
+            if opts.get('label', ''):
                 legend_handles.append(Line2D(
                     [0], [0],
                     marker=opts.get('marker', 'o'), # Match marker shape
