@@ -127,7 +127,7 @@ def formated(num: any, bound_min: float = 0.001, bound_max: float = 1e6, precisi
         s = f"{num:.{precision}f}"  # e.g. "1.00", "0.65"
         return trimTrailingZeros(s)
 
-def randomGaussianWithBorn(bound_min, bound_max, mean=None, std=None, retry=False, dispersion=3):
+def randomGaussianWithBorn(bound_min, bound_max, mean=None, std=None, retry=True, dispersion=3):
     """
     Generate a random number from a Gaussian distribution, 
     then clamp it within [bound_min, bound_max].

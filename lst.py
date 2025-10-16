@@ -12,15 +12,9 @@ def proportions(lst):
 def countElements(lst):
     return {str(element): list(lst).count(element) for element in set(lst)}
 
-def save(lst, path='./lst.pkl'):
-    return joblib.dump(lst, path)
-
-def load(path='./lst.pickle'):
-    return joblib.load(path)
-
 def interpolation(x_targ, x, y):
     """interpolation the y values for the x_targ values
-
+    !!! Linear interpolation, better to use np.interpolate!!!
     Args:
         x_targ (list of float): Target x values to interpret y values for.
         x (list of float): Original x values.
