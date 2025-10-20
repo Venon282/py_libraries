@@ -184,64 +184,68 @@ def repartitionNbNeed(data1, data2, proportion):
 
 def describeValues(array):
     """
-    Fonction similaire à pandas.describe() utilisant numpy.
+    Similar function to pandas.describe() using numpy.
     
-    Calcule des statistiques descriptives sur un tableau numpy, en incluant:
-      - shape            : dimensions du tableau
-      - total_count      : nombre total d'éléments
-      - count            : nombre d'éléments finis (non NaN et non ±inf)
-      - nan_count        : nombre de NaN
-      - pos_inf_count    : nombre d'infinité positive
-      - neg_inf_count    : nombre d'infinité négative
-      - zero_count       : nombre de zéros parmi les valeurs finies
-      - nan_rate         : taux de NaN (nan_count / total_count)
-      - pos_inf_rate     : taux d'infinité positive (pos_inf_count / total_count)
-      - neg_inf_rate     : taux d'infinité négative (neg_inf_count / total_count)
-      - min              : valeur minimale (parmi les valeurs finies)
-      - 25% (q1)         : premier quartile (25e percentile)
-      - median           : médiane (50e percentile)
-      - mean             : moyenne
-      - std              : écart-type
-      - var              : variance
-      - IQR              : interquartile range (q3 - q1)
-      - 75% (q3)         : troisième quartile (75e percentile)
-      - max              : valeur maximale
-      - range            : étendue (max - min)
-      - unique_count     : nombre de valeurs uniques parmi les valeurs finies
-      - skewness         : asymétrie de la distribution (si scipy est disponible)
-      - kurtosis         : aplatissement de la distribution (si scipy est disponible)
+    Calculate descriptive statistics on a numpy array, including:
+      - shape            : Array dimensions
+      - total_count      : Total number of elements
+      - count            : Number of finite elements (non-NaN and non-±inf)
+      - nan_count        : Number of NaNs
+      - pos_inf_count    : Number of positive infinities
+      - neg_inf_count    : Number of negative infinities
+      - zero_count       : Number of zeros among finite values
+      - nan_rate         : NaN rate (nan_count / total_count)
+      - pos_inf_rate     : Positive infinity rate (pos_inf_count / total_count)
+      - neg_inf_rate     : Negative infinity rate (neg_inf_count / total_count)
+      - zero_count_rate  : Zero count rate (zero_count / total_count, among finite values)
+      - min              : Minimum value (among finite values)
+      - 25% (q1)         : First quartile (25th percentile)
+      - median           : Median (50th percentile)
+      - mean             : Mean
+      - std              : Standard deviation
+      - var              : Variance
+      - IQR              : Interquartile range (q3 - q1)
+      - 75% (q3)         : Third quartile (75th percentile)
+      - max              : Maximum value
+      - range            : Range (max - min)
+      - unique_count     : Number of unique values ​​among finite values
+      - skewness         : Distribution skewness (if Scipy is available)
+      - kurtosis         : Distribution kurtosis (if Scipy is available)
       
-    Paramètres:
+    Parameters:
     -----------
     array : array_like
-        Tableau numpy (peut être multidimensionnel)
+        Numpy array (can be multidimensional)
     
-    Retourne:
+    return:
     ---------
     stats : dict
-        Dictionnaire contenant les statistiques calculées.
+        Dictionary containing the calculated statistics.
     """
-    # Conversion de l'entrée en tableau numpy et aplatir
+    # Convert input to numpy array and flatten
     arr = np.array(array)
     arr_flat = arr.flatten()
     total_count = arr_flat.size
 
-    # Comptage des valeurs non finies
+    # Counting non-finite values
     nan_count = np.isnan(arr_flat).sum()
     pos_inf_count = np.isposinf(arr_flat).sum()
     neg_inf_count = np.isneginf(arr_flat).sum()
     non_finite_count = nan_count + pos_inf_count + neg_inf_count
     finite_count = total_count - non_finite_count
 
-    # Calcul des taux
-    nan_rate = nan_count / total_count if total_count > 0 else np.nan
-    pos_inf_rate = pos_inf_count / total_count if total_count > 0 else np.nan
-    neg_inf_rate = neg_inf_count / total_count if total_count > 0 else np.nan
-
-    # Extraction des valeurs finies
+    # Rate calculs
+    if total_count > 0: 
+        nan_rate = nan_count / total_count
+        pos_inf_rate = pos_inf_count / total_count
+        neg_inf_rate = neg_inf_count / total_count
+    else:
+        nan_rate = pos_inf_rate = neg_inf_rate = np.nan
+        
+    # Extraction of finite values
     finite_vals = arr_flat[np.isfinite(arr_flat)]
     
-    # Calcul de statistiques supplémentaires sur les valeurs finies
+    # Calculation of additional statistics on finite values
     if finite_count > 0:
         min_val    = np.min(finite_vals)
         q1         = np.percentile(finite_vals, 25)
@@ -255,12 +259,13 @@ def describeValues(array):
         range_val  = max_val - min_val
         unique_count = np.unique(finite_vals).size
         zero_count = np.count_nonzero(finite_vals == 0)
+        zero_count_rate = zero_count / finite_vals
     
         skewness = skew(finite_vals)
         kurt = kurtosis(finite_vals)
 
     else:
-        min_val = q1 = median_val = mean_val = std_val = var_val = q3 = max_val = iqr = range_val = unique_count = zero_count = np.nan
+        min_val = q1 = median_val = mean_val = std_val = var_val = q3 = max_val = iqr = range_val = unique_count = zero_count = zero_count_rate = np.nan
         skewness = kurt = np.nan
 
     stats = {
@@ -274,6 +279,7 @@ def describeValues(array):
         'nan_rate': nan_rate,
         'pos_inf_rate': pos_inf_rate,
         'neg_inf_rate': neg_inf_rate,
+        'zero_count_rate':zero_count_rate,
         'min': min_val,
         '25%': q1,
         'median': median_val,
