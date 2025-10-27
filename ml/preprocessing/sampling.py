@@ -90,7 +90,7 @@ def stratified(*args, verbose=0):
     return [[np.random.uniform(bounds[0], bounds[1]) for bounds in boxe] for boxe in boxes_iterator]
 
          
-def equilibrate(*args, method='max', fill_method='random', return_all=True, trim_bound_excess=False, trim_cell_excess=False, verbose=False):
+def equilibrate(*args, method='max', fill_method='random', return_all=True, trim_bound_excess=False, trim_cell_excess=False, verbose=False, **kwargs):
     """
     Equilibrate a multi-dimensional dataset by binning and filling under-populated cells.
 
@@ -105,8 +105,14 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, trim
           chunk_method can be  'linear','uniform','log','gaussian','exponential','beta'. Default is linear.
     method : {'max', 'mean'} or int, default='max'
         Target number of samples per occupied cell.
-    fill_method : {'random', 'midpoint'}, default='random'
+    fill_method : {'random', 'midpoint', 'gap'}, default='random'
         How to generate new points within each under-populated cell.
+        - random: random point in the cell
+        - midpoint: point in the center of the cell
+        - linear_gap: point in the most empty space on each dimension
+        - dimensional_gap: point in the most empty space of the cell based on subpoints (costly)
+            - n_sub (default 3) give n_sub^n_dims candidate points.
+        
     return_all : bool, default=True
         If True, return original + synthetic samples.
         If False, return only synthetic samples.
@@ -119,9 +125,21 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, trim
 
     Returns
     -------
-    tuple of lists
-        One list per dimension, containing either all samples or only the synthetic ones.
+    tuple of lists or tuple of tuples of lists
+        If `return_all=True` (default), returns a tuple of three tuples:
+            - combined : tuple of lists
+                One list per dimension containing original + synthetic samples.
+            - original : tuple of lists
+                One list per dimension containing only the original samples (after trimming if applied).
+            - synthetic : tuple of lists
+                One list per dimension containing only the synthetic samples generated to fill under-populated cells.
+        If `return_all=False`, returns:
+            - synthetic : tuple of lists
+                One list per dimension containing only the synthetic samples.
     """
+    if fill_method not in ('random', 'midpoint', 'dimensional_gap', 'linear_gap'):
+        raise ValueError("fill_method must be 'random', 'midpoint', 'dimensional_gap' or 'linear_gap'")
+    
     # Parse inputs and normalize to (array, bound_min, bound_max, n_bins, chunk_method)
     data_arrays = []
     bound_specs = []
@@ -215,6 +233,8 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, trim
         # compute the hyper-rectangle bounds for this cell
         lows  = [chunks_per_dim[d][cell[d], 0] for d in range(nb_dim)]
         highs = [chunks_per_dim[d][cell[d], 1] for d in range(nb_dim)]
+        # Prepare current points in the cell for gap calculation
+        current_points = [list(data_arrays[d][idx_in_cell]) for d in range(nb_dim)] 
 
         # generate the missing points
         for _ in range(deficit):
@@ -222,20 +242,51 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True, trim
                 point = [np.random.uniform(lo, hi) for lo, hi in zip(lows, highs)]
             elif fill_method == 'midpoint':
                 point = [(lo + hi) / 2.0 for lo, hi in zip(lows, highs)]
-            else:
-                raise ValueError("fill_method must be 'random' or 'midpoint'")
+            elif fill_method == 'linear_gap':
+                point = []
+                for d in range(nb_dim):
+                    existing = np.asarray(current_points[d])
+                    if existing.size == 0:
+                        # No points in the cell → fallback to midpoint
+                        val = (lows[d] + highs[d]) / 2.0
+                    else:
+                        existing_sorted = np.sort(existing)
+                        # Include cell boundaries
+                        extended = np.concatenate(([lows[d]], existing_sorted, [highs[d]]))
+                        # Find largest gap
+                        gaps = np.diff(extended)
+                        max_gap_idx = np.argmax(gaps)
+                        # Midpoint of the largest gap
+                        val = (extended[max_gap_idx] + extended[max_gap_idx + 1]) / 2.0
+                    point.append(val)
+            elif fill_method == 'dimensional_gap':
+                if len(current_points[0]) == 0:
+                    # empty cell → place midpoint
+                    point = [(lo + hi)/2 for lo, hi in zip(lows, highs)]
+                else:
+                    # Create a grid of candidate points in the cell (e.g., midpoints of small sub-cubes)
+                    n_sub = kwargs.get('n_sub', 3)  # number of sub-intervals per dimension
+                    candidates = np.array(list(product(*[np.linspace(lo, hi, n_sub+2)[1:-1] for lo, hi in zip(lows, highs)])))
+                    
+                    # For each candidate, find distance to nearest existing point
+                    existing = np.column_stack(current_points)
+                    from scipy.spatial import cKDTree
+                    tree = cKDTree(existing)
+                    dists, _ = tree.query(candidates)
+                    
+                    # Pick candidate with maximum distance → largest empty region
+                    point = candidates[np.argmax(dists)]
 
             for d, val in enumerate(point):
+                current_points[d].append(val)
                 synthetic[d].append(val)
 
-    # Prepare outputs
-    outputs = []
-    for d in range(nb_dim):
-        if return_all:
-            filtered = np.asarray(data_arrays[d])[keep_mask]
-            outputs.append(list(filtered) + synthetic[d])
-            #outputs.append(list(data_arrays[d]) + synthetic[d])
-        else:
-            outputs.append(synthetic[d])
+    # Convert data to arrays
+    data_original = np.stack([np.asarray(arr)[keep_mask] for arr in data_arrays], axis=1)  # shape (n_samples, nb_dim)
+    data_synthetic = np.stack([np.asarray(arr) for arr in synthetic], axis=1)            # shape (n_synthetic, nb_dim)
 
-    return tuple(outputs)
+    if return_all:
+        data_combined = np.vstack([data_original, data_synthetic])
+        return data_combined.T.tolist(), data_original.T.tolist(), data_synthetic.T.tolist()
+    else:
+        return data_synthetic.T.tolist()
