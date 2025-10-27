@@ -259,7 +259,7 @@ def describeValues(array):
         range_val  = max_val - min_val
         unique_count = np.unique(finite_vals).size
         zero_count = np.count_nonzero(finite_vals == 0)
-        zero_count_rate = zero_count / finite_vals
+        zero_count_rate = zero_count / finite_count
     
         skewness = skew(finite_vals)
         kurt = kurtosis(finite_vals)
