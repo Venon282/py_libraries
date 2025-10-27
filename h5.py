@@ -1,4 +1,5 @@
 import h5py
+import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
@@ -167,3 +168,82 @@ def describe(h5):
             print()
             
     h5.visititems(collect)
+
+def iterate(
+    h5: h5py.File | h5py.Group,
+    path_str: str,
+    sep: str = '/'
+):
+    """
+    Recursively traverses an HDF5 file or group using a path string 
+    with optional wildcards (* and **).
+    
+    Args:
+        h5: An open h5py.File or h5py.Group object.
+        path_str: A path string 
+                  (e.g. 'raw/*', 'data/group1/**', 'raw/**/data', 'measurements').
+        sep: Path separator (default: '/').
+        
+    Yields:
+        Tuples of (internal_path, h5py object) where object is a Group or Dataset.
+    """
+    
+    # Split and clean path
+    path_parts = [p for p in path_str.split(sep) if p]
+
+    def _walk(node: h5py.File | h5py.Group, parts: list[str], root: str = ''):
+        # Base case → no more parts : yield the current node
+        if not parts:
+            yield root, node
+            return
+
+        part = parts[0]
+
+        # deep recursive elements case
+        if part == '**':
+            # browse recursively all the content
+            for key, obj in node.items():
+                # Firstly, continue to go down with ** and stay at this parts level
+                yield from _walk(obj, parts, root + key + sep)
+                # Then continue the walk (delete **)
+                yield from _walk(obj, parts[1:], root + key + sep)
+            return
+
+        # all elements case
+        if part == '*':
+            for key in node.keys():
+                obj = node[key]
+                yield from _walk(obj, parts[1:], root + key + sep)
+            return
+
+        # Normal case
+        if part in node:
+            obj = node[part]
+            if len(parts) == 1:  # Last element → on yield
+                yield root + part + sep, obj
+            elif isinstance(obj, h5py.Group):
+                yield from _walk(obj, parts[1:], root + part + sep)
+
+    yield from _walk(h5, path_parts, root='')
+    
+def dynamicSize(h5, name, values):
+    # Ensure values are at least 1D
+    if np.isscalar(values):
+        values = np.array([values])
+    
+    if name not in h5:
+        values_shape = list(values.shape)
+        values_shape[0] = None  # allow unlimited rows
+        
+        h5.create_dataset(
+            name,
+            data=values,
+            maxshape=tuple(values_shape),
+            chunks=True
+        )
+    else:
+        dataset = h5[name]
+        dataset_size = dataset.shape[0]
+        new_size = dataset_size + values.shape[0]
+        dataset.resize(new_size, axis=0)
+        dataset[dataset_size:new_size] = values
