@@ -183,6 +183,11 @@ def iterate(
         h5: An open h5py.File or h5py.Group object.
         path: A path string or list of
                   (e.g. 'raw/*', 'data/group1/**', 'raw/**/data', 'measurements').
+            Specificities:
+            - * All elements at the current place
+            - ** All elements recursively
+            - [] A subset of elements
+            - ~[] An exclude subset of elements
         sep: Path separator (default: '/').
         
     Yields:
@@ -255,6 +260,30 @@ def iterate(
     yield from _walk(h5, path_parts, root='')
     
 def dynamicSize(h5, name, values, dtype=None):
+    """
+    Create or append data to an HDF5 dataset dynamically, allowing for unlimited rows.
+
+    If the dataset `name` does not exist in the given HDF5 group `h5`, this function
+    creates it with the shape of `values` (first dimension set to unlimited) and optional `dtype`.
+    If the dataset already exists, the function appends `values` along the first axis.
+
+    Parameters
+    ----------
+    h5 : h5py.Group or h5py.File
+        The HDF5 group or file where the dataset resides.
+    name : str
+        Name of the dataset to create or append to.
+    values : array-like or scalar
+        Data to store in the dataset. Scalars are converted to 1D arrays.
+    dtype : h5py compatible dtype, optional
+        Data type for the dataset. If None and values are string-like, a variable-length
+        UTF-8 string type is used automatically.
+
+    Notes
+    -----
+    - Supports automatic resizing of datasets along the first axis.
+    - Ensures string arrays are properly stored as variable-length UTF-8 strings.
+    """
     # Ensure values are at least 1D
     if np.isscalar(values):
         values = np.array([values])
@@ -287,17 +316,58 @@ def dynamicSize(h5, name, values, dtype=None):
                 values = values.astype(str).tolist()
         dataset[dataset_size:new_size] = values
         
-def toExcel(h5, excel_path='./h5_to_excel.xlsx', verbose=0, max_rows=1_048_576, max_cols=16_384):
+def toExcel(h5, excel_path='./h5_to_excel.xlsx', verbose=0, max_rows=1_048_576, max_cols=16_384, max_title_chars=31):
+    """
+    Export all datasets from an HDF5 file or group to an Excel workbook, splitting large datasets
+    into multiple sheets to respect Excel's maximum row and column limits.
+
+    Each dataset is written to one or more sheets, with names derived from the HDF5 path.
+    1D datasets are treated as single-column sheets. Sheet names are truncated to the
+    maximum allowed Excel sheet name length.
+
+    Parameters
+    ----------
+    h5 : h5py.File or h5py.Group
+        The HDF5 file or group containing datasets to export.
+    excel_path : str, default='./h5_to_excel.xlsx'
+        File path for the Excel workbook to create.
+    verbose : int, default=0
+        If nonzero, displays a progress bar for dataset iteration.
+    max_rows : int, default=1_048_576
+        Maximum number of rows per Excel sheet (Excel limit).
+    max_cols : int, default=16_384
+        Maximum number of columns per Excel sheet (Excel limit).
+    max_title_chars : int, default=31
+        Maximum number of characters for Excel sheet names (Excel limit).
+
+    Notes
+    -----
+    - Automatically slices datasets into chunks to fit Excel's row/column limits.
+    - Works with 1D and 2D datasets.
+    - Sheet names are derived from HDF5 dataset paths and truncated safely.
+    """
     import pandas as pd
     
     with pd.ExcelWriter(excel_path) as writer:
         iterator = tqdm(iterate(h5, '**'), mininterval=1, desc='Dataset to excel sheet') if verbose else iterate(h5, '**')
         for path, obj in iterator:
             if isinstance(obj, h5py.Dataset):
-                sheet_name = path.replace('/','_')
-                for i in range(0, len(obj), max_rows):
-                    for j in range(0, len(obj[0]) if obj.ndim > 1 else 1, max_cols):
-                        pd.DataFrame(obj[:]).to_excel(writer, sheet_name=f'{sheet_name}_{i}_{j}', index=False)
+                sheet_name = path.replace('/','_')[-max_title_chars:] # Excel limit
+                # Determine shape
+                rows = len(obj)
+                cols = obj.shape[1] if obj.ndim > 1 else 1
+                
+                # Loop over row and column chunks
+                for i in range(0, rows, max_rows):
+                    for j in range(0, cols, max_cols):
+                        # Slice the dataset
+                        if obj.ndim == 1:
+                            data_chunk = obj[i:i+max_rows]
+                        else:
+                            data_chunk = obj[i:i+max_rows, j:j+max_cols]
+                        
+                        sub_sheet_name = f'{sheet_name}_{i}_{j}'[-max_title_chars:] if i > 0 or j > 0 else sheet_name
+                        pd.DataFrame(data_chunk).to_excel(writer, sheet_name=sub_sheet_name, index=False)
                 
 def getName(h5, sep='/'):
     """Return the current group or dataset name
