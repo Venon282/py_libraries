@@ -2,6 +2,8 @@ import h5py
 import numpy as np
 from tqdm import tqdm
 import logging
+import os
+import shutil
 logger = logging.getLogger(__name__)
 
 def getDatasetsName(h5):
@@ -54,6 +56,7 @@ def getGroupsRec(h5):
             groups.append(name)
             
     h5.visititems(collect)
+    
     return groups
 
 def getGroupsWithDataset(h5):
@@ -66,7 +69,11 @@ def getGroupsWithDatasetRec(h5):
         if isinstance(obj, h5py.Group) and haveDataset(obj):
             groups.append(name)
     
+    if haveDataset(h5):
+        groups.append('/')
+
     h5.visititems(collect)
+        
     return groups
 
 def getGroupsWithGroup(h5):
@@ -79,7 +86,11 @@ def getGroupsWithGroupRec(h5):
         if isinstance(obj, h5py.Group) and haveGroup(obj):
             groups.append(name)
     
+    if haveGroup(h5):
+        groups.append('/')
+
     h5.visititems(collect)
+        
     return groups
 
 def getGroupsAndDatasetsNameRec(h5):
@@ -258,8 +269,29 @@ def iterate(
                 yield from _walk(obj, parts[1:], root + part + sep)
 
     yield from _walk(h5, path_parts, root='')
+
+def iterateDatasetRec(h5: h5py.File | h5py.Group, sep: str = '/'):
+    for path, obj in iterate(h5, '*', sep=sep):
+        if isinstance(obj, h5py.Dataset):
+            yield path, obj
+            
+def iterateDatasetRec(h5: h5py.File | h5py.Group, sep: str = '/'):
+    for path, obj in iterate(h5, '**', sep=sep):
+        if isinstance(obj, h5py.Dataset):
+            yield path, obj
+            
+def iterateGroupRec(h5: h5py.File | h5py.Group, sep: str = '/'):
+    for path, obj in iterate(h5, '*', sep=sep):
+        if isinstance(obj, h5py.Group):
+            yield path, obj
+            
+def iterateGroupRec(h5: h5py.File | h5py.Group, sep: str = '/'):
+    for path, obj in iterate(h5, '**', sep=sep):
+        if isinstance(obj, h5py.Group):
+            yield path, obj
+            
     
-def dynamicSize(h5, name, values, dtype=None):
+def append(h5, name, values, dtype=None):
     """
     Create or append data to an HDF5 dataset dynamically, allowing for unlimited rows.
 
@@ -315,6 +347,34 @@ def dynamicSize(h5, name, values, dtype=None):
             if isinstance(values, np.ndarray):
                 values = values.astype(str).tolist()
         dataset[dataset_size:new_size] = values
+    
+def incrementSize(h5, name, quantity, data_shape=None, is_str=False, dtype=None):
+    data_shape = list(data_shape)
+    
+    if is_str:
+        dtype = h5py.string_dtype(encoding='utf-8')
+        
+    if name not in h5:
+        if data_shape is None:
+            raise ValueError(f'Dataset {name} do not exist so the data_shape parameter is requiered')
+
+        initial_shape = (0,) + tuple(data_shape)
+        max_shape = (None,) + tuple(data_shape)
+
+        h5.create_dataset(
+            name,
+            shape=initial_shape,
+            maxshape=max_shape,
+            chunks=True,
+            dtype=dtype
+        )
+    
+    dataset = h5[name]
+    dataset_size = dataset.shape[0]
+    new_size = dataset_size + quantity
+    dataset.resize(new_size, axis=0)
+    return new_size
+    
         
 def toExcel(h5, excel_path='./h5_to_excel.xlsx', verbose=0, max_rows=1_048_576, max_cols=16_384, max_title_chars=31):
     """
@@ -360,6 +420,8 @@ def toExcel(h5, excel_path='./h5_to_excel.xlsx', verbose=0, max_rows=1_048_576, 
                 # Loop over row and column chunks
                 for i in range(0, rows, max_rows):
                     for j in range(0, cols, max_cols):
+                        if verbose:
+                            iterator.set_description(f"Dataset to excel sheet: {path} - {i} - {j}")
                         # Slice the dataset
                         if obj.ndim == 1:
                             data_chunk = obj[i:i+max_rows]
@@ -374,3 +436,52 @@ def getName(h5, sep='/'):
     """
     return h5.name.split(sep)[-1]
 
+def dfToH5(df, h5_path, overwrite=True, mode='w'):
+    """
+    Saves a Pandas DataFrame to HDF5 where every column is a separate dataset.
+    Strings are saved as variable-length UTF-8, Numbers as standard arrays.
+    """
+    with h5py.File(h5_path, mode) as hf:
+        for col_name in df.columns:
+            data = df[col_name].values
+            
+            # Handle existing column
+            if col_name in hf:
+                if overwrite:
+                    del hf[col_name]
+                else:
+                    continue
+
+            # Handle String Data (Object type in Pandas)
+            if data.dtype == 'object':
+                # Convert to specialized HDF5 string type
+                # This ensures 'h5py' can read it back easily as bytes or strings
+                dt = h5py.string_dtype(encoding='utf-8')
+                hf.create_dataset(col_name, data=data, dtype=dt)
+            
+            # Handle Numerical Data
+            else:
+                # Save directly
+                hf.create_dataset(col_name, data=data)
+
+    print(f"Saved {len(df)} rows to {h5_path}")
+    
+def makeH5Copy(h5_path, suffix="_copy", max_tries=1000):
+    """Create a unique copy of h5_path next to the original.
+    Returns the path of the created copy.
+    """
+    folder, filename = os.path.split(h5_path)
+    base, ext = os.path.splitext(filename)
+    
+    # Try friendly names: base_copy.h5, base_copy1.h5, base_copy2.h5 ...
+    for i in range(max_tries):
+        if i == 0:
+            new_name = f"{base}{suffix}{ext}"
+        else:
+            new_name = f"{base}{suffix}{i}{ext}"
+            
+        dest = os.path.join(folder, new_name)
+        if not os.path.exists(dest):
+            shutil.copy2(h5_path, dest)  
+            return dest
+    raise FileExistsError(f"Could not create a unique copy of {h5_path} after {max_tries} attempts")

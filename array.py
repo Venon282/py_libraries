@@ -140,3 +140,10 @@ def circularBilateral(arr, center=None, threshold=np.sqrt(2)/2,
         w = wr * wi
         new_arr[mask] = np.sum(w * vals) / np.sum(w)
     return new_arr
+
+def gaussianMask(h, w, sigma=0.4):
+    """Create a gaussian  2D centred mask (values between 0 and 1)."""
+    y, x = np.ogrid[-1:1:h*1j, -1:1:w*1j]
+    mask = np.exp(-(x**2 + y**2) / (2 * sigma**2))
+    mask = mask / mask.max()
+    return mask.astype(np.float32)
