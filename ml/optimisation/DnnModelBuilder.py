@@ -1,5 +1,6 @@
 from tensorflow.keras.layers import Input, Dense, Dropout, Concatenate, BatchNormalization # type: ignore
 from tensorflow.keras.models import Model # type: ignore
+from tensorflow.keras import backend as K
 
 from .ModelBuilder import BaseModelBuilder
 from ..module import getRegularizers, getOptimizers
@@ -7,15 +8,17 @@ from ..layer.module import activation as getActivation, residualConnection, merg
 from .module import setHyperparameter
 
 class DnnModelBuilder(BaseModelBuilder):
-    def __init__(self, n_features, 
+    def __init__(self, 
+                 inputs_shape, 
                  n_labels_linear=0, n_labels_sigmoid=0, labels_softmax=[], 
                  labels_linear_names=[], labels_sigmoid_names=[], labels_softmax_names=[],
-                 fixe_hparams={}, *args, **kwargs):
+                 fixe_hparams={}, 
+                 *args, **kwargs):
         """
         Initialize the DNN model builder with hyperparameter configurations.
 
         Parameters:
-            n_features (int): Number of input features.
+            inputs_shape (tuple): Shape of the inputs. (Excluding the number of elements).
             n_labels_linear (int): Number of regression outputs (linear activation).
             n_labels_sigmoid (int): Number of binary classification outputs (sigmoid activation).
             labels_linear_names
@@ -37,9 +40,16 @@ class DnnModelBuilder(BaseModelBuilder):
             batch_norm_obligate (bool): Whether batch normalization is mandatory. Default is False.
 
             # Dropout configuration
+            dropout (bool/float): Activate/set a fixe bool
             dropout_min (float): Minimum dropout rate. Default is 0.0.
             dropout_max (float): Maximum dropout rate. Default is 0.6.
             dropout_step (float): Step increment for dropout rate. Default is 0.1.
+            
+            # Learning Rate configuration (log sampling)
+            learning_rate (float): To fixe the learning rate
+            learning_rate_min (float): Minimum learning rate. Default is 1e-6.
+            learning_rate_max (float): Maximum learning rate. Default is 1e-2.
+            learning_rate_default (float): Step increment for learning rate. Default is 1e-3.
 
             # Activation function (leaky variants) negative slope settings
             negative_slope_min (float): Minimum negative slope. Default is 0.001.
@@ -61,7 +71,7 @@ class DnnModelBuilder(BaseModelBuilder):
             optimizers (list): List of optimizers to consider. Default is ['adam', 'sgd', 'rmsprop'].
         """
         # Input/Output dimensions
-        self.n_features = n_features
+        self.inputs_shape = inputs_shape
         
         self.n_labels_linear = n_labels_linear 
         self.n_labels_sigmoid= n_labels_sigmoid
@@ -103,10 +113,21 @@ class DnnModelBuilder(BaseModelBuilder):
         self.batch_norm_obligate = kwargs.pop('batch_norm_obligate', False)
         
         # ---- Dropout Settings ----
+        self.dropout = kwargs.pop('dropout', True)
         self.dropout_min = kwargs.pop('dropout_min', 0.0)
         self.dropout_max = kwargs.pop('dropout_max', 0.6)
         self.dropout_step = kwargs.pop('dropout_step', 0.1)
         self.dropout_default = round((self.dropout_min + self.dropout_max) / 2, 1)
+        if isinstance(self.dropout, float):
+            fixe_hparams['dropout'] = self.dropout
+        
+        # ---- Learning rate Settings ----
+        self.learning_rate_default = kwargs.pop('learning_rate_default', 1e-3)
+        self.learning_rate = kwargs.pop('learning_rate', None)
+        self.learning_rate_min = kwargs.pop('learning_rate_min', 1e-6)
+        self.learning_rate_max = kwargs.pop('learning_rate_max', 1e-2)
+        if self.learning_rate:
+            fixe_hparams['learning_rate'] = self.learning_rate
 
          # ---- Negative Slope for Leaky Activations ----
         self.negative_slope_min = kwargs.pop('negative_slope_min', 0.001)
@@ -186,21 +207,21 @@ class DnnModelBuilder(BaseModelBuilder):
                 - bias_reg: Bias regularizer.
                 - activity_reg: Activity regularizer.
         """
-        units = setHyperparameter(hp.Int, self.fixe_hparams, f'units_{block_id}_{i}', min_value=self.units_min, max_value=self.units_max,
+        units = setHyperparameter(hp.Int, self.fixe_hparams, f'units_{block_id}_{i}', sub_names='units', min_value=self.units_min, max_value=self.units_max,
                                step=self.units_step, default=self.units_default) or self.units_default 
         
-        activation = setHyperparameter(hp.Choice, self.fixe_hparams, f'activation_{block_id}_{i}', values=self.activations, default='relu')
+        activation = setHyperparameter(hp.Choice, self.fixe_hparams, f'activation_{block_id}_{i}', sub_names='activation', values=self.activations, default='relu')
         
         
-        dropout_rate = setHyperparameter(hp.Float, self.fixe_hparams, f'dropout_{block_id}_{i}', min_value=self.dropout_min, max_value=self.dropout_max,
+        dropout_rate = setHyperparameter(hp.Float, self.fixe_hparams, f'dropout_{block_id}_{i}', sub_names='dropout', min_value=self.dropout_min, max_value=self.dropout_max,
                                 step=self.dropout_step, default=(self.dropout_min + self.dropout_max) / 2) or self.dropout_default
         
         # Define negative slope only if using leaky_relu.
-        negative_slope = setHyperparameter(hp.Float, self.fixe_hparams, f'negative_slope_{block_id}_{i}', min_value=self.negative_slope_min, max_value=self.negative_slope_max, step=self.negative_slope_step, 
+        negative_slope = setHyperparameter(hp.Float, self.fixe_hparams, f'negative_slope_{block_id}_{i}', sub_names='negative_slope', min_value=self.negative_slope_min, max_value=self.negative_slope_max, step=self.negative_slope_step, 
                                   default=(self.negative_slope_min+self.negative_slope_max)/2, parent_name=f'activation_{block_id}_{i}', parent_values=['leaky_relu'])
         
         
-        batch_norm = setHyperparameter(hp.Boolean, self.fixe_hparams, f'use_batchnorm_{block_id}_{i}', default=True) if self.batch_norm else None
+        batch_norm = setHyperparameter(hp.Boolean, self.fixe_hparams, f'use_batchnorm_{block_id}_{i}', sub_names='use_batchnorm', default=True) if self.batch_norm else None
         
         # --- Regularization Options ---
         kernel_reg      = self._regularizer(hp, block_id, i, is_desire=self.regularizer_kernel    , name='kernel')
@@ -237,7 +258,7 @@ class DnnModelBuilder(BaseModelBuilder):
         x = Dense(units, activation=None, kernel_regularizer=kernel_reg, bias_regularizer=bias_reg, activity_regularizer=activity_reg)(x)
         x = getActivation(activation)(x)
             
-        if dropout_rate > 0:
+        if self.dropout and dropout_rate > 0:
             x = Dropout(dropout_rate)(x)
         
         # Apply batch normalization if enabled either by global settings or per-layer choice.
@@ -269,10 +290,10 @@ class DnnModelBuilder(BaseModelBuilder):
         x_in = x  # For potential skip connection.
         
         # Option to use a residual connection for this block.
-        use_skip = setHyperparameter(hp.Boolean, self.fixe_hparams, f'use_skip_{block_id}' , default=True) 
+        use_skip = setHyperparameter(hp.Boolean, self.fixe_hparams, f'use_skip_{block_id}', sub_names=['use_skip'] , default=True) 
         
         # Choose how many layers to activate in this block
-        n_layers = setHyperparameter(hp.Int, self.fixe_hparams, f'n_layers_{block_id}', min_value=min_layers_use, max_value=max_layers_use, default=3)
+        n_layers = setHyperparameter(hp.Int, self.fixe_hparams, f'n_layers_{block_id}', sub_names='n_layers', min_value=min_layers_use, max_value=max_layers_use, default=3)
         for i in range(max_layers_use):
             # Only register hyperparameters if layer index i is within the active number.
             with hp.conditional_scope(f'n_layers_{block_id}', list(range(i+1, max_layers_use+1))):
@@ -301,34 +322,35 @@ class DnnModelBuilder(BaseModelBuilder):
         Returns:
             A compiled Keras model.
         """
+        K.clear_session()
         # Exclude 'concat' from alternative merge modes.
         merges_without_concat = [item for item in self.merges if item != 'concat']
         
         # Input layer
-        inputs = Input(shape=(self.n_features,), name='input')
+        inputs = Input(shape=self.inputs_shape, name='input')
         x = inputs
 
         # Optional separate start branch
         use_start_branch = setHyperparameter(hp.Boolean, self.fixe_hparams, 'use_start_branch', default=True)
         with hp.conditional_scope(f'use_start_branch', [True]):
-            
-            merge_mode_start = setHyperparameter(hp.Choice, self.fixe_hparams, 'merge_mode_start', values=self.merges, default=merges_without_concat[0] if len(merges_without_concat) > 0 else self.merges[0])
-            if merge_mode_start is not None:
-                max_layers_use = self.max_layers
-                min_layers_use = self.min_layers
+            if use_start_branch:
+                merge_mode_start = setHyperparameter(hp.Choice, self.fixe_hparams, 'merge_mode_start', values=self.merges, default=merges_without_concat[0] if len(merges_without_concat) > 0 else self.merges[0])
+                if merge_mode_start is not None:
+                    max_layers_use = self.max_layers
+                    min_layers_use = self.min_layers
 
-                if merge_mode_start in merges_without_concat:
-                    max_layers_use -= 1
-                    min_layers_use -=1
-                    
-                start_branches = [self.block(hp, x, block_id=f'start_{i}', min_layers=min_layers_use, max_layers=max_layers_use) for i in range(self._n_labels)]
-                
-                with hp.conditional_scope(f'merge_mode_start', merges_without_concat):
-                    choice = self._choices(hp, 'start_merge', '')
                     if merge_mode_start in merges_without_concat:
-                        start_branches = [self.completeDenseLayer(block, choice["units"], choice["activation"], choice["dropout_rate"], choice["batch_norm"], choice["kernel_reg"], choice["bias_reg"], choice["activity_reg"]) for block in start_branches]
-                
-                x = getMerge(merge_mode_start, name='start')(start_branches)
+                        max_layers_use -= 1
+                        min_layers_use -=1
+                        
+                    start_branches = [self.block(hp, x, block_id=f'start_{i}', min_layers=min_layers_use, max_layers=max_layers_use) for i in range(self._n_labels)]
+                    
+                    with hp.conditional_scope(f'merge_mode_start', merges_without_concat):
+                        choice = self._choices(hp, 'start_merge', '')
+                        if merge_mode_start in merges_without_concat:
+                            start_branches = [self.completeDenseLayer(block, choice["units"], choice["activation"], choice["dropout_rate"], choice["batch_norm"], choice["kernel_reg"], choice["bias_reg"], choice["activity_reg"]) for block in start_branches]
+                    
+                    x = getMerge(merge_mode_start, name='start')(start_branches)
                 
         # Optional main sequential dense block
         use_middle_block = setHyperparameter(hp.Boolean, self.fixe_hparams, 'use_middle_block', default=True)
@@ -388,7 +410,7 @@ class DnnModelBuilder(BaseModelBuilder):
         lrs = []
         for optimizer in self.optimizers:
             with hp.conditional_scope('optimizer', [optimizer]):
-                lrs.append(setHyperparameter(hp.Float, self.fixe_hparams, f'{optimizer}_lr', min_value=self.learning_rate_min, max_value=self.learning_rate_max, sampling='log', default=1e-3))
+                lrs.append(setHyperparameter(hp.Float, self.fixe_hparams, f'{optimizer}_lr', sub_names='learning_rate', min_value=self.learning_rate_min, max_value=self.learning_rate_max, sampling='log', default=self.learning_rate_default))
 
         lr = lrs[self.optimizers.index(optimizer_choice)]
         model.compile(optimizer=getOptimizers(optimizer_choice, lr), loss=losses, metrics=metrics, loss_weights=loss_weights) # , loss_weights=loss_weights
@@ -400,7 +422,7 @@ class DnnModelBuilder(BaseModelBuilder):
 """Usage
 
 # Binding du constructeur de modèle avec les dimensions des données
-dnn_model_builder = ml.optimisation.DnnModelBuilder(n_features=train_data.shape[-1], 
+dnn_model_builder = ml.optimisation.DnnModelBuilder(inputs_shape=tuple(train_data.shape[1:]), 
                                                     n_labels_linear=2,
                                                     n_labels_sigmoid=0,
                                                     labels_softmax=[4, 2 , 1]]) # multiclassification. Numbers are the number of class for each

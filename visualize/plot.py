@@ -8,7 +8,7 @@ from matplotlib.patches import Patch
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 # internal
-from .main import save
+from .main import save, makeBins
 
 class Plot:
     """Unified plotting interface. All methods accept:
@@ -32,7 +32,7 @@ class Plot:
             fig = ax.figure
 
         # extract file/show
-        path = kwargs.pop('path', None)
+        path = kwargs.pop('path', kwargs.pop('save', None))
         show = kwargs.pop('show', True)
 
         # styling
@@ -40,6 +40,7 @@ class Plot:
             'title':  kwargs.pop('title', ''),
             'xlabel': kwargs.pop('xlabel', ''),
             'ylabel': kwargs.pop('ylabel', ''),
+            'y2label': kwargs.pop('y2label', ''),
             'grid':   kwargs.pop('grid', True),
         }
         extras = {
@@ -54,11 +55,25 @@ class Plot:
         return fig, ax, style, extras, path, show, kwargs
 
     @staticmethod
-    def _apply_style(fig: Figure, ax: Axes,
+    def _apply_style(fig: Figure, ax: Axes, 
                      style: Dict[str, Any], extras: Dict[str, Any]) -> None:
         if style['title'] != '': ax.set_title(style['title'])
         if style['xlabel'] != '': ax.set_xlabel(style['xlabel'])
         if style['ylabel'] != '': ax.set_ylabel(style['ylabel'])
+        if style['y2label'] != '':
+            #todo modify the class for handle more than 1 ax
+            ax2 = ax.twinx()
+            ax2.set_ylabel(style['y2label'])
+            
+        grid = style['grid']
+        
+        ax.minorticks_on()
+        if isinstance(grid, bool):
+            ax.grid(grid)
+        elif isinstance(grid, dict):
+            ax.grid(True, **grid)
+        else: raise TypeError(f'Unsupported grid type {type(grid)}. Should be either a bool or a dict.')
+        
         ax.grid(style['grid'])
         if extras['xlim'] is not None:   ax.set_xlim(extras['xlim'])
         if extras['ylim'] is not None:   ax.set_ylim(extras['ylim'])
@@ -78,6 +93,10 @@ class Plot:
             x, y = arg[0], arg[1]
             if len(arg)==3:
                 opts = dict(arg[2])
+            elif isinstance(y, dict):
+                opts = y
+                y = x
+                x = np.arange(len(y))
             x = np.asarray(x); y = np.asarray(y)
         else:
             raise ValueError(f"Can't parse argument {arg}")
@@ -92,13 +111,33 @@ class Plot:
         return fig, ax
 
     @staticmethod
-    def plot(*args, **kwargs) -> Optional[Figure]:
+    def plot(*args, cmap=None, cmap_label='', cmap_values=None, **kwargs) -> Optional[Figure]:
         """Simple line plot."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
-        for arg in args:
+        
+        if cmap:
+            cmap_obj = cm.get_cmap(cmap)
+            if cmap_values is not None:
+                # Normalize cmap_values to [0,1]
+                normed = (np.array(cmap_values) - np.min(cmap_values)) / (np.max(cmap_values) - np.min(cmap_values))
+                colors = cmap_obj(normed)
+            else:
+                # Evenly spaced colors for each line
+                colors = cmap_obj(np.linspace(0, 1, len(args)))
+            
+        for i, arg in enumerate(args):
             x, y, opts = Plot._unwrap(arg)
             
+            if cmap and colors[i] is not None:
+                opts['color'] = colors[i]
+                
             ax.plot(x, y, **{**gb_opts, **opts})
+        
+        if cmap:
+            to_norm = colors if cmap_values is None else cmap_values
+            sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=to_norm.min(), vmax=to_norm.max()))
+            fig.colorbar(sm, ax=ax, label=cmap_label)
+        
         return Plot._end(fig, ax, style, extras, path, show)
 
 
@@ -112,6 +151,24 @@ class Plot:
         return Plot._end(fig, ax, style, extras, path, show)
     
     @staticmethod
+    def image(*args, **kwargs) -> Optional[Figure]:
+        """Display an image or a set of images."""
+        fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
+        colorbar = gb_opts.pop('colorbar',False)
+        
+        for arg in args:
+            _, img, opts = Plot._unwrap(arg)
+            im = ax.imshow(img, **{**gb_opts, **opts})
+        
+        if colorbar:
+            fig.colorbar(im, ax=ax, label=kwargs.get('cbar_label',''))
+        # Remove axes if not explicitly kept
+        # if not kwargs.get("show_axes", False):
+        #     ax.axis("off")
+        
+        return Plot._end(fig, ax, style, extras, path, show)
+    
+    @staticmethod
     def errorbar(*args, **kwargs) -> Optional[Figure]:
         """Scatter / dot plot."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
@@ -122,7 +179,7 @@ class Plot:
     
     
     @staticmethod
-    def scatter_density(*args, alpha=False, rate=False, bw_method: Optional[Union[str, float]] = None, cbar_label: Optional[str] = None, **kwargs) -> Optional[Figure]:
+    def scatter_density(*args, alpha=False, center=False, rate=False, bw_method: Optional[Union[str, float]] = None, cbar_label: Optional[str] = None, **kwargs) -> Optional[Figure]:
         """
         Scatter plot colored by a 2D Gaussian KDE estimate of density.
         
@@ -134,6 +191,7 @@ class Plot:
         - bw_method: passed to gaussian_kde (None for scott's rule, or float/string)
         - cbar_label: label for the density colorbar. If none no color bar
         - plus all the usual kwargs (fig, ax, title, xlabel, path, show, etc.)
+        - center: If true, center (the last plot, useless if many args) on the 90% denser values. If a number on it's pourcentage or rate
         """
         import scipy.stats as scipy_stats
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
@@ -163,9 +221,22 @@ class Plot:
                 z_norm = (z - z[0]) / (z[-1] - z[0])
             else: z_norm = None
             
+            if center:
+                rate = 0.9 if center is True else center if 0.0 < center <= 1.0 else float(center) / 100
+                sub_idx = int((1.0-rate) * len(x))
+                sub_x, sub_y = x[sub_idx:], y[sub_idx:]
+                x_min, x_max = min(sub_x), max(sub_x)
+                y_min, y_max = min(sub_y), max(sub_y)
+                x_center, y_center = sub_x[-1], sub_y[-1]
+                x_diffs, y_diffs = np.abs([x_center - x_min, x_max - x_center]), np.abs([y_center - y_min, y_max - y_center])
+                x_max_diff, y_max_diff = max(x_diffs), max(y_diffs)
+                extras['xlim'] = [x_center - x_max_diff, x_center + x_max_diff]
+                extras['ylim'] = [y_center - y_max_diff, y_center + y_max_diff]
+                
+            
                 
             sc = ax.scatter(x, y,c=z, alpha=z_norm,**opts)
-            if opts['label']:
+            if opts.get('label', ''):
                 legend_handles.append(Line2D(
                     [0], [0],
                     marker=opts.get('marker', 'o'), # Match marker shape
@@ -186,9 +257,11 @@ class Plot:
         return Plot._end(fig, ax, style, extras, path, show)
     
     @staticmethod
-    def histogram(data: Union[List, np.ndarray], bins: int=30, **kwargs) -> Optional[Figure]:
+    def histogram(data: Union[List, np.ndarray], bins: int=30, bin_type='linear', **kwargs) -> Optional[Figure]:
         """Univariate histogram."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
+        if bin_type!='linear':
+            bins = makeBins(data, bins, bin_type=bin_type)
         ax.hist(data, bins=bins, **gb_opts)
         return Plot._end(fig, ax, style, extras, path, show)
 
@@ -203,7 +276,7 @@ class Plot:
             im = ax.imshow(
                 heat.T, extent=extent, origin='lower',
                 aspect='auto', cmap=cm.get_cmap(cmap),
-                **{**gb_opts, **opts}
+                **gb_opts, **opts
             )
             fig.colorbar(im, ax=ax, label=kwargs.get('cbar_label',''))
         return Plot._end(fig, ax, style, extras, path, show)

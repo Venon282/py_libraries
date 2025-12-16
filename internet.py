@@ -14,7 +14,7 @@ def temporaryPublicServer(folder: str, port: int = 8000, timeout: int = 15):
     Start a local HTTP server for 'folder' and expose it via ngrok.
     Returns a function to get public URLs for files in that folder.
     """
-    # --- Check if ngrok is installed ---
+    # Check if ngrok is installed
     if shutil.which("ngrok") is None:
         raise RuntimeError(
             "ngrok is not installed or not in PATH. "
@@ -31,16 +31,16 @@ def temporaryPublicServer(folder: str, port: int = 8000, timeout: int = 15):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=str(folder_path), **kwargs)   
 
-    # --- Start local HTTP server ---
+    # Start local HTTP server
     httpd = socketserver.TCPServer(("", port), CustomHandler)
     server_thread = threading.Thread(target=httpd.serve_forever)
     server_thread.daemon = True
     server_thread.start()
 
-    # --- Start ngrok ---
+    # Start ngrok
     ngrok_proc = subprocess.Popen(["ngrok", "http", str(port)], stdout=subprocess.PIPE)
 
-    # --- Get public URL ---
+    # Get public URL
     public_url = None
     start_time = time.time()
     while time.time() - start_time < timeout:

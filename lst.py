@@ -4,6 +4,7 @@ import statistics
 import joblib
 import numpy as np
 import math
+from collections import Counter
 from scipy.stats import skew, kurtosis
 
 def proportions(lst):
@@ -12,15 +13,9 @@ def proportions(lst):
 def countElements(lst):
     return {str(element): list(lst).count(element) for element in set(lst)}
 
-def save(lst, path='./lst.pkl'):
-    return joblib.dump(lst, path)
-
-def load(path='./lst.pickle'):
-    return joblib.load(path)
-
 def interpolation(x_targ, x, y):
     """interpolation the y values for the x_targ values
-
+    !!! Linear interpolation, better to use np.interpolate!!!
     Args:
         x_targ (list of float): Target x values to interpret y values for.
         x (list of float): Original x values.
@@ -188,112 +183,277 @@ def repartitionNbNeed(data1, data2, proportion):
         # Both tables have enough data to meet the target proportion
         return size1, size2
 
-def describeValues(array):
-    """
-    Fonction similaire à pandas.describe() utilisant numpy.
+# def describeValues(array):
+#     """
+#     Similar function to pandas.describe() using numpy.
     
-    Calcule des statistiques descriptives sur un tableau numpy, en incluant:
-      - shape            : dimensions du tableau
-      - total_count      : nombre total d'éléments
-      - count            : nombre d'éléments finis (non NaN et non ±inf)
-      - nan_count        : nombre de NaN
-      - pos_inf_count    : nombre d'infinité positive
-      - neg_inf_count    : nombre d'infinité négative
-      - zero_count       : nombre de zéros parmi les valeurs finies
-      - nan_rate         : taux de NaN (nan_count / total_count)
-      - pos_inf_rate     : taux d'infinité positive (pos_inf_count / total_count)
-      - neg_inf_rate     : taux d'infinité négative (neg_inf_count / total_count)
-      - min              : valeur minimale (parmi les valeurs finies)
-      - 25% (q1)         : premier quartile (25e percentile)
-      - median           : médiane (50e percentile)
-      - mean             : moyenne
-      - std              : écart-type
-      - var              : variance
-      - IQR              : interquartile range (q3 - q1)
-      - 75% (q3)         : troisième quartile (75e percentile)
-      - max              : valeur maximale
-      - range            : étendue (max - min)
-      - unique_count     : nombre de valeurs uniques parmi les valeurs finies
-      - skewness         : asymétrie de la distribution (si scipy est disponible)
-      - kurtosis         : aplatissement de la distribution (si scipy est disponible)
+#     Calculate descriptive statistics on a numpy array, including:
+#       - shape            : Array dimensions
+#       - total_count      : Total number of elements
+#       - count            : Number of finite elements (non-NaN and non-±inf)
+#       - nan_count        : Number of NaNs
+#       - pos_inf_count    : Number of positive infinities
+#       - neg_inf_count    : Number of negative infinities
+#       - zero_count       : Number of zeros among finite values
+#       - nan_rate         : NaN rate (nan_count / total_count)
+#       - pos_inf_rate     : Positive infinity rate (pos_inf_count / total_count)
+#       - neg_inf_rate     : Negative infinity rate (neg_inf_count / total_count)
+#       - zero_count_rate  : Zero count rate (zero_count / total_count, among finite values)
+#       - min              : Minimum value (among finite values)
+#       - 25% (q1)         : First quartile (25th percentile)
+#       - median           : Median (50th percentile)
+#       - mean             : Mean
+#       - std              : Standard deviation
+#       - var              : Variance
+#       - IQR              : Interquartile range (q3 - q1)
+#       - 75% (q3)         : Third quartile (75th percentile)
+#       - max              : Maximum value
+#       - range            : Range (max - min)
+#       - unique_count     : Number of unique values ​​among finite values
+#       - skewness         : Distribution skewness (if Scipy is available)
+#       - kurtosis         : Distribution kurtosis (if Scipy is available)
       
-    Paramètres:
-    -----------
-    array : array_like
-        Tableau numpy (peut être multidimensionnel)
+#     Parameters:
+#     -----------
+#     array : array_like
+#         Numpy array (can be multidimensional)
     
-    Retourne:
-    ---------
-    stats : dict
-        Dictionnaire contenant les statistiques calculées.
+#     return:
+#     ---------
+#     stats : dict
+#         Dictionary containing the calculated statistics.
+#     """
+#     def maskChunked(arr, mask_fct, chunk_size=10_000_000):
+#         lst = []
+#         for start in range(0, arr.size, chunk_size):
+#             end = min(start + chunk_size, arr.size)
+#             chunk = arr.flat[start:end]
+#             lst.append(chunk[mask_fct(chunk)])
+#         vals = np.concatenate(lst)
+#         return vals
+    
+#     # Convert input to numpy array and flatten
+#     arr = np.array(array)
+#     arr_flat = arr.flatten()
+#     total_count = arr_flat.size
+
+#     # Counting non-finite values
+#     nan_count = np.isnan(arr_flat).sum()
+#     pos_inf_count = np.isposinf(arr_flat).sum()
+#     neg_inf_count = np.isneginf(arr_flat).sum()
+#     non_finite_count = nan_count + pos_inf_count + neg_inf_count
+#     finite_count = total_count - non_finite_count
+
+#     # Rate calculs
+#     if total_count > 0: 
+#         nan_rate = nan_count / total_count
+#         pos_inf_rate = pos_inf_count / total_count
+#         neg_inf_rate = neg_inf_count / total_count
+#     else:
+#         nan_rate = pos_inf_rate = neg_inf_rate = np.nan
+        
+#     # Extraction of finite values
+#     finite_vals = maskChunked(arr_flat, np.isfinite, chunk_size=10_000_000) 
+    
+#     # Calculation of additional statistics on finite values
+#     if finite_count > 0:
+#         min_val    = np.min(finite_vals)
+#         q1         = np.percentile(finite_vals, 25)
+#         median_val = np.median(finite_vals)
+#         mean_val   = np.mean(finite_vals)
+#         std_val    = np.std(finite_vals)
+#         var_val    = np.var(finite_vals)
+#         q3         = np.percentile(finite_vals, 75)
+#         max_val    = np.max(finite_vals)
+#         iqr        = q3 - q1
+#         range_val  = max_val - min_val
+#         unique_count = np.unique(finite_vals).size
+#         zero_count = np.count_nonzero(finite_vals == 0)
+#         zero_count_rate = zero_count / finite_count
+    
+#         skewness = skew(finite_vals)
+#         kurt = kurtosis(finite_vals)
+
+#     else:
+#         min_val = q1 = median_val = mean_val = std_val = var_val = q3 = max_val = iqr = range_val = unique_count = zero_count = zero_count_rate = np.nan
+#         skewness = kurt = np.nan
+
+#     stats = {
+#         'shape': arr.shape,
+#         'total_count': total_count,
+#         'count': int(finite_count),
+#         'nan_count': int(nan_count),
+#         'pos_inf_count': int(pos_inf_count),
+#         'neg_inf_count': int(neg_inf_count),
+#         'zero_count': int(zero_count) if not np.isnan(zero_count) else np.nan,
+#         'nan_rate': nan_rate,
+#         'pos_inf_rate': pos_inf_rate,
+#         'neg_inf_rate': neg_inf_rate,
+#         'zero_count_rate':zero_count_rate,
+#         'min': min_val,
+#         '25%': q1,
+#         'median': median_val,
+#         'mean': mean_val,
+#         'std': std_val,
+#         'var': var_val,
+#         'IQR': iqr,
+#         '75%': q3,
+#         'max': max_val,
+#         'range': range_val,
+#         'unique_count': unique_count,
+#         'skewness': skewness,
+#         'kurtosis': kurt
+#     }
+
+#     return stats
+def describeValues(array, chunk_size=1_000_000, sample_limit=5_000_000):
     """
-    # Conversion de l'entrée en tableau numpy et aplatir
-    arr = np.array(array)
-    arr_flat = arr.flatten()
-    total_count = arr_flat.size
-
-    # Comptage des valeurs non finies
-    nan_count = np.isnan(arr_flat).sum()
-    pos_inf_count = np.isposinf(arr_flat).sum()
-    neg_inf_count = np.isneginf(arr_flat).sum()
-    non_finite_count = nan_count + pos_inf_count + neg_inf_count
-    finite_count = total_count - non_finite_count
-
-    # Calcul des taux
-    nan_rate = nan_count / total_count if total_count > 0 else np.nan
-    pos_inf_rate = pos_inf_count / total_count if total_count > 0 else np.nan
-    neg_inf_rate = neg_inf_count / total_count if total_count > 0 else np.nan
-
-    # Extraction des valeurs finies
-    finite_vals = arr_flat[np.isfinite(arr_flat)]
+    Memory-safe version of describeValues for very large arrays.
+    Processes data in chunks instead of loading everything into memory.
+    sample_limit is for calculate the median, quantil, etc. It become an estimation if superior to sample_limit
+    """
+    arr = np.asarray(array)
+    shape = arr.shape
+    total_count = arr.size
     
-    # Calcul de statistiques supplémentaires sur les valeurs finies
-    if finite_count > 0:
-        min_val    = np.min(finite_vals)
-        q1         = np.percentile(finite_vals, 25)
-        median_val = np.median(finite_vals)
-        mean_val   = np.mean(finite_vals)
-        std_val    = np.std(finite_vals)
-        var_val    = np.var(finite_vals)
-        q3         = np.percentile(finite_vals, 75)
-        max_val    = np.max(finite_vals)
-        iqr        = q3 - q1
-        range_val  = max_val - min_val
-        unique_count = np.unique(finite_vals).size
-        zero_count = np.count_nonzero(finite_vals == 0)
-    
-        skewness = skew(finite_vals)
-        kurt = kurtosis(finite_vals)
+    # Check if array is numeric
+    if np.issubdtype(arr.dtype, np.number):
+        nan_count = pos_inf_count = neg_inf_count = zero_count = 0
+        finite_count = 0
 
+        # Initialize running stats
+        finite_vals = []  
+        finite_min = np.inf
+        finite_max = -np.inf
+        mean_accum = 0.0
+        M2 = 0.0  # for variance (Welford’s method)
+        
+        # Iterate through array in chunks
+        for start in range(0, total_count, chunk_size):
+            end = min(start + chunk_size, total_count)
+            chunk = arr.flat[start:end]
+
+            # Count infinities / NaNs
+            nan_mask = np.isnan(chunk)
+            pos_mask = np.isposinf(chunk)
+            neg_mask = np.isneginf(chunk)
+            finite_mask = np.isfinite(chunk)
+
+            nan_count += np.count_nonzero(nan_mask)
+            pos_inf_count += np.count_nonzero(pos_mask)
+            neg_inf_count += np.count_nonzero(neg_mask)
+
+            finite_chunk = chunk[finite_mask]
+            n = finite_chunk.size
+            if n == 0:
+                continue
+
+            finite_count += n
+            zero_count += np.count_nonzero(finite_chunk == 0)
+
+            # Min / max
+            finite_min = min(finite_min, np.min(finite_chunk))
+            finite_max = max(finite_max, np.max(finite_chunk))
+
+            # Incremental mean / variance (Welford)
+            delta = finite_chunk.mean() - mean_accum
+            mean_accum += delta * n / finite_count
+            M2 += finite_chunk.var() * n  # variance sum approximation
+
+            # Store chunk values for quantile/skew/kurtosis (optional)
+            # if finite_count < 5_000_000:  # limit memory for quantiles
+            #     finite_vals.append(finite_chunk)
+            finite_vals.append(finite_chunk)
+
+        # Combine finite values (or sample if too large)
+        if finite_vals:
+            if len(finite_vals) * chunk_size > sample_limit:
+                last_rate = len(finite_vals[-1]) / chunk_size
+                size_by_unit = sample_limit / (len(finite_vals) - 1 + last_rate)
+                size_by_unit_int = int(size_by_unit)
+                finite_vals = np.concatenate([np.random.choice(finite_vals[i], size_by_unit_int, replace=False) for i in range(len(finite_vals)-1)] + [np.random.choice(finite_vals[-1], int(size_by_unit*last_rate), replace=False)])
+            else:
+                finite_vals = np.concatenate(finite_vals)
+        else:
+            finite_vals = np.array([])
+
+        # Rates
+        if total_count > 0:
+            nan_rate = nan_count / total_count
+            pos_inf_rate = pos_inf_count / total_count
+            neg_inf_rate = neg_inf_count / total_count
+        else:
+            nan_rate = pos_inf_rate = neg_inf_rate = np.nan
+
+        # Finite stats
+        if finite_count > 0:
+            q1 = np.percentile(finite_vals, 25)
+            median_val = np.median(finite_vals)
+            mean_val = mean_accum
+            std_val = np.sqrt(M2 / finite_count)
+            var_val = std_val**2
+            q3 = np.percentile(finite_vals, 75)
+            iqr = q3 - q1
+            range_val = finite_max - finite_min
+            unique_count = np.unique(finite_vals).size if finite_vals.size else np.nan
+            zero_count_rate = zero_count / finite_count
+            skewness = skew(finite_vals)
+            kurt = kurtosis(finite_vals)
+        else:
+            finite_min = q1 = median_val = mean_val = std_val = var_val = q3 = finite_max = iqr = range_val = unique_count = zero_count_rate = np.nan
+            skewness = kurt = np.nan
+
+        stats = {
+            'shape': shape,
+            'total_count': int(total_count),
+            'count': int(finite_count),
+            'nan_count': int(nan_count),
+            'pos_inf_count': int(pos_inf_count),
+            'neg_inf_count': int(neg_inf_count),
+            'zero_count': int(zero_count),
+            'nan_rate': nan_rate,
+            'pos_inf_rate': pos_inf_rate,
+            'neg_inf_rate': neg_inf_rate,
+            'zero_count_rate': zero_count_rate,
+            'min': finite_min,
+            '25%': q1,
+            'median': median_val,
+            'mean': mean_val,
+            'std': std_val,
+            'var': var_val,
+            'IQR': iqr,
+            '75%': q3,
+            'max': finite_max,
+            'range': range_val,
+            'unique_count': unique_count,
+            'skewness': skewness,
+            'kurtosis': kurt
+        }
     else:
-        min_val = q1 = median_val = mean_val = std_val = var_val = q3 = max_val = iqr = range_val = unique_count = zero_count = np.nan
-        skewness = kurt = np.nan
+        # String version
+        unique_vals = Counter()
+        max_len = 0
+        min_len = np.inf
 
-    stats = {
-        'shape': arr.shape,
-        'total_count': total_count,
-        'count': int(finite_count),
-        'nan_count': int(nan_count),
-        'pos_inf_count': int(pos_inf_count),
-        'neg_inf_count': int(neg_inf_count),
-        'zero_count': int(zero_count) if not np.isnan(zero_count) else np.nan,
-        'nan_rate': nan_rate,
-        'pos_inf_rate': pos_inf_rate,
-        'neg_inf_rate': neg_inf_rate,
-        'min': min_val,
-        '25%': q1,
-        'median': median_val,
-        'mean': mean_val,
-        'std': std_val,
-        'var': var_val,
-        'IQR': iqr,
-        '75%': q3,
-        'max': max_val,
-        'range': range_val,
-        'unique_count': unique_count,
-        'skewness': skewness,
-        'kurtosis': kurt
-    }
+        for start in range(0, total_count, chunk_size):
+            end = min(start + chunk_size, total_count)
+            chunk = arr.flat[start:end]
+
+            chunk = [str(x) for x in chunk]  # ensure all are strings
+            lengths = [len(x) for x in chunk]
+            max_len = max(max_len, max(lengths, default=0))
+            min_len = min(min_len, min(lengths, default=0))
+            unique_vals.update(chunk)
+
+        most_common = unique_vals.most_common(5)
+        stats =  {
+            'shape': shape,
+            'total_count': int(total_count),
+            'unique_count': len(unique_vals),
+            'min_length': min_len,
+            'max_length': max_len,
+            'most_common': most_common
+        }
 
     return stats
 

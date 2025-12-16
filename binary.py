@@ -6,9 +6,3 @@ def lackingBinaries(lst, length=None):
     if length is None:
         length = len(max(lst)) - 2
     return [bin(i) for i in range(2**length) if bin(i) not in lst]
-    
-def binaryToDecimal(binary):
-    return int(binary, 2)
-
-def decimalToBinary(decimal):
-    return bin(decimal)

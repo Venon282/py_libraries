@@ -215,7 +215,7 @@ def toMarkovTransitionField(signal: np.ndarray, image_size: int = 64, n_bins: in
     return mtf.fit_transform(x_reshaped)[0]
 
 
-# 5. Recurrence Plot (RP)
+# Recurrence Plot (RP)
 def toRecurrentPlot(signal: np.ndarray, threshold: str = 'point', percentage: float = 10) -> np.ndarray:
     """
     Computes the Recurrence Plot (RP) of a spectral signal.
@@ -234,7 +234,7 @@ def toRecurrentPlot(signal: np.ndarray, threshold: str = 'point', percentage: fl
     return rp.fit_transform(x_reshaped)[0]
 
 
-# 6. Continuous Wavelet Transform (CWT) Scalogram
+# Continuous Wavelet Transform (CWT) Scalogram
 def toContinuousWaveletTransform(signal: np.ndarray, scales: np.ndarray = None, wavelet: str = 'morl'):
     """
     Computes the Continuous Wavelet Transform (CWT) scalogram of the spectral signal.
@@ -255,7 +255,7 @@ def toContinuousWaveletTransform(signal: np.ndarray, scales: np.ndarray = None, 
     return pywt.cwt(signal, scales, wavelet)
 
 
-# 7. Self-Similarity (Distance) Matrix
+# Self-Similarity (Distance) Matrix
 def toSelfSimilarityDistanceMatrix(signal: np.ndarray, metric: str = 'euclidean') -> np.ndarray:
     """
     Computes the self-similarity (distance) matrix of the spectral signal.
