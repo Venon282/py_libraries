@@ -142,14 +142,21 @@ class Instagram:
         while True:
             status = self.getContainerStatus(container_id)
             st = status.get("status_code") or (status.get("status", {}).get("status_code") if isinstance(status.get("status"), dict) else None)
+            
+            logging.info(f"[Instagram] Container {container_id} status: {st}")
+
             if st:
                 st = st.upper()
+                
             if st in ("FINISHED", "PUBLISHED"):
                 return status
+            
             if st in ("ERROR", "EXPIRED"):
                 raise InstagramError(f"Container {container_id} returned status {st}: {status}")
+            
             if (time.time() - start) > timeout_seconds:
                 raise InstagramError(f"Timeout waiting for container {container_id} to be ready; last status: {status}")
+            
             time.sleep(interval)
 
     # -----------------------
