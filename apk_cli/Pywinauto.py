@@ -21,7 +21,7 @@ class Pywinauto:
         timings.after_click_wait = after_click_wait
         
     def openApp(self, start_if_missing: bool = True) -> None:
-        """Connect to an existing Gigapixel process or start a new one."""
+        """Connect to an existing process or start a new one."""
         try:
             self.app = Application(backend=self.backend).connect(path=str(self.exe))
         except Exception:
