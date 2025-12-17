@@ -1,4 +1,7 @@
 import numpy as np
+# from ...lst import flatten
+import logging
+logger = logging.getLogger(__name__)
 
 class MinMaxGlobalScaler:
     """
@@ -48,14 +51,17 @@ class MinMaxGlobalScaler:
         """
         Recursively traverse nested lists/tuples (or object arrays) to yield numeric values.
         """
+        
         if isinstance(X, (list, tuple, np.ndarray)):
             for item in X:
                 yield from self._flatten(item)
-        # elif isinstance(X, np.ndarray) and X.dtype == np.object_:
-        #     for item in X:
-        #         yield from self._flatten(item)
+        elif isinstance(X, np.ndarray) and X.dtype == np.object_:
+            for item in X:
+                yield from self._flatten(item)
         else:
             yield X
+            
+        
 
     def fit(self, X, y=None):
         """
@@ -84,8 +90,12 @@ class MinMaxGlobalScaler:
             # Fall back to recursive flattening for irregularly nested data.
             flat = np.array(list(self._flatten(X)), dtype=self.dtype)
 
+        #self.data_min_ = min(flatten(X)) # np.min(flat)
         self.data_min_ = np.min(flat)
+        logger.debug(f'Got min {self.data_min_}')
+        #self.data_max_ = max(flatten(X)) # np.max(flat)
         self.data_max_ = np.max(flat)
+        logger.debug(f'Got max {self.data_max_}')
         self.data_range_ = self.data_max_ - self.data_min_
         # Use a safe range to avoid division by zero
         safe_range = self.data_range_ if self.data_range_ != 0 else 1.0
