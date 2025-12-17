@@ -8,6 +8,7 @@ import os
 import concurrent.futures
 from line_profiler import profile
 
+#? doc for add more shape: https://www.sasview.org/docs/user/qtgui/Perspectives/Fitting/models/index.html
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -43,12 +44,11 @@ class UnitConvertor:
 
 
 def scatteringLengthDensityCm2(name):
-    """In Å^-2"""
     name = name.strip().lower()
     
     values = {
         'au': 1.31596e+12,
-        'ag': 7.76211e11,
+        'ag': 7.76211e+11,
         'latex': 8.81075e+10, #(not sure ??)
         'sio2': 1.86206e+11,
         'h2o': 9.39845e10,
@@ -120,8 +120,10 @@ def main(
     save_h5_filepath='./signals.h5',
 ):
     save_h5_filepath = safePath(save_h5_filepath)
-    material_sld = UnitConvertor.cm2ToÅ2(scatteringLengthDensityCm2(material))
-    solvent_sld = UnitConvertor.cm2ToÅ2(scatteringLengthDensityCm2(env))
+    material_sld_cm2 = scatteringLengthDensityCm2(material)
+    material_sld = UnitConvertor.cm2ToÅ2(material_sld_cm2)
+    solvent_sld_cm2 = scatteringLengthDensityCm2(env)
+    solvent_sld = UnitConvertor.cm2ToÅ2(solvent_sld_cm2)
     
     logger.debug([[k,len(v)] for k, v in parameters.items()])
     if parameters_operator == 'product':
@@ -188,8 +190,11 @@ def main(
         f.attrs["material"] = material
         f.attrs["technique"] = "saxs"
         f.attrs["techno"] = "sasmodels"
+        f.attrs["type"] = "simulation"
         f.attrs["shape"] = shape
         f.attrs["environment"] = env
+        f.attrs["scattering_length_density"] = material_sld_cm2
+        f.attrs["environment_scattering_length_density"] = solvent_sld_cm2
         for key, value in other_attrs.items():
             f.attrs[key] = value
         
@@ -223,10 +228,11 @@ if __name__ == '__main__':
     material = "ag"
     env = "water"
     parameters_operator = 'product'
-    save_h5_filepath = rf'C:\Users\ET281306\Downloads\{material}_{shape}.h5'
+    save_h5_filepath = rf'C:\Users\ET281306\Downloads\saxs_{material}_{shape}.h5'
     max_workers=0
     other_attrs = {
-        "author":"Esteban THEVENON"
+        "author":"Esteban THEVENON",
+        "type":"simulation"
     }
     
     # define parameters
