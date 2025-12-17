@@ -107,15 +107,16 @@ class GigaPixel(Pywinauto):
         
         # self.main_win.print_control_identifiers()
     
-    def openImages(self, images_path:list|dict, wait=0.1):
+    def openImages(self, images_path:list|dict, wait=0.2):
         self.main_win.set_focus()
         
         for root, filenames in self.iterateImages(images_path):
             send_keys('^o')
+            time.sleep(wait)
             
             # Get the dialogue box
             open_dlg = Desktop(backend='win32').window(title_re=".*Open.*")
-            open_dlg.wait('visible')
+            open_dlg.wait('visible', timeout=20)
             
             # Go to folder
             self.fileSysWinGoToPath(path = root.as_posix())
