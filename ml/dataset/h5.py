@@ -1,6 +1,7 @@
 import tensorflow as tf
 import h5py
 import logging
+import numpy as np
 import math
 logger = logging.getLogger(__name__)
 
@@ -31,9 +32,20 @@ class H5Generator:
                 yield inputs, outputs
         logger.debug (f"exhausted for {len(self.indices)} indices.")
         
-
-                
-def makeTfDataset(h5_path, indices, input_cols, output_cols, batch_size=32, return_steps_per_epoch=False, epochs=1, seed=42):
+    def __len__(self):
+        return len(self.indices)
+                    
+def makeTfDataset(
+    h5_path:str, 
+    indices:list, 
+    input_cols:list, 
+    output_cols:list, 
+    batch_size:int=32, 
+    epochs:int|None=1, 
+    shuffle:bool=True,
+    return_steps_per_epoch:bool=False, 
+    seed:int=42
+    ):
     """
     Creates a tf.data.Dataset
     """
@@ -67,10 +79,11 @@ def makeTfDataset(h5_path, indices, input_cols, output_cols, batch_size=32, retu
     )
 
     # Pipeline Optimizations
-    ds = ds.shuffle(buffer_size=min(len(indices), 10 * batch_size), seed=seed) 
+    if shuffle:
+        ds = ds.shuffle(buffer_size=min(len(indices), 10 * batch_size), seed=seed) 
     ds = ds.batch(batch_size)
-    ds = ds.prefetch(tf.data.AUTOTUNE)
     ds = ds.repeat(epochs)
+    ds = ds.prefetch(tf.data.AUTOTUNE)
     
     if return_steps_per_epoch:
         return ds, stepsFor(len(indices), batch_size)
