@@ -309,3 +309,4 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True,
         return data_combined.T.tolist(), data_original.T.tolist(), data_synthetic.T.tolist()
     else:
         return data_synthetic.T.tolist()
+    
