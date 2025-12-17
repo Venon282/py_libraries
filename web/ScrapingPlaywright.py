@@ -10,7 +10,7 @@ from typing import Literal
 import logging
 
 from py_libraries.web.UserAgentProvider import UserAgentProvider
-from py_libraries.string import toCamelCase
+from py_libraries.type.string import toCamelCase
 
 class ScrapingPlaywright:
     """

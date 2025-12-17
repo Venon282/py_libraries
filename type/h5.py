@@ -158,7 +158,7 @@ def displayWithDetails(h5):
     h5.visititems(displayInfo)
     
 def getDescribe(h5):
-    from .lst import describeValues
+    from ..lst import describeValues
     import pandas as pd
     df = {}
     
@@ -171,7 +171,7 @@ def getDescribe(h5):
     return pd.DataFrame.from_dict(df, orient='index')
 
 def describe(h5):
-    from .lst import describe
+    from ..lst import describe
     
     def collect(name, obj):
         if isinstance(obj, h5py.Dataset):
@@ -275,22 +275,11 @@ def iterateDatasetRec(h5: h5py.File | h5py.Group, sep: str = '/'):
         if isinstance(obj, h5py.Dataset):
             yield path, obj
             
-def iterateDatasetRec(h5: h5py.File | h5py.Group, sep: str = '/'):
-    for path, obj in iterate(h5, '**', sep=sep):
-        if isinstance(obj, h5py.Dataset):
-            yield path, obj
-            
 def iterateGroupRec(h5: h5py.File | h5py.Group, sep: str = '/'):
     for path, obj in iterate(h5, '*', sep=sep):
         if isinstance(obj, h5py.Group):
             yield path, obj
             
-def iterateGroupRec(h5: h5py.File | h5py.Group, sep: str = '/'):
-    for path, obj in iterate(h5, '**', sep=sep):
-        if isinstance(obj, h5py.Group):
-            yield path, obj
-            
-    
 def append(h5, name, values, dtype=None):
     """
     Create or append data to an HDF5 dataset dynamically, allowing for unlimited rows.
