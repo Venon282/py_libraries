@@ -158,7 +158,7 @@ def displayWithDetails(h5):
     h5.visititems(displayInfo)
     
 def getDescribe(h5):
-    from ..lst import describeValues
+    from ..type.lst import describeValues
     import pandas as pd
     df = {}
     
@@ -171,7 +171,7 @@ def getDescribe(h5):
     return pd.DataFrame.from_dict(df, orient='index')
 
 def describe(h5):
-    from ..lst import describe
+    from ..type.lst import describe
     
     def collect(name, obj):
         if isinstance(obj, h5py.Dataset):

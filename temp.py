@@ -1,7 +1,7 @@
 import datetime
 import time
 import numpy as np
-from .number import randomGaussianWithBorn
+from .type.number import randomGaussianWithBorn
 
 def scheduleTomorrowExecution(
     period,

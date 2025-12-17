@@ -20,7 +20,7 @@ from pathlib import Path
 import pyautogui
 from PIL import Image
 import win32api
-from ..number import  randomGaussianWithBorn
+from ..type.number import  randomGaussianWithBorn
 
 class ScrapingSeleniumBase:
     """

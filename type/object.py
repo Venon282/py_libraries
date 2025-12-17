@@ -1,9 +1,3 @@
-"""Function for different objects elements combined eg list, dict, etc
-"""
-import numpy as np
-
-import numpy as np
-from collections.abc import Iterable
 
 import numpy as np
 from collections.abc import Iterable
