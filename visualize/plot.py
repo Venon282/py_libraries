@@ -257,12 +257,30 @@ class Plot:
         return Plot._end(fig, ax, style, extras, path, show)
     
     @staticmethod
-    def histogram(data: Union[List, np.ndarray], bins: int=30, bin_type='linear', **kwargs) -> Optional[Figure]:
+    def histogram(data: Union[List, np.ndarray], bins: int=None, bin_type='linear', **kwargs) -> Optional[Figure]:
         """Univariate histogram."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
         if bin_type!='linear':
-            bins = makeBins(data, bins, bin_type=bin_type)
+            bins = makeBins(data, bins=bins if bins is not None else 100, bin_type=bin_type)
         ax.hist(data, bins=bins, **gb_opts)
+        return Plot._end(fig, ax, style, extras, path, show)
+    
+    @staticmethod
+    def bar(*args, text=False, **kwargs) -> Optional[Figure]:
+        """Scatter / dot plot."""
+        fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
+        for arg in args:
+            x, y, opts = Plot._unwrap(arg)
+            bars = ax.bar(x, y, **{**gb_opts, **opts})
+            
+            if text:
+                for bar in bars:
+                    height = bar.get_height()
+                    ax.annotate(f'{height: }',
+                                xy=(bar.get_x() + bar.get_width() / 2, height),
+                                xytext=(0, 3),  # 3 points vertical offset
+                                textcoords="offset points",
+                                ha='center', va='bottom')
         return Plot._end(fig, ax, style, extras, path, show)
 
     @staticmethod

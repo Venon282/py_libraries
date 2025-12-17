@@ -348,8 +348,12 @@ def append(h5, name, values, dtype=None):
                 values = values.astype(str).tolist()
         dataset[dataset_size:new_size] = values
     
-def incrementSize(h5, name, quantity, data_shape=None, is_str=False, dtype=None):
-    data_shape = list(data_shape)
+def defineSize(h5, name, new_size=None, quantity_to_add=None, data_shape=None, is_str=False, dtype=None):
+    """
+    Provide either:
+        - quantity_to_add (can be negetive) will be add to the current dateset size
+        - new_size if you know directly the final size wanted
+    """
     
     if is_str:
         dtype = h5py.string_dtype(encoding='utf-8')
@@ -358,6 +362,7 @@ def incrementSize(h5, name, quantity, data_shape=None, is_str=False, dtype=None)
         if data_shape is None:
             raise ValueError(f'Dataset {name} do not exist so the data_shape parameter is requiered')
 
+        data_shape = list(data_shape)
         initial_shape = (0,) + tuple(data_shape)
         max_shape = (None,) + tuple(data_shape)
 
@@ -370,8 +375,14 @@ def incrementSize(h5, name, quantity, data_shape=None, is_str=False, dtype=None)
         )
     
     dataset = h5[name]
-    dataset_size = dataset.shape[0]
-    new_size = dataset_size + quantity
+    if quantity_to_add is not None:
+        dataset_size = dataset.shape[0]
+        new_size = dataset_size + quantity_to_add
+    elif new_size is not None:
+        pass
+    else:
+        raise Exception('You have to provide either quantity_to_add or new_size')
+    
     dataset.resize(new_size, axis=0)
     return new_size
     

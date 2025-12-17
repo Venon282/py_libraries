@@ -306,7 +306,8 @@ def repartitionNbNeed(data1, data2, proportion):
 #     }
 
 #     return stats
-def describeValues(array, chunk_size=1_000_000, sample_limit=5_000_000):
+def describeValues(array, chunk_size=1_000_000, sample_limit=5_000_000,
+                   str_most_common_limit=5):
     """
     Memory-safe version of describeValues for very large arrays.
     Processes data in chunks instead of loading everything into memory.
@@ -445,7 +446,13 @@ def describeValues(array, chunk_size=1_000_000, sample_limit=5_000_000):
             min_len = min(min_len, min(lengths, default=0))
             unique_vals.update(chunk)
 
-        most_common = unique_vals.most_common(5)
+        if str_most_common_limit is None:
+            most_common = unique_vals
+        elif isinstance(str_most_common_limit, int):
+            most_common = unique_vals.most_common(str_most_common_limit)
+        else:
+            raise Exception(f'str_most_common_limit must be either int or None, got {type(str_most_common_limit)}')
+        
         stats =  {
             'shape': shape,
             'total_count': int(total_count),
@@ -484,16 +491,31 @@ def describe(array, min_threshold=1e-4, max_threshold=1e5, n_decimals=4):
             else:
                 print(f"{key}: {value}")
                 
-def flatten(lst):
-    result = []
-    for l in lst:
-        if isinstance(l, (list, tuple)):
-            result.extend(flatten(l))  # Recursively flatten nested lists
-        elif isinstance(l, np.ndarray):
-            result.extend(l.flatten())  # Flatten NumPy arrays and extend the result list
-        else:
-            result.append(l)  # Append non-list and non-ndarray elements directly
-    return result
+# def flatten(lst):
+#     result = []
+#     for l in lst:
+#         if isinstance(l, (list, tuple)):
+#             result.extend(flatten(l))  # Recursively flatten nested lists
+#         elif isinstance(l, np.ndarray):
+#             result.extend(l.flatten())  # Flatten NumPy arrays and extend the result list
+#         else:
+#             result.append(l)  # Append non-list and non-ndarray elements directly
+#     return result
+#? quiet bad np.ravel no matter
+# def flatten(lst):
+#     """
+#     A memory-efficient generator that flattens an arbitrarily nested list.
+#     Yields elements one by one.
+#     """
+#     stack = [lst]
+
+#     while stack:
+#         item = stack.pop()
+
+#         if isinstance(item, list):
+#             stack.extend(item)
+#         else:
+#             yield item
 
 def sort(lst):
     import re
