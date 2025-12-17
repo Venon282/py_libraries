@@ -22,6 +22,8 @@ class MinMaxGlobalScaler:
         If True, work on a copy of the input data.
     clip : bool, default=False
         If True, clip transformed values to the given feature_range.
+    log : bool, default=False
+        If True, a logarithme is apply to the values. Usefull when the values have different orders.
     dtype : data-type, default=np.float64
         Desired floating point precision for the computations (e.g., np.float32 for lower precision).
 
@@ -41,10 +43,11 @@ class MinMaxGlobalScaler:
             feature_range[0] - data_min_ * scale_
     """
 
-    def __init__(self, feature_range=(0, 1), copy=True, clip=False, dtype=np.float64):
+    def __init__(self, feature_range=(0, 1), copy=True, clip=False, log=False, dtype=np.float64):
         self.feature_range = feature_range
         self.copy = copy
         self.clip = clip
+        self.log = log
         self.dtype = dtype
 
     def _flatten(self, X):
@@ -90,12 +93,11 @@ class MinMaxGlobalScaler:
             # Fall back to recursive flattening for irregularly nested data.
             flat = np.array(list(self._flatten(X)), dtype=self.dtype)
 
-        #self.data_min_ = min(flatten(X)) # np.min(flat)
+        if self.log:
+            flat = np.log(flat)
+            
         self.data_min_ = np.min(flat)
-        logger.debug(f'Got min {self.data_min_}')
-        #self.data_max_ = max(flatten(X)) # np.max(flat)
         self.data_max_ = np.max(flat)
-        logger.debug(f'Got max {self.data_max_}')
         self.data_range_ = self.data_max_ - self.data_min_
         # Use a safe range to avoid division by zero
         safe_range = self.data_range_ if self.data_range_ != 0 else 1.0
@@ -107,6 +109,8 @@ class MinMaxGlobalScaler:
         """
         Transform a single numeric value.
         """
+        if self.log:
+            value = np.log(value)
         val = value * self.scale_ + self.min_
         if self.clip:
             val = np.clip(val, self.feature_range[0], self.feature_range[1])
@@ -142,6 +146,8 @@ class MinMaxGlobalScaler:
         try:
             # Try to convert X into a numeric numpy array
             arr = np.asarray(X, dtype=self.dtype)
+            if self.log:
+                arr = np.log(arr)
             arr_transformed = arr * self.scale_ + self.min_
             if self.clip:
                 arr_transformed = np.clip(arr_transformed, self.feature_range[0], self.feature_range[1])
@@ -164,7 +170,10 @@ class MinMaxGlobalScaler:
         Inverse transformed data in the same structure as the input.
         """
         def _inverse_value(val):
-            return (val - self.min_) / self.scale_
+            val_inv = (val - self.min_) / self.scale_
+            if self.log:
+                val_inv = np.exp(val_inv)
+            return val_inv
 
         def _inverse_recursive(Y):
             if isinstance(Y, (list, tuple)):
@@ -180,6 +189,8 @@ class MinMaxGlobalScaler:
         try:
             arr = np.asarray(X, dtype=self.dtype)
             arr_inv = (arr - self.min_) / self.scale_
+            if self.log:
+                arr_inv = np.exp(arr_inv)
             return arr_inv.copy() if self.copy else arr_inv
         except Exception:
             return _inverse_recursive(X)
