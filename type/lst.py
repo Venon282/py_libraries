@@ -372,7 +372,7 @@ def describeValues(array, chunk_size=1_000_000, sample_limit=5_000_000,
                 last_rate = len(finite_vals[-1]) / chunk_size
                 size_by_unit = sample_limit / (len(finite_vals) - 1 + last_rate)
                 size_by_unit_int = int(size_by_unit)
-                finite_vals = np.concatenate([np.random.choice(finite_vals[i], size_by_unit_int, replace=False) for i in range(len(finite_vals)-1)] + [np.random.choice(finite_vals[-1], int(size_by_unit*last_rate), replace=False)])
+                finite_vals = np.concatenate([np.random.choice(finite_vals[i], min(size_by_unit_int, len(finite_vals[i])), replace=False) for i in range(len(finite_vals)-1)] + [np.random.choice(finite_vals[-1], int(size_by_unit*last_rate), replace=False)])
             else:
                 finite_vals = np.concatenate(finite_vals)
         else:

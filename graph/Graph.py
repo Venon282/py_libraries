@@ -23,13 +23,15 @@ class Graph:
         Parameters:
             node (Node): The node instance to remove.
         """
-        if node in self.nodes:
+        try:
             self.nodes.remove(node)
-        # Remove all edges that are connected to this node.
-        self.edges = [edge for edge in self.edges if edge.start != node and edge.end != node]
-        # Optionally, remove the edge from the node's own edge list.
-        node.edges = []
-
+            # Remove all edges that are connected to this node.
+            self.edges = [edge for edge in self.edges if edge.start != node and edge.end != node]
+            # remove the edge from the node's own edge list.
+            node.edges = []
+        except:
+            pass
+            
     def addEdge(self, edge):
         """
         Adds an edge to the graph and also registers the edge with the corresponding nodes.
@@ -37,13 +39,14 @@ class Graph:
         Parameters:
             edge (Edge): The edge instance to add.
         """
-        # Optionally, ensure both nodes are part of the graph.
+        # Ensure both nodes are part of the graph.
         if edge.start not in self.nodes:
             self.addNode(edge.start)
         if edge.end not in self.nodes:
             self.addNode(edge.end)
         self.edges.append(edge)
-        # Optionally, add this edge to the nodes' internal edge lists.
+        
+        # Add this edge to the nodes' internal edge lists.
         if edge not in edge.start.edges:
             edge.start.edges.append(edge)
         if edge not in edge.end.edges:
@@ -56,13 +59,18 @@ class Graph:
         Parameters:
             edge (Edge): The edge instance to remove.
         """
-        if edge in self.edges:
+        try:
             self.edges.remove(edge)
-        # Optionally, remove the edge from the nodes' edge lists.
-        if edge in edge.start.edges:
+        except:
+            pass
+        try:
             edge.start.edges.remove(edge)
-        if edge in edge.end.edges:
+        except:
+            pass
+        try:
             edge.end.edges.remove(edge)
+        except:
+            pass
 
     def getNode(self, name):
         """
@@ -117,7 +125,7 @@ class Graph:
         """
         return {
             "nodes": [node.toDict() for node in self.nodes],
-            "edges": [edge.to_dict() for edge in self.edges]
+            "edges": [edge.toDict() for edge in self.edges]
         }
 
     def __str__(self):
