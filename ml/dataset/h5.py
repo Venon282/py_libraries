@@ -38,14 +38,18 @@ def makeTfDataset(
     input_cols: list, 
     output_cols: list, 
     batch_size: int = 32, 
-    epochs: int | None = 1, 
+    #epochs: int | None = 1, 
     shuffle: bool = True,
     deterministic: bool = None,
-    return_steps_per_epoch: bool = False, 
+    cache: bool|str = False,
+    #return_steps_per_epoch: bool = False, 
     seed: int = 42
 ):
     """
     Constructs a high-performance tf.data pipeline using parallel mapping.
+    
+    deterministic if true assure a deterministic order while the map is stateless
+    cache if true, put all the data into memory, if a directory string, cache them on the disk (faster than stay with the h5)
     """
     
     # Inspect HDF5 metadata to establish shapes and dtypes for the TF graph
@@ -105,14 +109,22 @@ def makeTfDataset(
     """
     # tf.data.AUTOTUNE if deterministic is False else 1
     dataset = dataset.map(mapFunction, num_parallel_calls=tf.data.AUTOTUNE, deterministic=deterministic)
+    
+    # Cache the datas for better speed
+    if cache:
+        dataset = dataset.cache(
+            '' if cache is True else\
+            cache if isinstance(cache, str) else\
+            (_ for _ in ()).throw(Exception(f'Cache must be either a string directory or a boolean but got a {type(cache)}')))
 
+    
     # Finalize the pipeline with batching and background prefetching
     dataset = dataset.batch(batch_size)
-    dataset = dataset.repeat(epochs)
+    # dataset = dataset.repeat(epochs) no need anymore as from_iterator is not used anymore
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
-    if return_steps_per_epoch:
-        steps = math.ceil(len(indices) / batch_size) if len(indices) > 0 else 0
-        return dataset, steps
+    # if return_steps_per_epoch:
+    #     steps = math.ceil(len(indices) / batch_size) if len(indices) > 0 else 0
+    #     return dataset, steps
     
     return dataset
