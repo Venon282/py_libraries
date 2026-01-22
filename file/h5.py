@@ -485,3 +485,17 @@ def makeH5Copy(h5_path, suffix="_copy", max_tries=1000):
             shutil.copy2(h5_path, dest)  
             return dest
     raise FileExistsError(f"Could not create a unique copy of {h5_path} after {max_tries} attempts")
+
+def getH5RowSet(h5_path, columns, chunk_size=100_000):
+    unique_rows = set()
+    
+    with h5py.File(h5_path, 'r') as f:
+        h5_size = len(f[columns[0]])
+        
+        for i in range(0, h5_size, chunk_size):
+            end = min(i + chunk_size, h5_size)
+            h5_slice = slice(i, end)
+            col_data = [f[col][h5_slice] for col in columns]
+            unique_rows.update(zip(*col_data))
+            
+    return unique_rows

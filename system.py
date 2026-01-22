@@ -14,13 +14,13 @@ if is_windows:
 else:
     import select
 
-
-def deleteAll(path:str):
-    for root, dirs, files in os.walk(path, topdown=False):
-        for file in files:
-            os.remove(os.path.join(root, file))  
-        for dir in dirs:
-            os.rmdir(os.path.join(root, dir))
+#? use shutil.rmtree
+# def deleteAll(path:str):
+#     for root, dirs, files in os.walk(path, topdown=False):
+#         for file in files:
+#             os.remove(os.path.join(root, file))  
+#         for dir in dirs:
+#             os.rmdir(os.path.join(root, dir))
             
 def displayFilesRec(path:str):
     for root, dirs, files in os.walk(path):

@@ -142,13 +142,19 @@ class Plot:
 
 
     @staticmethod
-    def scatter(*args, **kwargs) -> Optional[Figure]:
-        """Scatter / dot plot."""
+    def scatter(*args, cmap_label=None, **kwargs) -> Optional[Figure]:
+        """
+        Scatter / dot plot.
+        scatter already accept: c=cmap_values, cmap='viridis'
+        """
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
         for arg in args:
             x, y, opts = Plot._unwrap(arg)
-            ax.scatter(x, y, **{**gb_opts, **opts})
-        return Plot._end(fig, ax, style, extras, path, show)
+            sc = ax.scatter(x, y, **{**gb_opts, **opts})
+            if cmap_label:
+                fig.colorbar(sc, ax=ax, label=cmap_label)
+            
+            return Plot._end(fig, ax, style, extras, path, show)
     
     @staticmethod
     def image(*args, **kwargs) -> Optional[Figure]:
