@@ -67,7 +67,7 @@ class LinkedList(Tree):
             curr = curr.next
         return None
 
-    def insert_after(self, target_val, val):
+    def insertAfter(self, target_val, val):
         """Insert a new node with `val` after the first node with `target_val`."""
         target = self.find(target_val)
         if not target:
@@ -124,7 +124,7 @@ class LinkedList(Tree):
         self._size -= 1
         return curr
 
-    def to_list(self, reverse=False):
+    def toList(self, reverse=False):
         """Return Python list of values in forward or reverse order."""
         result, curr = [], self.tail if reverse else self.head
         while curr:
@@ -147,7 +147,7 @@ class LinkedList(Tree):
     def __len__(self):
         return self._size
 
-    def is_valid_list(self):
+    def isValidList(self):
         """Validate doubly-linked integrity: correct sizes, no cycles, pointers match edges."""
         if self._size == 0:
             return self.head is None and self.tail is None and not self.edges
@@ -180,22 +180,22 @@ class LinkedList(Tree):
         return "DoublyLinkedList([" + ", ".join(str(v) for v in self.to_list()) + "])"
 
     @staticmethod
-    def is_maxima(node):
+    def isMaxima(node):
         """A maxima is b as a < b > c."""
         return node.prev.val < node.val > node.next.val if node.prev and node.next else False
     
     @staticmethod
-    def is_minima(node):
+    def isMinima(node):
         """A minima is b as a > b < c."""
         return node.prev.val > node.val < node.next.val if node.prev and node.next else False
     
     @staticmethod
-    def is_critical_node(node):
+    def isCriticalNode(node):
         """A critical point is b as a > b < c."""
         return ((node.prev.val < node.val > node.next.val) or (node.prev.val > node.val < node.next.val)) if node.prev and node.next else False
     
     @staticmethod
-    def critical_points(head):
+    def criticalPoints(head):
         critical_points = []
         node = head.next
         while node:
@@ -205,7 +205,7 @@ class LinkedList(Tree):
         return critical_points
     
     @staticmethod
-    def critical_points_positions(head):
+    def criticalPointsPpositions(head):
         critical_points_positions = []
         node = head.next
         i = 1
