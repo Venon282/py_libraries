@@ -110,6 +110,9 @@ def makeTfDataset(
     # tf.data.AUTOTUNE if deterministic is False else 1
     dataset = dataset.map(mapFunction, num_parallel_calls=tf.data.AUTOTUNE, deterministic=deterministic)
     
+    # Finalize the pipeline with batching and background prefetching
+    dataset = dataset.batch(batch_size)
+    
     # Cache the datas for better speed
     if cache:
         dataset = dataset.cache(
@@ -117,9 +120,6 @@ def makeTfDataset(
             cache if isinstance(cache, str) else\
             (_ for _ in ()).throw(Exception(f'Cache must be either a string directory or a boolean but got a {type(cache)}')))
 
-    
-    # Finalize the pipeline with batching and background prefetching
-    dataset = dataset.batch(batch_size)
     # dataset = dataset.repeat(epochs) no need anymore as from_iterator is not used anymore
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
