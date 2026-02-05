@@ -1,33 +1,50 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-def indice(indices, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42):
+def indice(indices, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42, names=['train', 'val', 'test']):
     # Apply Mask 
     if mask:
         valid_indices = indices[mask.astype(bool)]
     else:
         valid_indices = indices
+    
+    # Verify the split_ratio tuple
+    total_sum = sum(split_ratios)
+    if total_sum < 1.0:
+        split_ratios = (*split_ratios, 1.0 - total_sum)
+    elif total_sum > 1.0:
+        raise AttributeError('The split_ratios can\'t be superior to 1.')
+    
+    indice_dict = {}                    # Dict containing the results
+    remaining_indices = valid_indices   
+    remaining_ratio = 1.0
+    for i in range(len(split_ratios)-1):
+        # Get the name
+        try:
+            name = names[i]
+        except:
+            name = str(i)
         
-    # Perform Splitting on the INDICES only
-    # First split: Train vs (Val + Test)
-    train_idx, temp_idx = train_test_split(
-        valid_indices, 
-        test_size=(1 - split_ratios[0]), 
-        random_state=seed, 
-        shuffle=True
-    )
+        test_size = 1 - (split_ratios[i] / remaining_ratio)
+        remaining_ratio -= split_ratios[i] 
+        
+        current_set_indices, remaining_indices = train_test_split(
+            remaining_indices, 
+            test_size=test_size, 
+            random_state=seed, 
+            shuffle=True
+        )
+        
+        indice_dict[name] = current_set_indices
     
-    # Second split: Val vs Test
-    # Normalize the test size relative to the remaining data
-    relative_test_size = split_ratios[2] / (split_ratios[1] + split_ratios[2])
-    val_idx, test_idx = train_test_split(
-        temp_idx, 
-        test_size=relative_test_size, 
-        random_state=seed, 
-        shuffle=True
-    )
+    # Insert the last set
+    try:
+        name = names[i+1]
+    except:
+        name = str(i+1)
+    indice_dict[name] = remaining_indices
     
-    return {'train': train_idx, 'val': val_idx, 'test': test_idx} 
+    return indice_dict
         
     
 
