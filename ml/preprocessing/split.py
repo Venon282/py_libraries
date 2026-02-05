@@ -15,6 +15,9 @@ def indice(indices, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42, names=['
     elif total_sum > 1.0:
         raise AttributeError('The split_ratios can\'t be superior to 1.')
     
+    if len(split_ratios) == 1:
+        return {names[0] if names else '0': valid_indices}
+    
     indice_dict = {}                    # Dict containing the results
     remaining_indices = valid_indices   
     remaining_ratio = 1.0
@@ -24,6 +27,10 @@ def indice(indices, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42, names=['
             name = names[i]
         except:
             name = str(i)
+            
+        if split_ratios[i] == 0.0:
+            indice_dict[name] = np.array([], dtype=int)
+            continue
         
         test_size = 1 - (split_ratios[i] / remaining_ratio)
         remaining_ratio -= split_ratios[i] 
