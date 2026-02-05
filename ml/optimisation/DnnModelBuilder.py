@@ -9,7 +9,7 @@ from .module import setHyperparameter
 
 class DnnModelBuilder(BaseModelBuilder):
     def __init__(self, 
-                 inputs_shape, 
+                 inputs_shape, inputs_name='input',
                  n_labels_linear=0, n_labels_sigmoid=0, labels_softmax=[], 
                  labels_linear_names=[], labels_sigmoid_names=[], labels_softmax_names=[],
                  fixe_hparams={}, 
@@ -72,6 +72,7 @@ class DnnModelBuilder(BaseModelBuilder):
         """
         # Input/Output dimensions
         self.inputs_shape = inputs_shape
+        self.inputs_name = inputs_name
         
         self.n_labels_linear = n_labels_linear 
         self.n_labels_sigmoid= n_labels_sigmoid
@@ -327,7 +328,7 @@ class DnnModelBuilder(BaseModelBuilder):
         merges_without_concat = [item for item in self.merges if item != 'concat']
         
         # Input layer
-        inputs = Input(shape=self.inputs_shape, name='input')
+        inputs = Input(shape=self.inputs_shape, name=self.inputs_name)
         x = inputs
 
         # Optional separate start branch

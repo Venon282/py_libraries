@@ -34,7 +34,7 @@ class BayesianTuner(kt.BayesianOptimization):
         self.rlrop_patience_max = kwargs.pop('rlrop_patience_max', 20)
         self.rlrop_patience_step = kwargs.pop('rlrop_patience_step', 1)
         
-        self.min_lr = kwargs.pop('min_lr', 1e-8)
+        self.min_lr = kwargs.pop('min_lr', 1e-9)
         self.verbose = kwargs.pop('verbose', 0) # Remove display at each epochs
         
         super(BayesianTuner, self).__init__(*args, **kwargs)
