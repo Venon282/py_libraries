@@ -116,9 +116,9 @@ def makeTfDataset(
     dataset = dataset.map(mapFunction, num_parallel_calls=tf.data.AUTOTUNE, deterministic=deterministic)
     
     # Finalize the pipeline with batching and background prefetching
-    logger.debug("cardinality (elements):", tf.data.experimental.cardinality(dataset).numpy())
+    logger.debug(f"cardinality (elements): {tf.data.experimental.cardinality(dataset).numpy()}")
     dataset = dataset.batch(batch_size)
-    logger.debug("cardinality (batches):", tf.data.experimental.cardinality(dataset).numpy())
+    logger.debug(f"cardinality (batches): {tf.data.experimental.cardinality(dataset).numpy()}")
     
     # Cache the datas for better speed
     if cache:
