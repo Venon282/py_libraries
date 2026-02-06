@@ -4,7 +4,8 @@ import numpy as np
 import math
 import logging
 
-logger = logging.getLogger(__name__)
+from ...other.loggingUtils import getLogger
+logger = getLogger(__name__)
 
 def loadFromH5(h5_path, index, input_cols, output_cols):
     """
@@ -50,6 +51,10 @@ def makeTfDataset(
     
     deterministic if true assure a deterministic order while the map is stateless
     cache if true, put all the data into memory, if a directory string, cache them on the disk (faster than stay with the h5)
+    
+    The following warning is not necessary alarming:
+    2026-02-05 16:22:13.430612: W tensorflow/core/kernels/data/cache_dataset_ops.cc:333] The calling iterator did not fully read the dataset being cached. In order to avoid unexpected truncation of the dataset, the partially cached contents of the dataset  will be discarded. This can happen if you have an input pipeline similar to `dataset.cache().take(k).repeat()`. You should use `dataset.take(k).cache().repeat()` instead.
+    It's due that keras create a probe iterator that use one batch for input/output structure, loss writing and metric wiring then the iterator is detroyed which lead to this warning.
     """
     
     # Inspect HDF5 metadata to establish shapes and dtypes for the TF graph
@@ -111,7 +116,9 @@ def makeTfDataset(
     dataset = dataset.map(mapFunction, num_parallel_calls=tf.data.AUTOTUNE, deterministic=deterministic)
     
     # Finalize the pipeline with batching and background prefetching
+    logger.debug("cardinality (elements):", tf.data.experimental.cardinality(dataset).numpy())
     dataset = dataset.batch(batch_size)
+    logger.debug("cardinality (batches):", tf.data.experimental.cardinality(dataset).numpy())
     
     # Cache the datas for better speed
     if cache:
