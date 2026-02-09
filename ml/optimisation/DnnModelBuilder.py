@@ -1,3 +1,5 @@
+import os
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 from tensorflow.keras.layers import Input, Dense, Dropout, Concatenate, BatchNormalization # type: ignore
 from tensorflow.keras.models import Model # type: ignore
 from tensorflow.keras import backend as K
@@ -58,6 +60,7 @@ class DnnModelBuilder(BaseModelBuilder):
 
             # Regularization settings
             regularizer (bool): Enable regularization. Default is True.
+            regularizer_choice (list): Regularization choise: Default is ['l1', 'l2', 'l1_l2']. Note values can be remove but this choice is strict.
             regularizer_kernel (bool): Regularize kernel weights. Default is True.
             regularizer_bias (bool): Regularize bias terms. Default is True.
             regularizer_activity (bool): Regularize layer activations. Default is True.
@@ -137,6 +140,7 @@ class DnnModelBuilder(BaseModelBuilder):
 
         # ---- Regularization Settings ----
         self.regularizer            = kwargs.pop('regularizer', True)
+        self.regularizer_choice     = kwargs.pop('regularizer_choice', ['l1', 'l2', 'l1_l2'])
         self.regularizer_kernel     = kwargs.pop('regularizer_kernel', True)
         self.regularizer_bias       = kwargs.pop('regularizer_bias', True)
         self.regularizer_activity   = kwargs.pop('regularizer_activity', True)
@@ -174,7 +178,7 @@ class DnnModelBuilder(BaseModelBuilder):
             use_reg = setHyperparameter(hp.Boolean, self.fixe_hparams, f'use_{name}_regularizer_{block_id}_{i}', default=True)
             with hp.conditional_scope(f'use_{name}_regularizer_{block_id}_{i}', [True]):
                 # Choose the regularizer type: 'l1', 'l2', or 'l1_l2'
-                reg_choice = setHyperparameter(hp.Choice, self.fixe_hparams, f'{name}_regularizer_{block_id}_{i}', values=['l1', 'l2', 'l1_l2'], default='l2')
+                reg_choice = setHyperparameter(hp.Choice, self.fixe_hparams, f'{name}_regularizer_{block_id}_{i}', values=self.regularizer_choice, default='l2')
                 
                 # Primary regularization factor.
                 reg_factor = setHyperparameter(hp.Float, self.fixe_hparams, f'{name}_regularizer_factor_{block_id}_{i}', min_value=self.regularizer_min, max_value=self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2)
