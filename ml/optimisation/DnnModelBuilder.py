@@ -14,7 +14,7 @@ class DnnModelBuilder(BaseModelBuilder):
                  inputs_shape, inputs_name='input',
                  n_labels_linear=0, n_labels_sigmoid=0, labels_softmax=[], 
                  labels_linear_names=[], labels_sigmoid_names=[], labels_softmax_names=[],
-                 fixe_hparams={}, 
+                 fixe_hparams={}, loss_weights={'linear':1.0, 'sigmoid':0.5, 'softmax':0.5},
                  *args, **kwargs):
         """
         Initialize the DNN model builder with hyperparameter configurations.
@@ -28,6 +28,7 @@ class DnnModelBuilder(BaseModelBuilder):
             labels_softmax_names
             labels_softmax (list of int): List specifying the number of classes for each multiclass output (softmax activation).
             fixe_hparams (dict): Dictionary of fixed hyperparameters.
+            loss_weights (dict): The loss weights to apply to the outputs (check first the output name, then the output type, then 1.0 is default)
 
         Optional Keyword Arguments:
             # Layer architecture settings
@@ -86,6 +87,7 @@ class DnnModelBuilder(BaseModelBuilder):
         self.labels_softmax_names = labels_softmax_names
         
         self.fixe_hparams = fixe_hparams
+        self.loss_weights = loss_weights
         
         self._n_labels = sum([self.n_labels_linear, self.n_labels_sigmoid, len(self.labels_softmax)])
         if self._n_labels == 0:
@@ -392,9 +394,9 @@ class DnnModelBuilder(BaseModelBuilder):
         }
         
         loss_weights = {
-            **{name: 1.0 for name in self.labels_linear_names},
-            **{name: 0.5 for name in self.labels_sigmoid_names},
-            **{name: 0.5 for name in self.labels_softmax_names}
+            **{name: self.loss_weights.get(name, self.loss_weights.get('linear', 1.0)) for name in self.labels_linear_names},
+            **{name: self.loss_weights.get(name, self.loss_weights.get('sigmoid', 1.0)) for name in self.labels_sigmoid_names},
+            **{name: self.loss_weights.get(name, self.loss_weights.get('softmax', 1.0)) for name in self.labels_softmax_names}
         }
 
         metrics = {
