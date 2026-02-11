@@ -1,8 +1,8 @@
-from .Constant import Constant
+from .Constant import ConstantMeta
 import operator as op
 import numpy as np
 
-class OPERATOR(metaclass=Constant):
+class OPERATOR(metaclass=ConstantMeta):
     OPERATORS_MAP = {
         "==": op.eq,
         "!=": op.ne,

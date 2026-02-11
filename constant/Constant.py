@@ -1,3 +1,8 @@
-class Constant(type):
+class ConstantMeta(type):
     def __setattr__(cls, key, value):
-        raise TypeError(f"Cannot reassign constant '{key}'")
+        if key in cls.__dict__:
+            raise TypeError(f"Cannot reassign constant '{key}'")
+        super().__setattr__(key, value)
+    
+class Constants(metaclass=ConstantMeta):
+    ...

@@ -1,6 +1,6 @@
-from.Constant import Constant
+from.Constant import ConstantMeta
 
-class REGEX(metaclass=Constant):
+class REGEX(metaclass=ConstantMeta):
     # Numbers
     INTEGER            = r'[+-]?\d+'
     FLOAT              = r'[+-]?\d+(?:[.,]\d+)?'

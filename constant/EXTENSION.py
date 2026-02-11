@@ -1,6 +1,6 @@
-from .Constant import Constant
+from .Constant import ConstantMeta
 
-class EXTENSION(metaclass=Constant):
+class EXTENSION(metaclass=ConstantMeta):
     IMAGE    = ("png", "jpg", "jpeg", "tif", "tiff", "bmp", "gif", "webp")
     TEXT     = ("txt",)
     CODE     = ("py", "js", "java", "cpp", "c", "cs", "rb", "go", "ts", "php", "rs", "swift", "kt")
