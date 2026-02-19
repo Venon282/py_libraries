@@ -1,60 +1,51 @@
 import math
+import numpy as np
 
 class Edge:
-    def __init__(self, start, end, weight=1, color='black', width=1,
-                 directed=False, name='Edge', properties=[]):
-        """
-        Initializes an Edge object that connects two nodes.
-
-        Parameters:
-            start (Node): The starting node of the edge.
-            end (Node): The ending node of the edge.
-            weight (float): The weight or cost associated with the edge.
-            color (str): The color used to draw the edge.
-            width (int): The thickness of the edge line.
-            directed (bool): Indicates if the edge is directed.
-            name (str): A name or label for the edge.
-            properties (list): Additional properties for the edge.
-        """
+    def __init__(self, start, end, weight=1, properties={},
+                 color='black', width=0.003):
         self.start = start
         self.end = end
         self.weight = weight
+        self.properties = properties
+        
+        # aspect
         self.color = color
         self.width = width
-        self.directed = directed
-        self.name = name
-        self.properties = properties if properties is not None else []
-
+    
+    # region Properties
+    @property
+    def dx(self):
+        return self.end.x - self.start.x
+    
+    @property
+    def dy(self):
+        return self.end.y - self.start.y
+    
+    @property
     def length(self):
-        """
-        Calculates the Euclidean distance between the start and end nodes.
-
-        Returns:
-            float: The distance between the two nodes.
-        """
-        dx = self.start.x - self.end.x
-        dy = self.start.y - self.end.y
-        return math.sqrt(dx * dx + dy * dy)
-
-    def addProperty(self, prop):
-        """
-        Adds a new property to the edge.
-
-        Parameters:
-            prop: The property to add.
-        """
-        self.properties.append(prop)
-
-    def removeProperty(self, prop):
-        """
-        Removes a property from the edge if it exists.
-
-        Parameters:
-            prop: The property to remove.
-        """
-        if prop in self.properties:
-            self.properties.remove(prop)
-
+        return np.hypot(self.dx, self.dy)
+    
+    @property
+    def coordinate(self):
+        dx = self.dx
+        dy = self.dy
+        
+        length = np.hypot(dx, dy)
+        
+        x_normalisation = dx / length
+        y_normalisation = dy / length
+        
+        start_x = self.start.x + self.start.radius * x_normalisation
+        start_y = self.start.y + self.start.radius * y_normalisation
+        
+        end_x = self.end.x - self.end.radius * x_normalisation
+        end_y = self.end.y - self.end.radius * y_normalisation
+        
+        return (start_x, start_y), (end_x, end_y)
+    # endregion
+    
+    # region Cast
     def toDict(self):
         """
         Returns a dictionary representation of the edge.
@@ -63,16 +54,27 @@ class Edge:
             dict: A dictionary containing the edge's data.
         """
         return {
-            "name": self.name,
-            "start": self.start.name,
-            "end": self.end.name,
+            "start": self.start.key,
+            "end": self.end.key,
             "weight": self.weight,
-            "color": self.color,
-            "width": self.width,
-            "directed": self.directed,
             "properties": self.properties
-        }
+         }
+    # end region
+    
+    # region overwriting
+    def __hash__(self):
+        # For undirected graph, make start/end order-independent
+        # if not self.start.graph.is_directed:
+        #     return hash(frozenset([self.start, self.end]))
+        return hash((self.start, self.end))
 
+    def __eq__(self, other):
+        if not isinstance(other, Edge):
+            return False
+        # if not self.start.graph.is_directed:
+        #     return frozenset([self.start, self.end]) == frozenset([other.start, other.end])
+        return self.start == other.start and self.end == other.end
+    
     def __str__(self):
         """
         Returns a string representation of the edge.
@@ -80,30 +82,7 @@ class Edge:
         Returns:
             str: A string summarizing the edge.
         """
-        direction = "->" if self.directed else "--"
-        return (f"{self.name}: {self.start.name} {direction} {self.end.name}, "
+        return (f"{self.start.name} -- {self.end.name}, "
                 f"Weight {self.weight}, Color {self.color}, Width {self.width}")
-
-    def draw(self, canvas):
-        """
-        Draws the edge on a given canvas.
-
-        This method assumes that the canvas object supports methods like
-        create_line and create_text (as in Tkinter).
-
-        Parameters:
-            canvas: The drawing surface or canvas.
-        """
-        # Draw the line between the two nodes.
-        if self.directed:
-            # If directed, an arrow is drawn at the end.
-            canvas.create_line(self.start.x, self.start.y, self.end.x, self.end.y,
-                               fill=self.color, width=self.width, arrow='last')
-        else:
-            canvas.create_line(self.start.x, self.start.y, self.end.x, self.end.y,
-                               fill=self.color, width=self.width)
-
-        # Optionally, draw the edge's weight at the midpoint.
-        mid_x = (self.start.x + self.end.x) / 2
-        mid_y = (self.start.y + self.end.y) / 2
-        canvas.create_text(mid_x, mid_y, text=str(self.weight))
+    # end region
+        

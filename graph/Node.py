@@ -1,34 +1,36 @@
-class Node:
-    def __init__(self, edges=[], x=0, y=0, size=10, color='white', border_color='black',
-                 border_width=1, value='Node', properties=[]):
-        """
-        Initializes a Node object with position, appearance, and additional properties.
+import random
 
-        Parameters:
-            x (float): The x-coordinate of the node.
-            y (float): The y-coordinate of the node.
-            size (int): The radius or size of the node.
-            color (str): The fill color of the node.
-            border_color (str): The color of the node's border.
-            border_width (int): The width of the node's border.
-            value (str): The value identifier for the node.
-            properties (list): Additional properties for the node.
-        """
+class Node:
+    
+    def __init__(self, key='undefined', value=None,  properties={},
+                 x=None, y=None, radius=2, 
+                 color='white', edge_color='black', edge_width=1):
+        # Identification and additional properties
+        self.key = str(key)
+        self.value = value
+        self.edges = set()
+        self.properties = properties
+        
         # Position
-        self.x = x
-        self.y = y
+        self.x = x if x is not None else 100*random.random()
+        self.y = y if y is not None else 100*random.random()
 
         # Appearance
-        self.size = size
+        self.radius = radius
+        self.diameter = radius * 2
         self.color = color
-        self.border_color = border_color
-        self.border_width = border_width
-
-        # Identification and additional properties
-        self.value = value
-        self.edges = edges
-        self.properties = properties
-
+        self.edge_color = edge_color
+        self.edge_width = edge_width
+        
+    # region updates
+    
+    # end region
+        
+    # region Properties
+    @property
+    def coordinate(self):
+        return (self.x, self.y)
+    # end region
     def move(self, dx, dy):
         """
         Moves the node by a given offset.
@@ -39,26 +41,7 @@ class Node:
         """
         self.x += dx
         self.y += dy
-
-    def addProperty(self, prop):
-        """
-        Adds a new property to the node.
-
-        Parameters:
-            prop: The property to add.
-        """
-        self.properties.append(prop)
-
-    def removeProperty(self, prop):
-        """
-        Removes a property from the node if it exists.
-
-        Parameters:
-            prop: The property to remove.
-        """
-        if prop in self.properties:
-            self.properties.remove(prop)
-
+    # region Cast
     def toDict(self):
         """
         Returns a dictionary representation of the node.
@@ -67,15 +50,25 @@ class Node:
             dict: A dictionary containing the node's data.
         """
         return {
+            "key": self.key,
             "value": self.value,
             "position": {"x": self.x, "y": self.y},
-            "size": self.size,
+            "radius": self.radius,
+            "diameter": self.diameter,
             "color": self.color,
-            "border_color": self.border_color,
-            "border_width": self.border_width,
+            "edge_color": self.edge_color,
+            "edge_width": self.edge_width,
             "properties": self.properties
         }
+    # end region
+    
+    # region overwriting
+    def __hash__(self):
+        return hash(self.key)
 
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.key == other.key
+    
     def __str__(self):
         """
         Returns a string representation of the node.
@@ -83,29 +76,6 @@ class Node:
         Returns:
             str: A string summarizing the node.
         """
-        return (f"{self.value}: Position ({self.x}, {self.y}), Size {self.size}, "
-                f"Color {self.color}, Border {self.border_color} (width {self.border_width})")
-
-    def draw(self, canvas):
-        """
-        Draws the node on a given canvas.
-
-        This method assumes that the canvas object supports methods like
-        create_oval and create_text (as in Tkinter).
-
-        Parameters:
-            canvas: The drawing surface or canvas.
-        """
-        # Calculate the bounding box for the oval representation of the node.
-        x0 = self.x - self.size
-        y0 = self.y - self.size
-        x1 = self.x + self.size
-        y1 = self.y + self.size
-
-        # Draw the node as an oval.
-        canvas.create_oval(x0, y0, x1, y1,
-                           fill=self.color,
-                           outline=self.border_color,
-                           width=self.border_width)
-        # Draw the node's value at its center.
-        canvas.create_text(self.x, self.y, text=self.value)
+        return (f"{self.key} ({self.value}): Position ({self.x}, {self.y}), Diameter {self.diameter}, "
+                f"Color {self.color}, Border {self.edge_color} (width {self.edge_width})")
+    # end region
