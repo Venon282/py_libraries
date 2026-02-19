@@ -8,7 +8,9 @@ class Node:
         # Identification and additional properties
         self.key = str(key)
         self.value = value
-        self.edges = set()
+        self._edges = set()
+        self._edges_in = set()
+        self._edges_out = set()
         self.properties = properties
         
         # Position
@@ -23,14 +25,29 @@ class Node:
         self.edge_width = edge_width
         
     # region updates
-    
-    # end region
+    def addEdge(self, edge):
+        is_start = edge.start_node is self
+        is_end = edge.end_node is self
         
-    # region Properties
-    @property
-    def coordinate(self):
-        return (self.x, self.y)
-    # end region
+        if is_start:
+            self._edges_out.add(edge)
+            
+        if is_end:
+            self._edges_in.add(edge)
+            
+        if is_start or is_end:
+            self._edges.add(edge)
+            
+    def removeEdge(self, edge):
+        self._edges.remove(edge)
+        self._edges_in.discard(edge)
+        self._edges_out.discard(edge)
+        
+    def discardEdge(self, edge):
+        self._edges.discard(edge)
+        self._edges_in.discard(edge)
+        self._edges_out.discard(edge)
+        
     def move(self, dx, dy):
         """
         Moves the node by a given offset.
@@ -41,6 +58,43 @@ class Node:
         """
         self.x += dx
         self.y += dy
+    
+    # end region
+
+    # region Properties
+    @property
+    def edges(self):
+        return self._edges
+    
+    @property
+    def edges_in(self):
+        return self._edges_in
+    
+    @property
+    def edges_out(self):
+        return self._edges_out
+    
+    @property
+    def degree_out(self):
+        return len(self._edges_out)
+    
+    @property
+    def degree_in(self):
+        return len(self._edges_in)
+    
+    @property
+    def coordinate(self):
+        return (self.x, self.y)
+    
+    @property
+    def nodesIn(self):
+        return [edge.start for edge in self.edges_in]
+    
+    @property
+    def nodesOut(self):
+        return [edge.end for edge in self.edges_out]
+    # end region
+    
     # region Cast
     def toDict(self):
         """
@@ -60,6 +114,15 @@ class Node:
             "edge_width": self.edge_width,
             "properties": self.properties
         }
+    # end region
+    
+    # region is
+    def isSink(self):
+        return self.degree_out == 0
+    
+    def isSource(self):
+        return self.degree_in == 0
+    
     # end region
     
     # region overwriting

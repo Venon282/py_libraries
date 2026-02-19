@@ -3,6 +3,7 @@ from matplotlib.collections import PatchCollection, LineCollection
 from matplotlib.patches import Circle
 import random
 import numpy as np
+from collections import deque
 
 from .Node import Node
 from .Edge import Edge
@@ -45,8 +46,8 @@ class Graph:
             node2 = _getNode(key2, graph)
             edge = Edge(node1, node2)
             graph.edges.add(edge)
-            node1.edges.add(edge)
-            node2.edges.add(edge)
+            node1.addEdge(edge)
+            node2.addEdge(edge)
             
         return graph
     # endregion
@@ -101,8 +102,8 @@ class Graph:
         self.edges.add(edge)
         
         # Ensure both nodes have this edge in memory
-        edge.start.edges.add(edge)
-        edge.end.edges.add(edge)
+        edge.start.addEdge(edge)
+        edge.end.addEdge(edge)
         
     def removeEdge(self, edge):
         """
@@ -110,9 +111,19 @@ class Graph:
         Parameters:
             edge (Edge): The edge instance to remove.
         """
+        self.edges.remove(edge)
+        edge.start.removeEdge(edge)
+        edge.end.removeEdge(edge)
+        
+    def discardEdge(self, edge):
+        """
+        Discard an edge from the graph.
+        Parameters:
+            edge (Edge): The edge instance to discard.
+        """
         self.edges.discard(edge)
-        edge.start.edges.discard(edge)
-        edge.end.edges.discard(edge)
+        edge.start.discardEdge(edge)
+        edge.end.discardEdge(edge)
     # end region
     
     # region Is
@@ -131,12 +142,8 @@ class Graph:
         tail_node = None
 
         for node in self.nodes.values():
-            # Calculate degrees
-            out_edges = [e for e in node.edges if e.start is node]
-            in_edges = [e for e in node.edges if e.end is node]
-            
-            out_degree = len(out_edges)
-            in_degree = len(in_edges)
+            out_degree = node.degree_out
+            in_degree = node.degree_in
 
             if out_degree == 1 and in_degree == 0:
                 if head_node: return False # Two heads
@@ -163,6 +170,40 @@ class Graph:
             curr = next_edge.end if next_edge else None
 
         return visited_count == num_nodes
+    
+    def isTree(self):
+        n_nodes = len(self.nodes)
+        
+        if n_nodes == 0:
+            return False
+        if n_nodes == 1:
+            return next(iter(self.nodes.values())).degree_in == 0
+    
+        root = None
+        for node in self.nodes.values():
+            if node.degree_in > 1: # graph have multiple parents
+                return False
+            elif node.degree_in == 0:
+                if root: return False # case a second root
+                root = node
+
+        queue = deque([root])
+        visited = {root.key}
+
+        while queue:
+            node = queue.popleft()
+            
+            for edge in node.edges_out:
+                neighbor = edge.end
+                
+                if neighbor.key not in visited:
+                    visited.add(neighbor.key)
+                    queue.append(neighbor)
+                else:
+                    return False
+            
+        return len(visited) == n_nodes
+            
     # end region
     
     # region Get        
