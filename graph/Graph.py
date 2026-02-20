@@ -203,7 +203,39 @@ class Graph:
                     return False
             
         return len(visited) == n_nodes
+    
+    def isRegularGrap(self):
+        if not self.nodes:
+            return True
+        
+        # Get the reference degrees from the first node
+        first_node = next(iter(self.nodes.values()))
+        ref_in = first_node.degree_in
+        ref_out = first_node.degree_out
+        
+        for node in self.nodes.values():
+            if node.degree_in != ref_in or node.degree_out != ref_out:
+                return False
+                
+        return True
+    
+    def isCompleteGraph(self):
+        n_nodes = len(self.nodes)
+        if n_nodes <= 1:
+            return True
+
+        expected_degree = n_nodes - 1
+        
+        for node in self.nodes.values():
+            if node.degree_out != expected_degree or node.degree_in != expected_degree:
+                return False
             
+            # Ensure no self-loops (prevents fake completeness)
+            for edge in node.edges_out:
+                if edge.end_node is node:
+                    return False
+
+        return True
     # end region
     
     # region Get        
@@ -445,6 +477,9 @@ class Graph:
             "nodes": [node.toDict() for node in self.nodes.values()],
             "edges": [edge.toDict() for edge in self.edges]
         }
+        
+    def toList(self):
+        return [(edge.start.key, edge.end.key) for edge in self.edges]
     # end region
     
     # region overwriting

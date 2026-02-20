@@ -93,6 +93,13 @@ class Node:
     @property
     def nodesOut(self):
         return [edge.end for edge in self.edges_out]
+    
+    @property
+    def neighbours(self):
+        res = {e.end if e.start is self else e.start for e in self._edges}
+        res.discard(self)
+        return res
+    
     # end region
     
     # region Cast
