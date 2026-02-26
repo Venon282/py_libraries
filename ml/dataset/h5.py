@@ -7,12 +7,19 @@ import logging
 from ...other.loggingUtils import getLogger
 logger = getLogger(__name__)
 
-def loadFromH5(h5_path, index, input_cols, output_cols):
+def loadFromH5(h5_paths, index_data, input_cols, output_cols):
     """
     Core logic to extract a single sample from HDF5.
     This runs inside a tf.numpy_function, allowing for parallel disk I/O.
     """
     # Ensure arguments are converted from tensor bytes to native strings/ints
+    if index.ndim > 0:
+        h5_path = h5_paths[int(index[0])]
+        index = int(index_data[1])
+    else:
+        h5_path = h5_paths
+        index = index_data
+        
     path = h5_path.decode('utf-8') if isinstance(h5_path, bytes) else h5_path
     idx = int(index)
     
@@ -34,8 +41,8 @@ def loadFromH5(h5_path, index, input_cols, output_cols):
     return tuple(input_data + output_data)
 
 def makeTfDataset(
-    h5_path: str, 
-    indices: list, 
+    h5_path: str|list[str], 
+    indices: list[int]|list[tuple[int, int]], 
     input_cols: list, 
     output_cols: list, 
     batch_size: int = 32, 
@@ -47,6 +54,8 @@ def makeTfDataset(
     seed: int = 42
 ):
     """
+    h5_path: if it's a list of path so indices must be a tuple (h5 path index, h5 value index)
+     
     Constructs a high-performance tf.data pipeline using parallel mapping.
     
     deterministic if true assure a deterministic order while the map is stateless
@@ -55,10 +64,15 @@ def makeTfDataset(
     The following warning is not necessary alarming:
     2026-02-05 16:22:13.430612: W tensorflow/core/kernels/data/cache_dataset_ops.cc:333] The calling iterator did not fully read the dataset being cached. In order to avoid unexpected truncation of the dataset, the partially cached contents of the dataset  will be discarded. This can happen if you have an input pipeline similar to `dataset.cache().take(k).repeat()`. You should use `dataset.take(k).cache().repeat()` instead.
     It's due that keras create a probe iterator that use one batch for input/output structure, loss writing and metric wiring then the iterator is detroyed which lead to this warning.
+    
+    
     """
+    is_multy_h5 = isinstance(h5_path, list)
+    if is_multy_h5 and not isinstance(indices[0], tuple):
+        raise Exception('When h5_path is a list of path, indices values must be a tuple (h5 path index, h5 value index)')
     
     # Inspect HDF5 metadata to establish shapes and dtypes for the TF graph
-    with h5py.File(h5_path, 'r') as f:
+    with h5py.File(h5_path[0] if is_multy_h5 else h5_path, 'r') as f:
         input_dtypes = [f[col].dtype for col in input_cols]
         input_shapes = [f[col].shape[1:] for col in input_cols]
         output_dtypes = [f[col].dtype for col in output_cols]
