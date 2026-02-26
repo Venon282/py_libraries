@@ -46,6 +46,7 @@ def makeTfDataset(
     input_cols: list, 
     output_cols: list, 
     batch_size: int = 32, 
+    weights:list=None,
     #epochs: int | None = 1, 
     shuffle: bool = True,
     deterministic: bool = None,
@@ -55,6 +56,7 @@ def makeTfDataset(
 ):
     """
     h5_path: if it's a list of path so indices must be a tuple (h5 path index, h5 value index)
+        - !!! Be carefull that the different h5 have exactly the same normalisations..
      
     Constructs a high-performance tf.data pipeline using parallel mapping.
     
@@ -78,7 +80,12 @@ def makeTfDataset(
         output_dtypes = [f[col].dtype for col in output_cols]
         output_shapes = [f[col].shape[1:] for col in output_cols]
 
-    all_dtypes = input_dtypes + output_dtypes
+    if weights is not None:
+        dataset = tf.data.Dataset.from_tensor_slices((indices, weights))
+        all_dtypes = input_dtypes + output_dtypes + [tf.float32] # add weight type
+    else:
+        dataset = tf.data.Dataset.from_tensor_slices(indices)
+        all_dtypes = input_dtypes + output_dtypes
     
     # Initialize dataset with indices to minimize memory overhead during shuffle
     dataset = tf.data.Dataset.from_tensor_slices(indices)
@@ -86,23 +93,27 @@ def makeTfDataset(
     if shuffle:
         dataset = dataset.shuffle(buffer_size=len(indices), seed=seed)
 
-    def mapFunction(index):
+    def mapFunction(*args):
         """
         Wraps the numpy loader and restores tensor metadata lost during numpy conversion.
         """
-        # Execute the python-based loader in parallel
+
+        if weights is not None:
+            data_index = args[0]
+            weight_tensor = args[1]
+        else:
+            data_index = args[0] if len(args) == 1 else args 
+            weight_tensor = None
+            
         result = tf.numpy_function(
             func=loadFromH5,
-            inp=[h5_path, index, input_cols, output_cols],
-            Tout=all_dtypes
+            inp=[h5_path, data_index, input_cols, output_cols],
+            Tout=input_dtypes + output_dtypes
         )
         
         # Reconstruct the feature dictionary and apply shapes
-        inputs = {}
-        for i, col in enumerate(input_cols):
-            tensor = result[i]
-            tensor.set_shape(input_shapes[i])
-            inputs[col] = tensor
+        inputs = {col: result[i] for i, col in enumerate(input_cols)}
+        for i, col in enumerate(input_cols): inputs[col].set_shape(input_shapes[i])
             
         # Reconstruct the label structure (single tensor or dictionary)
         offset = len(input_cols)
@@ -110,12 +121,12 @@ def makeTfDataset(
             outputs = result[offset]
             outputs.set_shape(output_shapes[0])
         else:
-            outputs = {}
-            for i, col in enumerate(output_cols):
-                tensor = result[offset + i]
-                tensor.set_shape(output_shapes[i])
-                outputs[col] = tensor
-                
+            outputs = {col: result[offset + i] for i, col in enumerate(output_cols)}
+            for i, col in enumerate(output_cols): outputs[col].set_shape(output_shapes[i])
+        
+        if weight_tensor is not None:
+            return inputs, outputs, weight_tensor
+             
         return inputs, outputs
 
     # Map the loading function with multiple CPU threads
