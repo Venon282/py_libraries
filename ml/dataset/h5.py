@@ -13,9 +13,9 @@ def loadFromH5(h5_paths, index_data, input_cols, output_cols):
     This runs inside a tf.numpy_function, allowing for parallel disk I/O.
     """
     # Ensure arguments are converted from tensor bytes to native strings/ints
-    if index.ndim > 0:
-        h5_path = h5_paths[int(index[0])]
-        index = int(index_data[1])
+    if index_data.ndim > 0:
+        h5_path = h5_paths[int(index_data[0])]
+        index = index_data[1]
     else:
         h5_path = h5_paths
         index = index_data
