@@ -293,9 +293,16 @@ class Plot:
     def heatmap(*args, bins: int=100, cmap: str='viridis', **kwargs) -> Optional[Figure]:
         """2D density heatmap."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
+        global_intensity = kwargs.pop("intensity", None)
         for arg in args:
             x, y, opts = Plot._unwrap(arg)
-            heat, xedges, yedges = np.histogram2d(x, y, bins=bins)
+            intensity = opts.pop("intensity", None) or global_intensity
+            if intensity is not None:
+                heat_sum, xedges, yedges = np.histogram2d(x, y, bins=bins, weights=intensity)
+                heat_count, _, _ = np.histogram2d(x, y, bins=[xedges, yedges])
+                heat = np.divide(heat_sum, heat_count, out=np.zeros_like(heat_sum), where=heat_count != 0)
+            else:
+                heat, xedges, yedges = np.histogram2d(x, y, bins=bins)
             extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
             im = ax.imshow(
                 heat.T, extent=extent, origin='lower',
