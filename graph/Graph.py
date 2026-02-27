@@ -230,7 +230,7 @@ class Graph:
             if node.degree_out != expected_degree or node.degree_in != expected_degree:
                 return False
             
-            # Ensure no self-loops (prevents fake completeness)
+            # Ensure no self-loops
             for edge in node.edges_out:
                 if edge.end_node is node:
                     return False
