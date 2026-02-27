@@ -8,6 +8,8 @@ import os
 import concurrent.futures
 from line_profiler import profile
 
+# Small Angular X-ray Scatering
+
 #? doc for add more shape: https://www.sasview.org/docs/user/qtgui/Perspectives/Fitting/models/index.html
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
