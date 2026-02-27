@@ -55,7 +55,7 @@ def indice(indices, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42, names=['
         
     
 
-def h5(h5_path, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42):
+def h5(h5_path, mask=None, split_ratios=(0.7, 0.15, 0.15), names=['train', 'val', 'test'], seed=42):
     """
     Returns a dictionary containing 'train', 'val', 'test' arrays of INDICES.
     """
@@ -67,4 +67,4 @@ def h5(h5_path, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42):
         total_rows = f[first_key].shape[0]
         all_indices = np.arange(total_rows)
         
-    return indice(all_indices, mask=mask, split_ratios=split_ratios, seed=seed)
+    return indice(all_indices, mask=mask, split_ratios=split_ratios, names=names, seed=seed)
