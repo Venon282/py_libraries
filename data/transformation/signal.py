@@ -1,7 +1,5 @@
 
 import numpy as np
-import pywt
-from scipy.signal import cwt, morlet
 from typing import Union
 
 def addNoise(signals:list|np.ndarray, noise_level:float|np.ndarray=0.05):
@@ -16,6 +14,63 @@ def scale(signals:list|np.ndarray, scale_factor:float|np.ndarray=1.2):
 def shift(signals:list|np.ndarray, shift_value:float|np.ndarray=0.2):
     """Shift the signals values by a constant."""
     return signals + shift_value
+
+def addWavelet(signals: list | np.ndarray, n_wavelet=(5, 20), amplitude_range=(0.1, 0.5), width_range=(5, 20), copy=True):
+    """
+    Efficiently adds wavelets to multiple signals using vectorized NumPy operations.
+    """
+    if copy:
+        signals = np.array(signals, copy=True)
+    else:
+        signals = np.asarray(signals)
+
+    # Standardize shape to (n_signals, signal_length)
+    if signals.ndim == 1:
+        signals = signals[np.newaxis, :]
+    
+    n_signals, signal_length = signals.shape
+
+    # Determine how many wavelets each signal gets
+    if isinstance(n_wavelet, tuple):
+        num_wavelets_per_signal = np.random.randint(n_wavelet[0], n_wavelet[1] + 1, size=n_signals)
+    elif isinstance(n_wavelet, int):
+        num_wavelets_per_signal = np.full(n_signals, n_wavelet)
+    else:
+        num_wavelets_per_signal = np.array(n_wavelet)
+
+    max_wavelets = np.max(num_wavelets_per_signal)
+    
+    # Pre-create a time axis: shape (signal_length,)
+    t = np.arange(signal_length)
+
+    # Iterate up to the maximum number of wavelets needed
+    for i in range(max_wavelets):
+        # Only process signals that still need more wavelets
+        mask = num_wavelets_per_signal > i
+        active_count = np.sum(mask)
+        
+        # Vectorized generation of parameters for 'active' signals
+        centers = np.random.randint(0, signal_length, size=(active_count, 1))
+        amplitudes = np.random.uniform(*amplitude_range, size=(active_count, 1))
+        widths = np.random.uniform(*width_range, size=(active_count, 1))
+
+        # Calculate Morlet Wavelet Vectorized
+        # Formula: Amplitude * exp(-t^2 / (2 * width^2)) * cos(5 * t / width)
+        
+        # Relative distance from the center for each point
+        rel_t = t - centers 
+        
+        # The Morlet equation (Real part)
+        # Simplified version of scipy.signal.morlet for speed
+        sigma = widths / 5
+        envelope = np.exp(-(rel_t**2) / (2 * sigma**2))
+        oscillation = np.cos(5 * rel_t / sigma)
+        wavelets = amplitudes * envelope * oscillation
+
+        # Add to the active signals
+        signals[mask] += wavelets
+
+    return signals if signals.shape[0] > 1 else signals.flatten()
 
 # todo rebuild below function for allow list of signal
 # def quantize(signals:list|np.ndarray, levels=10):
@@ -80,40 +135,7 @@ def shift(signals:list|np.ndarray, shift_value:float|np.ndarray=0.2):
 #     perturbed_signal = magnitude * np.exp(1j * phase)
 #     return np.fft.ifft(perturbed_signal).real
 
-# def waveletAugment(signals:list|np.ndarray, wavelet_range=(5, 20), amplitude_range=(0.1, 0.5), width_range=(5, 20)):
-#     """Augment the signals by adding wavelets.
 
-#     Args:
-#         signals (np.ndarray): The input signals to augment.
-#         wavelet_range (tuple, optional): Range for the number of wavelets to add. Defaults to (5, 20).
-#         amplitude_range (tuple, optional): Range for the amplitude of the wavelets. Defaults to (0.1, 0.5).
-#         width_range (tuple, optional): Range for the width of the wavelets. Defaults to (5, 20).
-
-#     Returns:
-#         np.ndarray: The augmented signals.
-#     """
-#     augmented_signal = signals.copy()
-#     signal_length = len(signals)
-#     num_wavelets = np.random.randint(*wavelet_range) if isinstance(wavelet_range, tuple) else wavelet_range
-
-#     for _ in range(num_wavelets):
-#         # Randomly choose a center point for the wavelet
-#         center = np.random.randint(0, signal_length)
-        
-#         # Random amplitude and width within specified ranges
-#         amplitude = np.random.uniform(*amplitude_range)
-#         width = np.random.uniform(*width_range)
-        
-#         # Generate the wavelet (only real part is used)
-#         wavelet = amplitude * morlet(signal_length, w=width).real
-        
-#         # Shift the wavelet to the selected center
-#         shifted_wavelet = np.roll(wavelet, center - signal_length // 2)
-        
-#         # Add the wavelet to the signals
-#         augmented_signal += shifted_wavelet
-    
-#     return augmented_signal
 # def derivative(y:Union[list, np.ndarray], x:Union[list, np.ndarray] = [0, 1]) -> np.array:
 #     dx = x[1] - x[0]
 #     return np.gradient(y, dx)
