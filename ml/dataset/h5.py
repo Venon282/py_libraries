@@ -88,7 +88,7 @@ def makeTfDataset(
         all_dtypes = input_dtypes + output_dtypes
     
     # Initialize dataset with indices to minimize memory overhead during shuffle
-    dataset = tf.data.Dataset.from_tensor_slices(indices)
+    #dataset = tf.data.Dataset.from_tensor_slices(indices)
     
     if shuffle:
         dataset = dataset.shuffle(buffer_size=len(indices), seed=seed)
