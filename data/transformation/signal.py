@@ -15,9 +15,35 @@ def shift(signals:list|np.ndarray, shift_value:float|np.ndarray=0.2):
     """Shift the signals values by a constant."""
     return signals + shift_value
 
-def addWavelet(signals: list | np.ndarray, n_wavelet=(5, 20), amplitude_range=(0.1, 0.5), width_range=(5, 20), copy=True):
+def addWavelet(signals: list | np.ndarray, n_wavelet:tuple[int,int]|list[int]|int=(5, 20), amplitude_range=(0.1, 0.5), width_range=(5, 20), copy=True):
     """
-    Efficiently adds wavelets to multiple signals using vectorized NumPy operations.
+    Add multiple randomized Morlet wavelets to signals.
+    
+    Parameters
+    ----------
+    signals : np.ndarray
+        The input signals. Can be a 1D array (single signal) or 
+        a 2D array of shape (n_signals, signal_length).
+    n_wavelet : int or tuple or list[int], optional
+        Number of wavelets to add per signal. If a tuple (min, max), a 
+        random integer is chosen in that range for each signal. Default is (5, 20).
+        If a list must be the same size than signals
+    amplitude_range : tuple, optional
+        A tuple (min, max) defining the range for the uniform distribution 
+        of wavelet peak amplitudes. Default is (0.1, 0.5).
+    width_range : tuple, optional
+        A tuple (min, max) defining the range of the wavelet 'width' in samples. 
+        Higher widths result in lower frequency, longer lasting wavelets. 
+        Default is (5, 20).
+    copy : bool, optional
+        If True, returns a new array. If False, performs the operation 
+        in-place on the original data for maximum speed. Default is True.
+
+    Returns
+    -------
+    np.ndarray
+        The modified signals. Returns a 1D array if the input was 1D, 
+        otherwise returns a 2D array of shape (n_signals, signal_length).
     """
     if copy:
         signals = np.array(signals, copy=True)
@@ -35,8 +61,12 @@ def addWavelet(signals: list | np.ndarray, n_wavelet=(5, 20), amplitude_range=(0
         num_wavelets_per_signal = np.random.randint(n_wavelet[0], n_wavelet[1] + 1, size=n_signals)
     elif isinstance(n_wavelet, int):
         num_wavelets_per_signal = np.full(n_signals, n_wavelet)
-    else:
+    elif isinstance(n_wavelet, (list, np.ndarray)):
+        if len(n_wavelet) != len(signals):
+            raise Exception(f'When n_wavelet is a {type(n_wavelet)}, its size must be the same than signals')
         num_wavelets_per_signal = np.array(n_wavelet)
+    else:
+        raise Exception(f'Unsupport type {type(n_wavelet)} for n_wavelet.')
 
     max_wavelets = np.max(num_wavelets_per_signal)
     
