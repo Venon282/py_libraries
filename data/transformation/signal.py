@@ -1,6 +1,5 @@
 
 import numpy as np
-from typing import Union
 
 def addNoise(signals:list|np.ndarray, noise_level:float|np.ndarray=0.05):
     """Add random Gaussian noise to the signals."""
@@ -15,7 +14,16 @@ def shift(signals:list|np.ndarray, shift_value:float|np.ndarray=0.2):
     """Shift the signals values by a constant."""
     return signals + shift_value
 
-def addWavelet(signals: list | np.ndarray, n_wavelet:tuple[int,int]|list[int]|int=(5, 20), amplitude_range=(0.1, 0.5), width_range=(5, 20), copy=True):
+def addWavelet(
+    signals: list | np.ndarray, 
+    n_wavelet:tuple[int,int]|list[int]|int=(5, 20), 
+    amplitude_range=(0.1, 0.5), 
+    width_range=(5, 20), 
+    scale=1, 
+    copy=True, 
+    complete=True,
+    rng: np.random.Generator | None = None
+    ):
     """
     Add multiple randomized Morlet wavelets to signals.
     
@@ -35,9 +43,13 @@ def addWavelet(signals: list | np.ndarray, n_wavelet:tuple[int,int]|list[int]|in
         A tuple (min, max) defining the range of the wavelet 'width' in samples. 
         Higher widths result in lower frequency, longer lasting wavelets. 
         Default is (5, 20).
+    scale: float
+        scale factor
     copy : bool, optional
         If True, returns a new array. If False, performs the operation 
         in-place on the original data for maximum speed. Default is True.
+    complete: bool, optional
+        Use the complete calculation or not
 
     Returns
     -------
@@ -45,6 +57,9 @@ def addWavelet(signals: list | np.ndarray, n_wavelet:tuple[int,int]|list[int]|in
         The modified signals. Returns a 1D array if the input was 1D, 
         otherwise returns a 2D array of shape (n_signals, signal_length).
     """
+    if amplitude_range[0] > amplitude_range[1]:
+        raise ValueError("amplitude_range must be (min, max)")
+    
     if copy:
         signals = np.array(signals, copy=True)
     else:
@@ -55,52 +70,54 @@ def addWavelet(signals: list | np.ndarray, n_wavelet:tuple[int,int]|list[int]|in
         signals = signals[np.newaxis, :]
     
     n_signals, signal_length = signals.shape
-
+    
+    if rng is None:
+        rng = np.random.default_rng()
+        
     # Determine how many wavelets each signal gets
     if isinstance(n_wavelet, tuple):
-        num_wavelets_per_signal = np.random.randint(n_wavelet[0], n_wavelet[1] + 1, size=n_signals)
+        num_wavelets_per_signal = rng.integers(n_wavelet[0], n_wavelet[1] + 1, size=n_signals)
     elif isinstance(n_wavelet, int):
         num_wavelets_per_signal = np.full(n_signals, n_wavelet)
     elif isinstance(n_wavelet, (list, np.ndarray)):
-        if len(n_wavelet) != len(signals):
-            raise Exception(f'When n_wavelet is a {type(n_wavelet)}, its size must be the same than signals')
+        if len(n_wavelet) != n_signals:
+            raise ValueError(f'When n_wavelet is a {type(n_wavelet)}, its size must be the same than signals')
         num_wavelets_per_signal = np.array(n_wavelet)
     else:
-        raise Exception(f'Unsupport type {type(n_wavelet)} for n_wavelet.')
-
+        raise TypeError(f'Unsupport type {type(n_wavelet)} for n_wavelet.')
+    
     max_wavelets = np.max(num_wavelets_per_signal)
     
     # Pre-create a time axis: shape (signal_length,)
     t = np.arange(signal_length)
 
     # Iterate up to the maximum number of wavelets needed
+    mapping_factor = (scale * 4 * np.pi) / signal_length
     for i in range(max_wavelets):
         # Only process signals that still need more wavelets
         mask = num_wavelets_per_signal > i
         active_count = np.sum(mask)
         
         # Vectorized generation of parameters for 'active' signals
-        centers = np.random.randint(0, signal_length, size=(active_count, 1))
-        amplitudes = np.random.uniform(*amplitude_range, size=(active_count, 1))
-        widths = np.random.uniform(*width_range, size=(active_count, 1))
-
-        # Calculate Morlet Wavelet Vectorized
-        # Formula: Amplitude * exp(-t^2 / (2 * width^2)) * cos(5 * t / width)
+        centers = rng.integers(0, signal_length, size=(active_count, 1))
+        amplitudes = rng.uniform(*amplitude_range, size=(active_count, 1))
+        widths = rng.uniform(*width_range, size=(active_count, 1))
         
-        # Relative distance from the center for each point
-        rel_t = t - centers 
         
-        # The Morlet equation (Real part)
-        # Simplified version of scipy.signal.morlet for speed
-        sigma = widths / 5
-        envelope = np.exp(-(rel_t**2) / (2 * sigma**2))
-        oscillation = np.cos(5 * rel_t / sigma)
-        wavelets = amplitudes * envelope * oscillation
+        x_shift = (t - centers) * mapping_factor
+        wavelets = np.cos(widths * x_shift)
+        
+        # Admissibility correction (complete Morlet)
+        if complete:
+            wavelets -= np.exp(-0.5 * (widths**2))
+            
+        wavelets *= np.exp(-0.5 * (x_shift**2)) * np.pi**(-0.25)
+        wavelets = amplitudes * wavelets
 
         # Add to the active signals
         signals[mask] += wavelets
 
-    return signals if signals.shape[0] > 1 else signals.flatten()
+    return signals[0] if n_signals == 1 else signals
 
 # todo rebuild below function for allow list of signal
 # def quantize(signals:list|np.ndarray, levels=10):
