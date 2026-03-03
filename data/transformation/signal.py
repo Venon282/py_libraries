@@ -25,38 +25,59 @@ def addWavelet(
     rng: np.random.Generator | None = None
     ):
     """
-    Add multiple randomized Morlet wavelets to signals.
-    
+    Add randomized real Morlet wavelets to one or multiple signals.
+
+    Each wavelet is a Gaussian-windowed cosine:
+
+        ψ(t) = A · exp(-0.5 * x^2) · cos(ω x)
+
+    where:
+        x = (t - center) * mapping_factor
+        ω = width parameter
+        A = amplitude
+
     Parameters
     ----------
-    signals : np.ndarray
-        The input signals. Can be a 1D array (single signal) or 
-        a 2D array of shape (n_signals, signal_length).
-    n_wavelet : int or tuple or list[int], optional
-        Number of wavelets to add per signal. If a tuple (min, max), a 
-        random integer is chosen in that range for each signal. Default is (5, 20).
-        If a list must be the same size than signals
-    amplitude_range : tuple, optional
-        A tuple (min, max) defining the range for the uniform distribution 
-        of wavelet peak amplitudes. Default is (0.1, 0.5).
-    width_range : tuple, optional
-        A tuple (min, max) defining the range of the wavelet 'width' in samples. 
-        Higher widths result in lower frequency, longer lasting wavelets. 
-        Default is (5, 20).
-    scale: float
-        scale factor
-    copy : bool, optional
-        If True, returns a new array. If False, performs the operation 
-        in-place on the original data for maximum speed. Default is True.
-    complete: bool, optional
-        Use the complete calculation or not
+    signals : array-like, shape (L,) or (N, L)
+        Input signal(s). A 1D array is treated as a single signal.
+        A 2D array must have shape (n_signals, signal_length).
+
+    n_wavelet : int or tuple(int, int) or sequence of int, default=(5, 20)
+        Number of wavelets added per signal.
+        - int → fixed number per signal
+        - tuple(min, max) → random integer in range per signal
+        - sequence → explicit number per signal
+
+    amplitude_range : tuple(float, float), default=(0.1, 0.5)
+        Uniform range for peak amplitude scaling.
+        Controls the vertical height of each wavelet.
+
+    width_range : tuple(float, float), default=(5, 20)
+        Controls oscillation frequency inside the Gaussian envelope.
+        Larger values → higher oscillation frequency.
+        Smaller values → lower frequency.
+
+    scale : float, default=1
+        Global scaling factor affecting time stretching.
+        Larger scale → wider Gaussian envelope (longer wavelets).
+
+    copy : bool, default=True
+        If True, operate on a copy of input.
+        If False, modify in-place.
+
+    complete : bool, default=True
+        If True, apply admissibility correction term
+        (zero-mean Morlet wavelet).
+
+    rng : numpy.random.Generator, optional
+        Random generator for reproducibility.
 
     Returns
     -------
-    np.ndarray
-        The modified signals. Returns a 1D array if the input was 1D, 
-        otherwise returns a 2D array of shape (n_signals, signal_length).
+    ndarray
+        Modified signal(s), preserving input dimensionality.
     """
+    
     if amplitude_range[0] > amplitude_range[1]:
         raise ValueError("amplitude_range must be (min, max)")
     
