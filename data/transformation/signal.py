@@ -16,10 +16,10 @@ def shift(signals:list|np.ndarray, shift_value:float|np.ndarray=0.2):
 
 def addWavelet(
     signals: list | np.ndarray, 
-    n_wavelet:tuple[int,int]|list[int]|int=(5, 20), 
-    amplitude_range=(0.1, 0.5), 
-    width_range=(5, 20), 
-    scale=1, 
+    wavelet_range:tuple[int,int]|list[int]|int=(5, 20), 
+    amplitude_range:tuple[int,int]|list[int]|int=(0.1, 0.5), 
+    width_range:tuple[int,int]|list[int]|int=(5, 20), 
+    scale_range:tuple[int,int]|list[int]|int=1, 
     copy=True, 
     complete=True,
     rng: np.random.Generator | None = None
@@ -42,7 +42,7 @@ def addWavelet(
         Input signal(s). A 1D array is treated as a single signal.
         A 2D array must have shape (n_signals, signal_length).
 
-    n_wavelet : int or tuple(int, int) or sequence of int, default=(5, 20)
+    wavelet_range : int or tuple(int, int) or sequence of int, default=(5, 20)
         Number of wavelets added per signal.
         - int → fixed number per signal
         - tuple(min, max) → random integer in range per signal
@@ -77,7 +77,24 @@ def addWavelet(
     ndarray
         Modified signal(s), preserving input dimensionality.
     """
-    
+    def getRandom(element, randFunc, size):
+        # tuple mean between two bornes
+        if isinstance(element, tuple):
+            if len(element) != 2:
+                raise ValueError(f'The tuple size must be 2 (min, max), not {len(element)}')
+            return randFunc(element[0], element[1] + 1, size=size)
+        # value mean we want it size time
+        elif isinstance(element, (float, int)):
+            return np.full(size, element)
+        # a list mean the selection was made outside the function
+        elif isinstance(element, (list, np.ndarray)):
+            nonlocal n_signals
+            if len(element) != n_signals:
+                raise ValueError(f'When element is a {type(element)}, its size must be the same than signals')
+            return np.array(element)
+        else:
+            raise TypeError(f'Unsupport type {type(element)} for element.')
+        
     if amplitude_range[0] > amplitude_range[1]:
         raise ValueError("amplitude_range must be (min, max)")
     
@@ -95,25 +112,13 @@ def addWavelet(
     if rng is None:
         rng = np.random.default_rng()
         
-    # Determine how many wavelets each signal gets
-    if isinstance(n_wavelet, tuple):
-        num_wavelets_per_signal = rng.integers(n_wavelet[0], n_wavelet[1] + 1, size=n_signals)
-    elif isinstance(n_wavelet, int):
-        num_wavelets_per_signal = np.full(n_signals, n_wavelet)
-    elif isinstance(n_wavelet, (list, np.ndarray)):
-        if len(n_wavelet) != n_signals:
-            raise ValueError(f'When n_wavelet is a {type(n_wavelet)}, its size must be the same than signals')
-        num_wavelets_per_signal = np.array(n_wavelet)
-    else:
-        raise TypeError(f'Unsupport type {type(n_wavelet)} for n_wavelet.')
-    
+    num_wavelets_per_signal = getRandom(element=wavelet_range, randFunc=rng.integers, size=n_signals)
     max_wavelets = np.max(num_wavelets_per_signal)
     
     # Pre-create a time axis: shape (signal_length,)
     t = np.arange(signal_length)
 
     # Iterate up to the maximum number of wavelets needed
-    mapping_factor = (scale * 4 * np.pi) / signal_length
     for i in range(max_wavelets):
         # Only process signals that still need more wavelets
         mask = num_wavelets_per_signal > i
@@ -121,11 +126,13 @@ def addWavelet(
         
         # Vectorized generation of parameters for 'active' signals
         centers = rng.integers(0, signal_length, size=(active_count, 1))
-        amplitudes = rng.uniform(*amplitude_range, size=(active_count, 1))
-        widths = rng.uniform(*width_range, size=(active_count, 1))
+        amplitudes = getRandom(element=amplitude_range, randFunc=rng.uniform, size=(active_count, 1))
+        widths = getRandom(element=width_range, randFunc=rng.uniform, size=(active_count, 1)) 
+        scales = getRandom(element=scale_range, randFunc=rng.uniform, size=(active_count, 1))
         
+        mapping_factors = (scales * 4 * np.pi) / signal_length
         
-        x_shift = (t - centers) * mapping_factor
+        x_shift = (t - centers) * mapping_factors
         wavelets = np.cos(widths * x_shift)
         
         # Admissibility correction (complete Morlet)
