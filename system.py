@@ -7,6 +7,7 @@ from itertools import chain
 import concurrent.futures
 import platform
 import sys
+from itertools import cache
 
 is_windows = platform.system().lower().startswith("win")
 if is_windows:
@@ -172,3 +173,50 @@ def inputNoBlocking(buffer=['']):
             line = sys.stdin.readline().strip()
             return line
         return None
+    
+def ipAddressesFromStrNumber(s: str) -> list[str]:
+    """ 
+    Given a string s containing only digits, return all possible valid IP addresses that can be formed by inserting dots into s. 
+
+    Example 1:
+    Input: s = "25525511135"
+    Output: ["255.255.11.135","255.255.111.35"]
+    
+    Example 2:
+    Input: s = "0000"
+    Output: ["0.0.0.0"]
+    
+    Example 3:
+    Input: s = "101023"
+    Output: ["1.0.10.23","1.0.102.3","10.1.0.23","10.10.2.3","101.0.2.3"]
+"""
+    @cache
+    def isNotValid(s):
+        return (int(s) > 255) or (s[0] == '0' and (s.count('0') != len(s) or len(s)!=1))
+
+    if len(s) < 4 or len(s) > 12:
+        return []
+
+    adresses = []
+
+    for p1 in range(1, len(s)-2):
+        num1 =  s[:p1]
+        if isNotValid(num1):
+            return adresses
+
+        for p2 in range(p1+1, len(s)-1):
+            num2 = s[p1:p2]
+            if isNotValid(num2):
+                break
+
+            for p3 in range(p2+1, len(s)):
+                num3 = s[p2:p3]
+                if isNotValid(num3):
+                    break
+
+                num4 = s[p3:]
+                if isNotValid(num4):
+                    continue
+
+                adresses.append(f'{num1}.{num2}.{num3}.{num4}')
+    return adresses
