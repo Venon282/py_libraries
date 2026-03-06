@@ -1,8 +1,26 @@
 
 import numpy as np
 
-def addNoise(signals:list|np.ndarray, noise_level:float|np.ndarray=0.05):
-    """Add random Gaussian noise to the signals."""
+def addNoise(signals: list | np.ndarray, noise_level: float | np.ndarray | list | tuple[float, float] = 0.05):
+    """
+    Add random Gaussian noise to the signals.
+    when noise_level is:
+        - float: same noise level for all signals
+        - list/np.ndarray: a noise level defined per signal
+        - tuple(min, max): randomly sample a noise level per signal in [min, max[
+    """
+    signals = np.asarray(signals)
+
+    if isinstance(noise_level, tuple):
+        if len(noise_level) != 2:
+            raise ValueError('When noise_level is a tuple it must be (min_noise, max_noise)')
+        noise_level = np.random.uniform(*noise_level, size=signals.shape[0])
+
+    if isinstance(noise_level, (list, np.ndarray)):
+        noise_level = np.asarray(noise_level)  # shape (N,)
+        # Reshape to (N, 1, 1, ...) to broadcast against signals of shape (N, T, ...)
+        noise_level = noise_level.reshape([-1] + [1] * (signals.ndim - 1))
+
     noise = np.random.normal(0, noise_level, size=signals.shape)
     return signals + noise
 
@@ -48,16 +66,16 @@ def addWavelet(
         - tuple(min, max) → random integer in range per signal
         - sequence → explicit number per signal
 
-    amplitude_range : tuple(float, float), default=(0.1, 0.5)
+    amplitude_range : int or tuple(int, int) or sequence of int,, default=(0.1, 0.5)
         Uniform range for peak amplitude scaling.
         Controls the vertical height of each wavelet.
 
-    width_range : tuple(float, float), default=(5, 20)
+    width_range : int or tuple(int, int) or sequence of int, default=(5, 20)
         Controls oscillation frequency inside the Gaussian envelope.
         Larger values → higher oscillation frequency.
         Smaller values → lower frequency.
 
-    scale : float, default=1
+    scale : int or tuple(int, int) or sequence of int, default=1
         Global scaling factor affecting time stretching.
         Larger scale → wider Gaussian envelope (longer wavelets).
 
