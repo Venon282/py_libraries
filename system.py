@@ -7,7 +7,7 @@ from itertools import chain
 import concurrent.futures
 import platform
 import sys
-from itertools import cache
+from functools import cache
 
 is_windows = platform.system().lower().startswith("win")
 if is_windows:
