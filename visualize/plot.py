@@ -142,13 +142,19 @@ class Plot:
 
 
     @staticmethod
-    def scatter(*args, **kwargs) -> Optional[Figure]:
-        """Scatter / dot plot."""
+    def scatter(*args, cmap_label=None, **kwargs) -> Optional[Figure]:
+        """
+        Scatter / dot plot.
+        scatter already accept: c=cmap_values, cmap='viridis'
+        """
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
         for arg in args:
             x, y, opts = Plot._unwrap(arg)
-            ax.scatter(x, y, **{**gb_opts, **opts})
-        return Plot._end(fig, ax, style, extras, path, show)
+            sc = ax.scatter(x, y, **{**gb_opts, **opts})
+            if cmap_label:
+                fig.colorbar(sc, ax=ax, label=cmap_label)
+            
+            return Plot._end(fig, ax, style, extras, path, show)
     
     @staticmethod
     def image(*args, **kwargs) -> Optional[Figure]:
@@ -257,21 +263,46 @@ class Plot:
         return Plot._end(fig, ax, style, extras, path, show)
     
     @staticmethod
-    def histogram(data: Union[List, np.ndarray], bins: int=30, bin_type='linear', **kwargs) -> Optional[Figure]:
+    def histogram(data: Union[List, np.ndarray], bins: int=None, bin_type='linear', **kwargs) -> Optional[Figure]:
         """Univariate histogram."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
         if bin_type!='linear':
-            bins = makeBins(data, bins, bin_type=bin_type)
+            bins = makeBins(data, bins=bins if bins is not None else 100, bin_type=bin_type)
         ax.hist(data, bins=bins, **gb_opts)
+        return Plot._end(fig, ax, style, extras, path, show)
+    
+    @staticmethod
+    def bar(*args, text=False, **kwargs) -> Optional[Figure]:
+        """Scatter / dot plot."""
+        fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
+        for arg in args:
+            x, y, opts = Plot._unwrap(arg)
+            bars = ax.bar(x, y, **{**gb_opts, **opts})
+            
+            if text:
+                for bar in bars:
+                    height = bar.get_height()
+                    ax.annotate(f'{height: }',
+                                xy=(bar.get_x() + bar.get_width() / 2, height),
+                                xytext=(0, 3),  # 3 points vertical offset
+                                textcoords="offset points",
+                                ha='center', va='bottom')
         return Plot._end(fig, ax, style, extras, path, show)
 
     @staticmethod
     def heatmap(*args, bins: int=100, cmap: str='viridis', **kwargs) -> Optional[Figure]:
         """2D density heatmap."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
+        global_intensity = kwargs.pop("intensity", None)
         for arg in args:
             x, y, opts = Plot._unwrap(arg)
-            heat, xedges, yedges = np.histogram2d(x, y, bins=bins)
+            intensity = opts.pop("intensity", None) or global_intensity
+            if intensity is not None:
+                heat_sum, xedges, yedges = np.histogram2d(x, y, bins=bins, weights=intensity)
+                heat_count, _, _ = np.histogram2d(x, y, bins=[xedges, yedges])
+                heat = np.divide(heat_sum, heat_count, out=np.zeros_like(heat_sum), where=heat_count != 0)
+            else:
+                heat, xedges, yedges = np.histogram2d(x, y, bins=bins)
             extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
             im = ax.imshow(
                 heat.T, extent=extent, origin='lower',

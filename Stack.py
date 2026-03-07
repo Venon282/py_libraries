@@ -1,3 +1,4 @@
+#! Better to use the library collections
 class Stack:
     def __init__(self):
         """

@@ -25,5 +25,5 @@ def activation(activation, negative_slope=0.3):
 def residualConnection(l1, l2):
     # Project x_in if necessary to match dimensions.
     if l1.shape[-1] != l2.shape[-1]:
-       l1 = keras.layers.Dense(l2.shape[-1], activation=None)(l1)
+       l1 = keras.layers.Dense(l2.shape[-1], activation=None, use_bias=False)(l1)
     return keras.layers.Add()([l2, l1])

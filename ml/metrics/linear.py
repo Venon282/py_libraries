@@ -14,7 +14,7 @@ def metrics(true, pred, eps=1e-12):
     mse         = sq_diff.mean()
     rmse        = np.sqrt(mse)
 
-    # Normalized MAE (example: MAE divided by mean(true))
+    # Normalized MAE (MAE divided by mean(true))
     maen        = mae / (abs_true.mean() + eps)
 
     # sMAPE: avoid zero-division by adding tiny eps

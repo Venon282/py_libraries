@@ -158,7 +158,7 @@ def displayWithDetails(h5):
     h5.visititems(displayInfo)
     
 def getDescribe(h5):
-    from .lst import describeValues
+    from ..type.lst import describeValues
     import pandas as pd
     df = {}
     
@@ -171,7 +171,7 @@ def getDescribe(h5):
     return pd.DataFrame.from_dict(df, orient='index')
 
 def describe(h5):
-    from .lst import describe
+    from ..type.lst import describe
     
     def collect(name, obj):
         if isinstance(obj, h5py.Dataset):
@@ -275,22 +275,11 @@ def iterateDatasetRec(h5: h5py.File | h5py.Group, sep: str = '/'):
         if isinstance(obj, h5py.Dataset):
             yield path, obj
             
-def iterateDatasetRec(h5: h5py.File | h5py.Group, sep: str = '/'):
-    for path, obj in iterate(h5, '**', sep=sep):
-        if isinstance(obj, h5py.Dataset):
-            yield path, obj
-            
 def iterateGroupRec(h5: h5py.File | h5py.Group, sep: str = '/'):
     for path, obj in iterate(h5, '*', sep=sep):
         if isinstance(obj, h5py.Group):
             yield path, obj
             
-def iterateGroupRec(h5: h5py.File | h5py.Group, sep: str = '/'):
-    for path, obj in iterate(h5, '**', sep=sep):
-        if isinstance(obj, h5py.Group):
-            yield path, obj
-            
-    
 def append(h5, name, values, dtype=None):
     """
     Create or append data to an HDF5 dataset dynamically, allowing for unlimited rows.
@@ -348,8 +337,12 @@ def append(h5, name, values, dtype=None):
                 values = values.astype(str).tolist()
         dataset[dataset_size:new_size] = values
     
-def incrementSize(h5, name, quantity, data_shape=None, is_str=False, dtype=None):
-    data_shape = list(data_shape)
+def defineSize(h5, name, new_size=None, quantity_to_add=None, data_shape=None, is_str=False, dtype=None):
+    """
+    Provide either:
+        - quantity_to_add (can be negetive) will be add to the current dateset size
+        - new_size if you know directly the final size wanted
+    """
     
     if is_str:
         dtype = h5py.string_dtype(encoding='utf-8')
@@ -358,6 +351,7 @@ def incrementSize(h5, name, quantity, data_shape=None, is_str=False, dtype=None)
         if data_shape is None:
             raise ValueError(f'Dataset {name} do not exist so the data_shape parameter is requiered')
 
+        data_shape = list(data_shape)
         initial_shape = (0,) + tuple(data_shape)
         max_shape = (None,) + tuple(data_shape)
 
@@ -370,8 +364,14 @@ def incrementSize(h5, name, quantity, data_shape=None, is_str=False, dtype=None)
         )
     
     dataset = h5[name]
-    dataset_size = dataset.shape[0]
-    new_size = dataset_size + quantity
+    if quantity_to_add is not None:
+        dataset_size = dataset.shape[0]
+        new_size = dataset_size + quantity_to_add
+    elif new_size is not None:
+        pass
+    else:
+        raise Exception('You have to provide either quantity_to_add or new_size')
+    
     dataset.resize(new_size, axis=0)
     return new_size
     
@@ -485,3 +485,17 @@ def makeH5Copy(h5_path, suffix="_copy", max_tries=1000):
             shutil.copy2(h5_path, dest)  
             return dest
     raise FileExistsError(f"Could not create a unique copy of {h5_path} after {max_tries} attempts")
+
+def getH5RowSet(h5_path, columns, chunk_size=100_000):
+    unique_rows = set()
+    
+    with h5py.File(h5_path, 'r') as f:
+        h5_size = len(f[columns[0]])
+        
+        for i in range(0, h5_size, chunk_size):
+            end = min(i + chunk_size, h5_size)
+            h5_slice = slice(i, end)
+            col_data = [f[col][h5_slice] for col in columns]
+            unique_rows.update(zip(*col_data))
+            
+    return unique_rows

@@ -1,3 +1,5 @@
+import os
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 from tensorflow.keras.layers import Input, Dense, Dropout, Concatenate, BatchNormalization # type: ignore
 from tensorflow.keras.models import Model # type: ignore
 from tensorflow.keras import backend as K
@@ -9,10 +11,10 @@ from .module import setHyperparameter
 
 class DnnModelBuilder(BaseModelBuilder):
     def __init__(self, 
-                 inputs_shape, 
+                 inputs_shape, inputs_name='input',
                  n_labels_linear=0, n_labels_sigmoid=0, labels_softmax=[], 
                  labels_linear_names=[], labels_sigmoid_names=[], labels_softmax_names=[],
-                 fixe_hparams={}, 
+                 fixe_hparams={}, loss_weights={'linear':1.0, 'sigmoid':0.5, 'softmax':0.5},
                  *args, **kwargs):
         """
         Initialize the DNN model builder with hyperparameter configurations.
@@ -26,6 +28,7 @@ class DnnModelBuilder(BaseModelBuilder):
             labels_softmax_names
             labels_softmax (list of int): List specifying the number of classes for each multiclass output (softmax activation).
             fixe_hparams (dict): Dictionary of fixed hyperparameters.
+            loss_weights (dict): The loss weights to apply to the outputs (check first the output name, then the output type, then 1.0 is default)
 
         Optional Keyword Arguments:
             # Layer architecture settings
@@ -58,6 +61,7 @@ class DnnModelBuilder(BaseModelBuilder):
 
             # Regularization settings
             regularizer (bool): Enable regularization. Default is True.
+            regularizer_choice (list): Regularization choise: Default is ['l1', 'l2', 'l1_l2']. Note values can be remove but this choice is strict.
             regularizer_kernel (bool): Regularize kernel weights. Default is True.
             regularizer_bias (bool): Regularize bias terms. Default is True.
             regularizer_activity (bool): Regularize layer activations. Default is True.
@@ -72,6 +76,7 @@ class DnnModelBuilder(BaseModelBuilder):
         """
         # Input/Output dimensions
         self.inputs_shape = inputs_shape
+        self.inputs_name = inputs_name
         
         self.n_labels_linear = n_labels_linear 
         self.n_labels_sigmoid= n_labels_sigmoid
@@ -82,6 +87,7 @@ class DnnModelBuilder(BaseModelBuilder):
         self.labels_softmax_names = labels_softmax_names
         
         self.fixe_hparams = fixe_hparams
+        self.loss_weights = loss_weights
         
         self._n_labels = sum([self.n_labels_linear, self.n_labels_sigmoid, len(self.labels_softmax)])
         if self._n_labels == 0:
@@ -136,6 +142,7 @@ class DnnModelBuilder(BaseModelBuilder):
 
         # ---- Regularization Settings ----
         self.regularizer            = kwargs.pop('regularizer', True)
+        self.regularizer_choice     = kwargs.pop('regularizer_choice', ['l1', 'l2', 'l1_l2'])
         self.regularizer_kernel     = kwargs.pop('regularizer_kernel', True)
         self.regularizer_bias       = kwargs.pop('regularizer_bias', True)
         self.regularizer_activity   = kwargs.pop('regularizer_activity', True)
@@ -173,7 +180,7 @@ class DnnModelBuilder(BaseModelBuilder):
             use_reg = setHyperparameter(hp.Boolean, self.fixe_hparams, f'use_{name}_regularizer_{block_id}_{i}', default=True)
             with hp.conditional_scope(f'use_{name}_regularizer_{block_id}_{i}', [True]):
                 # Choose the regularizer type: 'l1', 'l2', or 'l1_l2'
-                reg_choice = setHyperparameter(hp.Choice, self.fixe_hparams, f'{name}_regularizer_{block_id}_{i}', values=['l1', 'l2', 'l1_l2'], default='l2')
+                reg_choice = setHyperparameter(hp.Choice, self.fixe_hparams, f'{name}_regularizer_{block_id}_{i}', values=self.regularizer_choice, default='l2')
                 
                 # Primary regularization factor.
                 reg_factor = setHyperparameter(hp.Float, self.fixe_hparams, f'{name}_regularizer_factor_{block_id}_{i}', min_value=self.regularizer_min, max_value=self.regularizer_max, default=(self.regularizer_min + self.regularizer_max) / 2)
@@ -327,7 +334,7 @@ class DnnModelBuilder(BaseModelBuilder):
         merges_without_concat = [item for item in self.merges if item != 'concat']
         
         # Input layer
-        inputs = Input(shape=self.inputs_shape, name='input')
+        inputs = Input(shape=self.inputs_shape, name=self.inputs_name)
         x = inputs
 
         # Optional separate start branch
@@ -387,9 +394,9 @@ class DnnModelBuilder(BaseModelBuilder):
         }
         
         loss_weights = {
-            **{name: 1.0 for name in self.labels_linear_names},
-            **{name: 0.5 for name in self.labels_sigmoid_names},
-            **{name: 0.5 for name in self.labels_softmax_names}
+            **{name: self.loss_weights.get(name, self.loss_weights.get('linear', 1.0)) for name in self.labels_linear_names},
+            **{name: self.loss_weights.get(name, self.loss_weights.get('sigmoid', 1.0)) for name in self.labels_sigmoid_names},
+            **{name: self.loss_weights.get(name, self.loss_weights.get('softmax', 1.0)) for name in self.labels_softmax_names}
         }
 
         metrics = {

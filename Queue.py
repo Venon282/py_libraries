@@ -1,3 +1,4 @@
+#! better to use deque from collections
 class Queue:
     def __init__(self, queue=[]):
         """

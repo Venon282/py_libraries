@@ -1,13 +1,11 @@
-from pathlib import Path
+import os
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 import numpy as np
 
-def save(fig, file_path, parents=True, exist_ok=True):
-    file_path = Path(file_path)
-    file_path.parent.mkdir(parents=parents, exist_ok=exist_ok)
-    file_path.touch(exist_ok=exist_ok)
-    fig.savefig(str(file_path)) 
+def save(fig, file_path):
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    fig.savefig(file_path) 
     
 def isClose(ax: Axes) -> bool:
     """
