@@ -146,8 +146,22 @@ class ScrapingSeleniumBase:
     
     def waitForPresence(self, element:str|WebElement, timeout: int|None = 10):
         """Wait for presence of element supporting CSS or XPath selectors."""
-        return WebDriverWait(self.sb.driver, timeout).until(lambda d: self.getElement(element) if isinstance(element, str) else element)
-    
+        wait = WebDriverWait(self.sb.driver, timeout)
+        # if isinstance(element, WebElement):
+        #     return wait.until(
+        #         EC.presence_of_element_located(element)
+        #     )
+        # elif self.isXpath(element):
+        #     return wait.until(
+        #         EC.presence_of_element_located(("xpath", element))
+        #     )
+        # else:
+        #     return wait.until(
+        #         EC.presence_of_element_located((By.CSS_SELECTOR, element))
+        #     )
+        # lambda d: self.getElement(element) if isinstance(element, str) else element
+        return wait.until(lambda d: self.getElement(element) if isinstance(element, str) else element)
+
     def waitUntilDisappear(self, element:str|WebElement, timeout=30):
         """
         Wait until an element disappears from the page (is no longer present or visible).

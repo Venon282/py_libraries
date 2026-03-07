@@ -92,7 +92,7 @@ class Instagram:
         if video_url:
             payload["video_url"] = video_url
         if media_type:
-            payload["media_type"] = media_type
+            payload["media_type"] = media_type.value if isinstance(media_type, MediaType) else media_type
         if is_carousel_item:
             payload["is_carousel_item"] = "true"
         if upload_type:
@@ -159,22 +159,20 @@ class Instagram:
             
             time.sleep(interval)
 
-    # -----------------------
     # Resumable upload helpers (videos / reels)
-    # -----------------------
-    def start_resumable_container(self, media_type: MediaType = MediaType.VIDEO, caption: str = None, upload_type: str = "resumable", extra: dict = None):
+    def startResumableContainer(self, media_type: MediaType = MediaType.VIDEO, caption: str = None, upload_type: str = "resumable", extra: dict = None):
         """
         Create a container with upload_type=resumable to start a resumable upload session.
         Returns the created container id.
         """
-        payload = {"media_type": media_type, "upload_type": upload_type}
+        payload = {"media_type": media_type.value if isinstance(media_type, MediaType) else media_type, "upload_type": upload_type}
         if caption:
             payload["caption"] = caption
         if extra:
             payload.update(extra)
         return self._req("POST", f"{self.api_version}/{self.ig_id}/media", json_data=payload, host=self.graph_host)
 
-    def upload_resumable_local(self, ig_container_id: str, file_path: str):
+    def uploadResumableLocal(self, ig_container_id: str, file_path: str):
         """
         Upload a local file (single-chunk) to rupload.facebook.com.
         For full resumable/chunked upload you should implement chunking with offset headers.
@@ -208,7 +206,7 @@ class Instagram:
                 return {"success": True, "http_text": resp.text}
             raise InstagramError(f"Upload error: {resp.status_code} -> {resp.text}")
 
-    def upload_resumable_remote(self, ig_container_id: str, public_file_url: str):
+    def uploadResumableRemote(self, ig_container_id: str, public_file_url: str):
         """
         Instruct rupload to fetch a hosted file:
         POST https://rupload.facebook.com/ig-api-upload/{API_VERSION}/{IG_MEDIA_CONTAINER_ID}
@@ -228,55 +226,51 @@ class Instagram:
                 return {"success": True, "http_text": resp.text}
             raise InstagramError(f"Upload (remote) error: {resp.status_code} -> {resp.text}")
 
-    # -----------------------
-    # Limits, insights, basic media fetch
-    # -----------------------
+    # region Limits, insights, basic media fetch
     def getContentPublishingLimit(self):
         """GET /{ig_id}/content_publishing_limit"""
         return self._req("GET", f"{self.api_version}/{self.ig_id}/content_publishing_limit", host=self.graph_host)
 
-    def get_media(self, media_id: str, fields: str = "id,media_type,media_url,caption,permalink"):
+    def getMedia(self, media_id: str, fields: str = "id,media_type,media_url,caption,permalink"):
         return self._req("GET", f"{self.api_version}/{media_id}", params={"fields": fields}, host=self.graph_host)
 
-    def get_media_insights(self, media_id: str, metrics: list):
+    def getMediaInsights(self, media_id: str, metrics: list):
         """GET /{ig_media_id}/insights?metric=impressions,reach,..."""
         metrics_str = ",".join(metrics)
         return self._req("GET", f"{self.api_version}/{media_id}/insights", params={"metric": metrics_str}, host=self.graph_host)
 
-    def get_user_insights(self, metrics: list, period: str = "lifetime"):
+    def getUserInsights(self, metrics: list, period: str = "lifetime"):
         """GET /{ig_id}/insights?metric=...&period=..."""
         metrics_str = ",".join(metrics)
         return self._req("GET", f"{self.api_version}/{self.ig_id}/insights", params={"metric": metrics_str, "period": period}, host=self.graph_host)
-
-    # -----------------------
-    # Comment moderation
-    # -----------------------
-    def get_comments(self, media_id: str, params: dict = None):
+    # end region
+    
+    # region command operation
+    def getComments(self, media_id: str, params: dict = None):
         """GET /{ig_media_id}/comments"""
         if params is None:
             params = {}
         return self._req("GET", f"{self.api_version}/{media_id}/comments", params=params, host=self.graph_host)
 
-    def create_comment(self, media_id: str, message: str):
+    def createComment(self, media_id: str, message: str):
         """POST /{ig_media_id}/comments?message=..."""
         return self._req("POST", f"{self.api_version}/{media_id}/comments", json_data={"message": message}, host=self.graph_host)
 
-    def reply_to_comment(self, comment_id: str, message: str):
+    def replyToComment(self, comment_id: str, message: str):
         """POST /{ig_comment_id}/replies?message=..."""
         return self._req("POST", f"{self.api_version}/{comment_id}/replies", json_data={"message": message}, host=self.graph_host)
 
-    def hide_comment(self, comment_id: str, hide: bool = True):
+    def hideComment(self, comment_id: str, hide: bool = True):
         """POST /{ig_comment_id}?is_hidden=true|false"""
         return self._req("POST", f"{self.api_version}/{comment_id}", json_data={"is_hidden": hide}, host=self.graph_host)
 
-    def delete_comment(self, comment_id: str):
+    def deleteComment(self, comment_id: str):
         """DELETE /{ig_comment_id} (delete a comment)"""
         return self._req("DELETE", f"{self.api_version}/{comment_id}", host=self.graph_host)
+    # end region
 
-    # -----------------------
-    # Optional helper: upload local image to S3 (requires boto3)
-    # -----------------------
-    def upload_file_to_s3(self, file_path: str, bucket: str, key: str, acl: str = "public-read", boto3_session=None):
+    # upload local image to S3 (requires boto3)
+    def uploadFileToS3(self, file_path: str, bucket: str, key: str, acl: str = "public-read", boto3_session=None):
         """
         Helper: upload file to S3 so it becomes publicly accessible (useful because image_url must be public).
         Requires boto3. Returns the public URL (assuming bucket is public).
@@ -284,7 +278,7 @@ class Instagram:
         try:
             import boto3
         except ImportError:
-            raise RuntimeError("boto3 is required for upload_file_to_s3; install boto3 or host your image elsewhere.")
+            raise RuntimeError("boto3 is required for uploadFileToS3; install boto3 or host your image elsewhere.")
 
         s3 = boto3_session or boto3.client("s3")
         with open(file_path, "rb") as f:
@@ -382,10 +376,10 @@ if __name__ == '__main__':
     api.publishMedia(carousel.get("id"))
 
     # 3) resumable video (reels):
-    res = api.start_resumable_container(media_type=MediaType.REELS, caption="A reel")
+    res = api.startResumableContainer(media_type=MediaType.REELS, caption="A reel")
     container_id = res.get("id")
-    # upload local file (or upload_resumable_remote if hosted)
-    upload_resp = api.upload_resumable_local(container_id, "/path/to/video.mp4")
+    # upload local file (or uploadResumableRemote if hosted)
+    upload_resp = api.uploadResumableLocal(container_id, "/path/to/video.mp4")
     # poll
     api.pollContainerUntilReady(container_id, timeout_seconds=600, interval=10)
     api.publishMedia(container_id)
