@@ -127,7 +127,7 @@ class Graph:
     # end region
     
     # region utils
-    def bfsDirected(self, start: Node):
+    def bfsDirected(self, start: Node, visited: set = None):
         """ 
         Breadth-first search starting from 'start' for directed graph.
 
@@ -137,7 +137,8 @@ class Graph:
         if start is None:
             return
         
-        visited = set()
+        if visited is None:
+            visited = set()
         queue = deque([start])
         
         while queue:
@@ -154,7 +155,7 @@ class Graph:
                 if edge.end.key not in visited:
                     queue.append(edge.end)
         
-    def bfsNonDirected(self, start: Node):
+    def bfsNonDirected(self, start: Node, visited: set = None):
         """ 
         Breadth-first search starting from 'start' for non directed graph.
 
@@ -164,7 +165,8 @@ class Graph:
         if start is None:
             return
         
-        visited = set()
+        if visited is None:
+            visited = set()
         queue = deque([start])
         
         while queue:
@@ -185,7 +187,7 @@ class Graph:
                 if edge.start.key not in visited:
                     queue.append(edge.start)
         
-    def bfs(self, start: Node):
+    def bfs(self, start: Node, visited: set = None):
         """ 
         Breadth-first search starting from 'start'.
 
@@ -193,9 +195,9 @@ class Graph:
             Node: The nodes in BFS order.
         """
         if self.is_directed:
-            return self.bfsDirected(start=start)
+            return self.bfsDirected(start=start, visited=visited)
         else:
-            return self.bfsNonDirected(start=start)
+            return self.bfsNonDirected(start=start, visited=visited)
     
     def _dfsGenDirected(self, node: Node, visited: set, order: str):
         if node.key in visited:
@@ -212,7 +214,7 @@ class Graph:
         if order == 'post':
             yield node
     
-    def dfsDirected(self, start: Node = None, order: str = 'pre'):
+    def dfsDirected(self, start: Node = None, order: str = 'pre', visited:set=None):
         """ 
         Depth-First Search.
 
@@ -227,10 +229,12 @@ class Graph:
         if start is None:
             return
 
-        visited = set()
+        if visited is None:
+            visited = set()
+            
         yield from self._dfsGenDirected(start, visited, order)
         
-    def _dfsGenDirected(self, node: Node, visited: set, order: str):
+    def _dfsGenNonDirected(self, node: Node, visited: set, order: str):
         if node.key in visited:
             return
         
@@ -242,13 +246,13 @@ class Graph:
         for edge in node.edges_out:
             yield from self._dfsGenNonDirected(edge.end, visited, order)
             
-        for edge in node.edges_int:
+        for edge in node.edges_in:
             yield from self._dfsGenNonDirected(edge.start, visited, order)
             
         if order == 'post':
             yield node
         
-    def dfsNonDirected(self, start: Node = None, order: str = 'pre'):
+    def dfsNonDirected(self, start: Node = None, order: str = 'pre', visited:set=None):
         """ 
         Depth-First Search.
 
@@ -263,10 +267,12 @@ class Graph:
         if start is None:
             return
 
-        visited = set()
+        if visited is None:
+            visited = set()
+            
         yield from self._dfsGenNonDirected(start, visited, order)
         
-    def dfs(self, start: Node = None, order: str = 'pre'):
+    def dfs(self, start: Node = None, order: str = 'pre', visited: set = None):
         """ 
         Depth-First Search.
 
@@ -279,10 +285,9 @@ class Graph:
             Node: The nodes in the chosen DFS order.
         """
         if self.is_directed:
-            return self.dfsDirected(start=start, order=order)
+            yield from self.dfsDirected(start=start, order=order, visited=visited)
         else:
-            return self.dfsNonDirected(start=start, order=order)
-        
+            yield from self.dfsNonDirected(start=start, order=order, visited=visited)
         
     # end region
     
