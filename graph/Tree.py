@@ -97,6 +97,33 @@ class Tree(Graph):
         [_ for _ in self.dfsDirected(self.root, visited=visited)]
         return len(visited) == n
     
+    def isParentOf(self, node_a: Node, node_b: Node) -> bool:
+        return node_b is self.getParent(node_a)
+    
+    def isChildOf(self, node_a: Node, node_b: Node) -> bool:
+        raise self.isParentOf(node_a=node_b, node_b=node_a)
+    
+    def isSiblingOf(self, node_a: Node, node_b: Node) -> bool:
+        for sibling in self.getISiblings(node_a):
+            if sibling is node_b:
+                return True
+        return False
+    
+    def isAnscestorOf(self, node_a: Node, node_b: Node) -> bool:
+        for ancestor in self.getIAncestors(node_b):
+            if ancestor is node_a:
+                return True
+        return False
+    
+    def isDescendantOf(self, node_a: Node, node_b: Node) -> bool:
+        for descendant in self.getIDescendants(node_b):
+            if descendant is node_a:
+                return True
+        return False
+    
+    def isLeaf(self, node: Node) -> bool:
+        return len(node.edges_out) == 0
+    
     # end region
     
     # region get
