@@ -17,9 +17,11 @@ def addNoise(signals: list | np.ndarray, noise_level: float | np.ndarray | list 
         noise_level = np.random.uniform(*noise_level, size=signals.shape[0])
 
     if isinstance(noise_level, (list, np.ndarray)):
-        noise_level = np.asarray(noise_level)  # shape (N,)
-        # Reshape to (N, 1, 1, ...) to broadcast against signals of shape (N, T, ...)
-        noise_level = noise_level.reshape([-1] + [1] * (signals.ndim - 1))
+        noise_level = np.asarray(noise_level)  
+        
+        if noise_level.ndim == 1: # shape (N,)
+            # Reshape to (N, 1, 1, ...) to broadcast against signals of shape (N, T, ...)
+            noise_level = noise_level.reshape([-1] + [1] * (signals.ndim - 1))
 
     noise = np.random.normal(0, noise_level, size=signals.shape)
     return signals + noise
