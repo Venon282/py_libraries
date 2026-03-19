@@ -100,6 +100,61 @@ class Tree(Graph):
     # end region
     
     # region get
+    def getParent(self, node: Node) -> Node | None:
+        """ 
+        Return the parent of a node
+        
+        Returns:
+            Node | None
+        """
+        for edge in node.edges_in:
+            return edge.start
+        
+        return None
+
+    def getChildrens(self, node: Node) -> list[Node]:
+        """ 
+        Return the childrens of a node
+        
+        Returns:
+            list[Node]
+        """
+        return [edge.end for edge in node.edges_out]
+    
+    def getIChildrens(self, node: Node):
+        """ 
+        Return the childrens of a node
+
+        """
+        for edge in node.edges_out:
+            yield edge
+            
+    def getSiblings(self, node: Node) -> list[Node]:
+        """
+        Return siblings nodes (same nodes except himself).
+
+        Returns:
+            list[Node]
+        """
+        parent = self.getParent(node)
+        if parent is None:
+            return []
+        return [child for child in self.getIChildrens(parent) if child is not node]
+    
+    def getISiblings(self, node: Node):
+        """
+        Return siblings nodes (same nodes except himself).
+        """
+        parent = self.getParent(node)
+        if parent is None:
+            return []
+        
+        for child in self.getIChildrens(parent):
+            if child is node:
+                continue
+            
+            yield child
+    
     def getDepth(self, node: Node) -> int:
         """ 
         Returns the depth of a node (distance from the root).
@@ -117,10 +172,11 @@ class Tree(Graph):
         depth = 0
         current = node
         while current is not self.root:
-            if len(node.edges_in) == 0:
+            parent = self.getParent(node)
+            if parent is None:
                 raise ValueError('The node is not connected to the root.')
             
-            current = node.edges_in[0]
+            current = parent
             depth +=1
             
         return depth
@@ -149,8 +205,8 @@ class Tree(Graph):
             
             max_height = max(max_height, height)
             
-            for edge in node.edges_out:
-                que.append((edge.end, height+1))
+            for children in self.getIChildrens(node):
+                que.append((children, height+1))
         
         return max_height
     
@@ -175,8 +231,8 @@ class Tree(Graph):
             if d == depth:
                 result.append(node)
             elif d < depth:
-                for edge in node.edges_out:
-                    queue.append((edge.end, d + 1))
+                for children in self.getIChildrens(node):
+                    queue.append((children, d + 1))
 
         return result
     
@@ -188,7 +244,82 @@ class Tree(Graph):
             list[Node]
         """
         return [node for node in self.nodes.values() if node.degree_out == 0]
+    
+    def getAncestors(self, node: Node) -> list[Node]:
+        """ 
+        Return the ancestors ordonate node list (from parents to root)
+        
+        Returns:
+            list[Node]
+        """
+        ancestors = []
+        current = self.getParent(node)
+        while current is not None:
+            ancestors.append(current)
+            current = self.getParent(current)
+        return ancestors
+    
+    def getIAncestors(self, node: Node):
+        """ 
+        Return the ancestors ordonate node list (from parents to root)
 
+        """
+        current = self.getParent(node)
+        while current is not None:
+            yield current
+            current = self.getParent(current)
+    
+    def getDescendants(self, node: Node) -> list[Node]:
+        """ 
+        Return the descendants ordonate node list (from parents to root)
+        
+        Returns:
+            list[Node]
+        """
+        descendants = []
+        queue = deque(self.getChildrens(node))
+        visited = set()
+   
+        while queue:
+            current = queue.popleft()
+            if current in visited:
+                continue
+
+            visited.add(current)
+            descendants.append(current)
+            queue.extend(self.getChildrens(current))
+            
+        return descendants
+            
+    def getIDescendants(self, node: Node):
+        """ 
+        Return the descendants ordonate node list (from parents to root)
+        """
+        queue = deque(self.getChildrens(node))
+        visited = set()
+   
+        while queue:
+            current = queue.popleft()
+            if current in visited:
+                continue
+
+            visited.add(current)
+            yield current
+            queue.extend(self.getChildrens(current))
+            
+    def getLowestCommonAncestor(self, node_a: Node, node_b: Node) -> Node | None:
+        """
+        Lowest Common Ancestor (LCA) - ancêtre the closest ancestor.
+
+        Returns:
+            Node | None:Common ancestor, or None if inexistant.
+        """
+        node_a_ancestors = set(self.getAncestors(node_a))
+        
+        for ancestor in self.getIAncestors(node_b):
+            if ancestor in node_a_ancestors:
+                return ancestor
+        return None
     # end region
     
     
@@ -216,6 +347,34 @@ class Tree(Graph):
         
         self.addNode(node)
         self._root = node
+    # end region
+    
+    # region cast
+    def toDict(self) -> dict:
+        """
+        Extend the dict representation of Graph with the root key
+
+        Returns:
+            dict
+        """
+        base = super().toDict()
+        base['root'] = self.root.key if self.root else None
+        return base
+    # end region
+    
+    # region overwriting
+    def __str__(self) -> str:
+        root_key = self.root.key if self.root else 'None'
+        n = len(self.nodes)
+        h = self.getHeight() if self.root else '?'
+        leaves = len(self.getLeaves())
+        return (
+            f"--- Tree '{self.name}' ---\n"
+            f"Root    : {root_key}\n"
+            f"Nodes   : {n}  |  Edges : {len(self.edges)}\n"
+            f"Height  : {h}  |  Leaves: {leaves}\n"
+            f"Valid   : {self.isValidTree()}"
+        )
     # end region
     
     
