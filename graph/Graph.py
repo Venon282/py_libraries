@@ -718,6 +718,15 @@ class Graph:
     # end region
     
     # region overwriting
+    def __contains__(self, node: Node) -> bool:
+        return node.key in self.nodes
+    
+    def __len__(self) -> int:
+        return len(self.nodes)
+    
+    def __iter__(self):
+        return self.nodes.values()
+    
     def __str__(self):
         """
         Returns a string representation of the graph.
