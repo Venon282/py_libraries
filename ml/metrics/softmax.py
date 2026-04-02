@@ -1,7 +1,7 @@
 import sklearn.metrics as sklm
 import numpy as np 
 
-def metrics(true, pred):
+def metrics(true, pred, num_classes=None):
     """
     Calculate classification metrics for softmax model predictions.
 
@@ -19,14 +19,18 @@ def metrics(true, pred):
     """
     # Convert one-hot encoded true labels to class labels, if necessary.
     if np.ndim(true) > 1:
+        num_classes = num_classes or true.shape[1]
         true = np.argmax(true, axis=1)
+    else:
+        num_classes = num_classes or len(np.unique(true))
     
     # Convert predicted probabilities to class predictions.
     pred_class = np.argmax(pred, axis=1) if np.ndim(pred) > 1 else pred
+    labels = list(range(num_classes))
 
     return {
         'accuracy': sklm.accuracy_score(true, pred_class),
-        'log_loss': sklm.log_loss(true, pred),
+        'log_loss': sklm.log_loss(true, pred, labels=labels),
         'precision': sklm.precision_score(true, pred_class, average='weighted', zero_division=0),
         'recall': sklm.recall_score(true, pred_class, average='weighted', zero_division=0),
         'f1': sklm.f1_score(true, pred_class, average='weighted', zero_division=0)
