@@ -658,9 +658,9 @@ class ScrapingSeleniumBase:
         )
         return float(rect["left"]), float(rect["top"]), float(rect["width"]), float(rect["height"])
     
-    def closeGoogleTranslatePopup(self, wait=(1.0, 2.0)):
+    def closePopup(self, wait=(1.0, 2.0)):
         """
-        Try to close the Google Translate popup if present.
+        Try to close popup if present.
         """
         self.wait(*wait)
         pyautogui.press("esc")
