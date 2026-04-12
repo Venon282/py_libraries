@@ -1,6 +1,7 @@
 import numpy as np
 
 def metrics(true, pred, eps=1e-12):
+    true, pred, = np.asarray(true), np.asarray(pred)
     # Core differences
     diff        = pred - true
     abs_diff    = np.abs(diff)

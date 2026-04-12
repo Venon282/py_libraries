@@ -154,7 +154,7 @@ class Plot:
             if cmap_label:
                 fig.colorbar(sc, ax=ax, label=cmap_label)
             
-            return Plot._end(fig, ax, style, extras, path, show)
+        return Plot._end(fig, ax, style, extras, path, show)
     
     @staticmethod
     def image(*args, **kwargs) -> Optional[Figure]:
@@ -341,3 +341,11 @@ class Plot:
             ax.add_patch(Patch(facecolor=close_color, label='Down'))
             ax.legend()
         return Plot._end(fig, ax, style, extras, path, show)
+    
+    @staticmethod
+    def ecdf(x, *args, **kwargs) -> Optional[Figure]:
+        """empirical cumulative distribution function of x"""
+        fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
+        ax.ecdf(x, **gb_opts)
+        return Plot._end(fig, ax, style, extras, path, show)
+    

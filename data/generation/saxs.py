@@ -18,48 +18,99 @@ class VolumeShape:
     @staticmethod
     def sphere(radius):
         return np.pi * radius**3 *4/3
-    
+
     @staticmethod
     def parallelepiped(length_a, length_b, length_c):
         return length_a * length_b * length_c
-    
+
     @staticmethod
     def cylinder(radius, length):
         return np.pi * radius**2 * length
 
+import numpy as np
+
 class UnitConvertor:
+    """
+    A utility class for converting between metric and Angstrom-based units
+    commonly used in scattering science.
+    """
+
     @staticmethod
-    def nmToÅ(data:int|float|np.ndarray):
+    def nmToÅ(data: int | float | np.ndarray):
+        """Converts nanometers to Angstroms (1 nm = 10 Å)."""
         return data * 10.0
-    
+
     @staticmethod
-    def ÅToNm(data:int|float|np.ndarray):
+    def ÅToNm(data: int | float | np.ndarray):
+        """Converts Angstroms to nanometers (1 Å = 0.1 nm)."""
         return data / 10.0
 
     @staticmethod
-    def cm2ToÅ2(data:int|float|np.ndarray):
+    def cm2ToÅ2(data: int | float | np.ndarray):
+        """
+        Converts SLD from cm^-2 to Å^-2.
+        Factor: 1 cm^-2 = (10^8 Å)^-2 = 10^-16 Å^-2.
+        """
         return data * 1e-16
-    
+
     @staticmethod
-    def Å3ToCm3(data:int|float|np.ndarray):
+    def Å2ToCm2(data: int | float | np.ndarray):
+        """
+        Converts SLD from Å^-2 to cm^-2.
+        Factor: 1 Å^-2 = (10^-8 cm)^-2 = 10^16 cm^-2.
+        """
+        return data * 1e16
+
+    @staticmethod
+    def Å3ToCm3(data: int | float | np.ndarray):
+        """
+        Converts volume from Å^3 to cm^3.
+        Factor: 1 Å^3 = (10^-8 cm)^3 = 10^-24 cm^3.
+        """
         return data * 1e-24
+
+    @staticmethod
+    def cm3ToÅ3(data: int | float | np.ndarray):
+        """
+        Converts volume from cm^3 to Å^3.
+        Factor: 1 cm^3 = (10^8 Å)^3 = 10^24 Å^3.
+        """
+        return data * 1e24
 
 
 def scatteringLengthDensityCm2(name):
+    """
+        https://slddb.reflectometry.org/
+
+        1. look for the desire one
+        2. click on select
+        3. Choose Cu-Ka or Mo-Ka
+        4. Choose SLD unit
+        5. Multiply it by the defined value (eg: (10⁻⁶ Å⁻²) -> multiply by *10**(-6))
+        6. Use the UnitConvertor.Å2ToCm2
+
+    """
     name = name.strip().lower()
-    
+
     values = {
-        'au': 1.31596e+12,
-        'ag': 7.76211e+11,
-        'latex': 8.81075e+10, #(not sure ??)
-        'sio2': 1.86206e+11,
-        'h2o': 9.39845e10,
-        'water': 9.39845e10
+        'h2o_21c': 9.44948e+10,
+        'au': 1.25387e+12,
+        'ag': 7.82265e+11,
+        'fe': 5.98198e+11,
+        'sio2': 1.88952e+11,
+        'h8c8_latex': 9.60732e+10,
+
+        # 'au': 1.31596e+12,
+        # 'ag': 7.76211e+11,
+        # 'latex': 8.81075e+10,
+        # 'sio2': 1.86206e+11,
+        # 'h2o': 9.39845e10,
+        # 'water': 9.39845e10
     }
-    
+
     if name in values:
         return values[name]
-    
+
     raise ValueError(f"Unknow {name} material")
 
 Model = None
@@ -69,7 +120,7 @@ def _globalInitModel(q, shape):
     from sasmodels.core import load_model
     from sasmodels.direct_model import DirectModel
     from sasmodels.data import empty_data1D
-    
+
     empty_data_1d = empty_data1D(q)
     model_def = load_model(shape)
     Model = DirectModel(empty_data_1d, model_def)
@@ -77,7 +128,7 @@ def _globalInitModel(q, shape):
 @profile
 def generateSignal(params: dict, shape: str, material_sld_val, solvent_sld_val):
     """
-    Worker executed in each process. 
+    Worker executed in each process.
     `params` should include 'concentration' and the geometric parameters (radius, length_a, ...).
     Returns a tuple (params_dict, intensity_array).
     """
@@ -90,7 +141,7 @@ def generateSignal(params: dict, shape: str, material_sld_val, solvent_sld_val):
     # compute volume in Å^3 using the requested shape function
     if not hasattr(VolumeShape, shape):
         raise ValueError(f"Unknown shape '{shape}' for volume computation.")
-    
+
     volume_A3 = getattr(VolumeShape, shape)(**params)
     volume_cm3 = UnitConvertor.Å3ToCm3(volume_A3)
 
@@ -101,14 +152,14 @@ def generateSignal(params: dict, shape: str, material_sld_val, solvent_sld_val):
     model_pars.update(params)
 
     intensity = Model(**model_pars) * 1e12
-    
+
     for key, value in params.items():
         params[key] = UnitConvertor.ÅToNm(value)
-    params['concentration'] = concentration    
+    params['concentration'] = concentration
     model_pars.update(params)
 
     return {'params': model_pars, 'intensity': intensity}
-    
+
 @profile
 def main(
     q:list,
@@ -126,7 +177,7 @@ def main(
     material_sld = UnitConvertor.cm2ToÅ2(material_sld_cm2)
     solvent_sld_cm2 = scatteringLengthDensityCm2(env)
     solvent_sld = UnitConvertor.cm2ToÅ2(solvent_sld_cm2)
-    
+
     logger.debug([[k,len(v)] for k, v in parameters.items()])
     if parameters_operator == 'product':
         iterator = [
@@ -144,9 +195,9 @@ def main(
         iterator = [dict(zip(parameters.keys(), values)) for values in zip(*parameters.values())]
         n_signal = lengths[0]
     else: raise ValueError(f'parameters_operator must be either product or stack.')
-    
+
     logger.info(f'{n_signal} signal of {material} {shape} will be generate.')
-    
+
     # Open HDF5 file
     with h5py.File(save_h5_filepath, 'w') as f:
         logger.info(f'Dataset creations...')
@@ -157,14 +208,14 @@ def main(
             dtype=np.float32,
             chunks=True,
         )
-        dset_q = f.create_dataset('q', data=q)
+        #dset_q = f.create_dataset('q', data=q)
         dsets_meta = {}
         for k in parameters.keys():
             dsets_meta[k] = f.create_dataset(k, shape=(n_signal,), dtype=np.float64, chunks=True)
 
         logger.info(f'Starting the generation with {os.cpu_count()} CPU...')
         if max_workers == 0:
-            _globalInitModel(q, shape)  
+            _globalInitModel(q, shape)
             for i, params in enumerate(tqdm(iterator, total=n_signal, desc="Generating signals", mininterval=1, miniters=100)):
                 res = generateSignal(params, shape, material_sld, solvent_sld)
                 dset_intensities[i, :] = res['intensity']
@@ -199,26 +250,26 @@ def main(
         f.attrs["environment_scattering_length_density"] = solvent_sld_cm2
         for key, value in other_attrs.items():
             f.attrs[key] = value
-        
+
     logger.info(f"All signals written to {save_h5_filepath}.")
-    
+
 def safePath(path, suffix="_", max_tries=1000):
     """Create a unique name next to the original.
     Returns the path of the created copy.
     """
     if not os.path.exists(path):
         return path
-    
+
     folder, filename = os.path.split(path)
     base, ext = os.path.splitext(filename)
-    
+
     for i in range(max_tries):
         new_name = f"{base}{suffix}{i}{ext}"
-            
+
         new_path = os.path.join(folder, new_name)
         if not os.path.exists(new_path):
             return new_path
-        
+
     raise FileExistsError(f"Could not create a unique path of {path} after {max_tries} attempts")
 
 if __name__ == '__main__':
@@ -236,7 +287,7 @@ if __name__ == '__main__':
         "author":"Esteban THEVENON",
         "type":"simulation"
     }
-    
+
     # define parameters
     if shape == 'cube':
         parameters_operator = 'stack'
@@ -270,7 +321,7 @@ if __name__ == '__main__':
             }
     else:
         raise Exception(f'{shape} parameters is not define. Please set this shape before going farwer.')
-    
+
     main(
         q = q,
         parameters = parameters,

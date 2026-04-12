@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 import numpy as np
 
-def save(fig, file_path):
+def save(fig, file_path, dpi=200):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    fig.savefig(file_path) 
+    fig.savefig(file_path, dpi=dpi) 
     
 def isClose(ax: Axes) -> bool:
     """

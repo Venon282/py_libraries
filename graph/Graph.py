@@ -126,6 +126,171 @@ class Graph:
         edge.end.discardEdge(edge)
     # end region
     
+    # region utils
+    def bfsDirected(self, start: Node, visited: set = None):
+        """ 
+        Breadth-first search starting from 'start' for directed graph.
+
+        Yields:
+            Node: The nodes in BFS order.
+        """
+        if start is None:
+            return
+        
+        if visited is None:
+            visited = set()
+        queue = deque([start])
+        
+        while queue:
+            node = queue.popleft()
+            
+            if node.key in visited:
+                continue
+            
+            visited.add(node.key)
+            
+            yield node
+            
+            for edge in node.edges_out:
+                if edge.end.key not in visited:
+                    queue.append(edge.end)
+        
+    def bfsNonDirected(self, start: Node, visited: set = None):
+        """ 
+        Breadth-first search starting from 'start' for non directed graph.
+
+        Yields:
+            Node: The nodes in BFS order.
+        """
+        if start is None:
+            return
+        
+        if visited is None:
+            visited = set()
+        queue = deque([start])
+        
+        while queue:
+            node = queue.popleft()
+            
+            if node.key in visited:
+                continue
+            
+            visited.add(node.key)
+            
+            yield node
+            
+            for edge in node.edges_out:
+                if edge.end.key not in visited:
+                    queue.append(edge.end)
+            
+            for edge in node.edges_in:
+                if edge.start.key not in visited:
+                    queue.append(edge.start)
+        
+    def bfs(self, start: Node, visited: set = None):
+        """ 
+        Breadth-first search starting from 'start'.
+
+        Yields:
+            Node: The nodes in BFS order.
+        """
+        if self.is_directed:
+            return self.bfsDirected(start=start, visited=visited)
+        else:
+            return self.bfsNonDirected(start=start, visited=visited)
+    
+    def _dfsGenDirected(self, node: Node, visited: set, order: str):
+        if node.key in visited:
+            return
+        
+        visited.add(node.key)
+        
+        if order == 'pre':
+            yield node
+            
+        for edge in node.edges_out:
+            yield from self._dfsGenDirected(edge.end, visited, order)
+            
+        if order == 'post':
+            yield node
+    
+    def dfsDirected(self, start: Node = None, order: str = 'pre', visited:set=None):
+        """ 
+        Depth-First Search.
+
+        Parameters:
+            start (Node): Starting node.
+            order (str): 'pre' -> pre-order (node before its children)
+                          'post' -> post-order (node after its children)
+
+        Yields:
+            Node: The nodes in the chosen DFS order.
+        """
+        if start is None:
+            return
+
+        if visited is None:
+            visited = set()
+            
+        yield from self._dfsGenDirected(start, visited, order)
+        
+    def _dfsGenNonDirected(self, node: Node, visited: set, order: str):
+        if node.key in visited:
+            return
+        
+        visited.add(node.key)
+        
+        if order == 'pre':
+            yield node
+            
+        for edge in node.edges_out:
+            yield from self._dfsGenNonDirected(edge.end, visited, order)
+            
+        for edge in node.edges_in:
+            yield from self._dfsGenNonDirected(edge.start, visited, order)
+            
+        if order == 'post':
+            yield node
+        
+    def dfsNonDirected(self, start: Node = None, order: str = 'pre', visited:set=None):
+        """ 
+        Depth-First Search.
+
+        Parameters:
+            start (Node): Starting node.
+            order (str): 'pre' -> pre-order (node before its children)
+                          'post' -> post-order (node after its children)
+
+        Yields:
+            Node: The nodes in the chosen DFS order.
+        """
+        if start is None:
+            return
+
+        if visited is None:
+            visited = set()
+            
+        yield from self._dfsGenNonDirected(start, visited, order)
+        
+    def dfs(self, start: Node = None, order: str = 'pre', visited: set = None):
+        """ 
+        Depth-First Search.
+
+        Parameters:
+            start (Node): Starting node.
+            order (str): 'pre' -> pre-order (node before its children)
+                          'post' -> post-order (node after its children)
+
+        Yields:
+            Node: The nodes in the chosen DFS order.
+        """
+        if self.is_directed:
+            yield from self.dfsDirected(start=start, order=order, visited=visited)
+        else:
+            yield from self.dfsNonDirected(start=start, order=order, visited=visited)
+        
+    # end region
+    
     # region Is
     def isLinkedList(self):
         num_nodes = len(self.nodes)
@@ -236,6 +401,76 @@ class Graph:
                     return False
 
         return True
+    # end region
+    
+    # region has
+    def hasPathNonDirected(self, source: Node, target: Node) -> bool:
+        """
+        BFS to detect the existance of a path in a non oriented graph from source to target
+
+        Returns:
+            bool: True if a path exist.
+        """
+        visited = set()
+        queue = deque([source])
+        
+        while queue:
+            current = queue.popleft()
+            
+            if current is target:
+                return True
+            
+            if current.key in visited:
+                continue
+            
+            visited.add(current.key)
+            
+            for edge in current.edges_out:
+                queue.append(edge.end)
+                
+            for edge in current.edges_in:
+                queue.append(edge.start)
+                
+        return False
+    
+    def hasPathDirected(self, source: Node, target: Node) -> bool:
+        """
+        BFS to detect the existance of a path in an oriented graph from source to target
+
+        Returns:
+            bool: True if a path exist.
+        """
+        visited = set()
+        queue = deque([source])
+        
+        while queue:
+            current = queue.popleft()
+            
+            if current is target:
+                return True
+            
+            if current.key in visited:
+                continue
+            
+            visited.add(current.key)
+            
+            for edge in current.edges_out:
+                queue.append(edge.end)
+                
+        return False       
+     
+    def hasPath(self, source: Node, target: Node) -> bool:
+        """
+        BFS to detect the existance of a path from source to target
+
+        Returns:
+            bool: True if a path exist.
+        """
+        if self.is_directed:
+            return self.hasPathDirected(source=source, target=target)
+        else:
+            return self.hasPathNonDirected(source=source, target=target)
+        
     # end region
     
     # region Get        
@@ -483,6 +718,15 @@ class Graph:
     # end region
     
     # region overwriting
+    def __contains__(self, node: Node) -> bool:
+        return node.key in self.nodes
+    
+    def __len__(self) -> int:
+        return len(self.nodes)
+    
+    def __iter__(self):
+        return self.nodes.values()
+    
     def __str__(self):
         """
         Returns a string representation of the graph.
