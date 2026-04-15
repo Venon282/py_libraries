@@ -122,6 +122,12 @@ class ScrapingSeleniumBase:
             return self.sb.driver.find_element(By.XPATH, selector)
         return self.sb.driver.find_element(By.CSS_SELECTOR, selector)
     
+    def getElements(self, selector: str):
+        """Find elements using XPath if selector looks like XPath, otherwise CSS."""
+        if self.isXpath(selector):
+            return self.sb.driver.find_elements(By.XPATH, selector)
+        return self.sb.driver.find_elements(By.CSS_SELECTOR, selector)
+    
     def getMousePosition(self):
         return self.screenToViewport(*pyautogui.position())
 
@@ -186,6 +192,39 @@ class ScrapingSeleniumBase:
                 )
             return True
         except TimeoutException:
+            return False
+        
+    def isClickable(self, element: str | WebElement, timeout: int = 5) -> bool:
+        """
+        Check if an element is clickable.
+
+        Parameters
+        ----------
+        element : str | WebElement
+            CSS selector, XPath, or WebElement.
+        timeout : int
+            Time to wait for clickability.
+
+        Returns
+        -------
+        bool
+            True if element is clickable, False otherwise.
+        """
+        try:
+            if isinstance(element, WebElement):
+                WebDriverWait(self.sb.driver, timeout).until(
+                    EC.element_to_be_clickable(element)
+                )
+            elif self.isXpath(element):
+                WebDriverWait(self.sb.driver, timeout).until(
+                    EC.element_to_be_clickable((By.XPATH, element))
+                )
+            else:
+                WebDriverWait(self.sb.driver, timeout).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, element))
+                )
+            return True
+        except (TimeoutException, NoSuchElementException):
             return False
     
     def waitForClickable(self, element:str|WebElement, timeout: int = 10):
@@ -610,15 +649,18 @@ class ScrapingSeleniumBase:
     def saveCookies(self, path='./'):
         path = Path(path)
         cookies = self.sb.driver.get_cookies()
-        if not path.is_file():
+        
+        if not path.suffix:
             path = path / "cookies.pkl"
+        
+        path.parent.mkdir(parents=True, exist_ok=True)
         with open(path.as_posix(), "wb") as f:
             pickle.dump(cookies, f)
             
     def loadCookies(self, path='./', not_exist_ok=True):
         path = Path(path)
         
-        if not path.is_file():
+        if not path.suffix:
             path = path / "cookies.pkl"
             
         if not path.exists():
