@@ -134,40 +134,92 @@ def _get_model(q: np.ndarray, shape: str):
         _model_cache[key] = DirectModel(empty_data1D(q), load_model(shape))
     return _model_cache[key]
 
+@dataclass
+class SignalResult:
+    """
+    Holds the output of a single :func:`generateSignal` call.
+
+    Attributes
+    ----------
+    intensity:
+        Scattering intensity array (same length as q).
+    params_nm:
+        Geometric parameters expressed in **nanometres** (human-readable).
+    params_model:
+        Raw parameters forwarded to sasmodels (geometric values in **Å**,
+        plus scale and background).
+    concentration:
+        Particle number concentration (cm⁻³).
+    """
+    intensity: np.ndarray
+    params_nm: dict[str, float]
+    params_model: dict[str, float]
+    concentration: float
+
 @profile
-def generateSignal(params: dict, q:np.ndarray, shape: str, material_sld_val, solvent_sld_val):
+def generateSignal(
+    params: dict,
+    q:np.ndarray,
+    shape: str,
+    material_sld_val,
+    solvent_sld_val
+    ) -> SignalResult:
     """
-    Worker executed in each process.
-    `params` should include 'concentration' and the geometric parameters (radius, length_a, ...).
-    Returns a tuple (params_dict, intensity_array).
+    Compute a single SAXS intensity curve.
+
+    Parameters
+    ----------
+    params:
+        Must contain ``'concentration'`` and all geometric keys for *shape*,
+        with geometric values expressed in **Å**.
+    shape:
+        sasmodels shape name (e.g. ``'sphere'``, ``'cylinder'``).
+    material_sld_val:
+        Material SLD in Å⁻².
+    solvent_sld_val:
+        Solvent SLD in Å⁻².
+
+    Returns
+    -------
+    SignalResult
     """
+    # compute volume in Å^3 using the requested shape function
+    if not hasattr(VolumeShape, shape):
+        raise ValueError(
+            f"VolumeShape has no method for '{shape}'. "
+            f"Available: {[m for m in dir(VolumeShape) if not m.startswith('_')]}"
+        )
+
     Model = _get_model(q, shape)
 
     # extract concentration and geometric params
     params = dict(params)  # copy
     concentration = float(params.pop('concentration'))
 
-    # compute volume in Å^3 using the requested shape function
-    if not hasattr(VolumeShape, shape):
-        raise ValueError(f"Unknown shape '{shape}' for volume computation.")
-
     volume_A3 = getattr(VolumeShape, shape)(**params)
     volume_cm3 = UnitConvertor.Å3ToCm3(volume_A3)
-
     scale = concentration * volume_cm3
 
     # prepare model parameters (merge dims back)
-    model_pars = dict(scale=scale, background=0.0, sld=material_sld_val, sld_solvent=solvent_sld_val)
-    model_pars.update(params)
+    params_model: dict[str, float] = {
+        "scale":       scale,
+        "background":  0.0,
+        "sld":         material_sld_val,
+        "sld_solvent": solvent_sld_val,
+        **params,                         # geometric params in Å
+    }
 
-    intensity = Model(**model_pars) * 1e12
+    intensity = Model(**params_model) * 1e12
 
-    for key, value in params.items():
-        params[key] = UnitConvertor.ÅToNm(value)
-    params['concentration'] = concentration
-    model_pars.update(params)
+    params_nm = {k: UnitConvertor.ÅToNm(v) for k, v in params.items()}
 
-    return {'params': model_pars, 'intensity': intensity}
+    return SignalResult(
+        intensity=intensity,
+        params_nm=params_nm,
+        params_model=params_model,
+        concentration=concentration,
+    )
+
 
 def buildParameterGrid(parameters: dict, operator: str) -> list[dict]:
     """
@@ -208,6 +260,8 @@ def buildParameterGrid(parameters: dict, operator: str) -> list[dict]:
             for values in zip(*parameters.values())
         ]
     else: raise ValueError(f'parameters_operator must be either product or stack.')
+
+
 
 @profile
 def main(
@@ -255,13 +309,16 @@ def main(
         for k in parameters.keys():
             dsets_meta[k] = f.create_dataset(k, shape=(n_signal,), dtype=np.float64, chunks=True)
 
+        def _writeH5(res:SignalResult, index:int):
+            dset_intensities[index, :] = res.intensity
+            for k in parameters.keys():
+                dsets_meta[k][index] = res.params_nm[k]
+
         logger.info(f'Starting the generation with {os.cpu_count()} CPU...')
         if max_workers == 0:
             for i, params in enumerate(tqdm(param_grid, total=n_signal, desc="Generating signals", mininterval=1, miniters=100)):
                 res = generateSignal(params, q, shape, material_sld, solvent_sld)
-                dset_intensities[i, :] = res['intensity']
-                for k in parameters.keys():
-                    dsets_meta[k][i] = res['params'][k]
+                _writeH5(res, i)
         else:
             # Parallel mode
             with concurrent.futures.ProcessPoolExecutor(
@@ -276,9 +333,7 @@ def main(
                     repeat(solvent_sld)
                 )
                 for i, res in enumerate(tqdm(futures, total=n_signal, desc="Generating signals", mininterval=1, miniters=100)):
-                    dset_intensities[i, :] = res['intensity']
-                    for k in parameters.keys():
-                        dsets_meta[k][i] = res['params'][k]
+                    _writeH5(res, i)
 
         # Define attrs
         f.attrs["q"] = q
