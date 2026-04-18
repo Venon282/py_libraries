@@ -47,15 +47,14 @@ Constants.__annotations__['SLD'] = dict[str, float]
 """
 To ensure that the parameters pass are valid depending of the shape
 """
-Constants.SHAPE_PARAM = {
+_SHAPE_PARAM:dict[str, set[str]] = {
     'sphere': {'radius'},
     'cylinder': {'radius', 'length'},
     'parallelepiped': {'length_a', 'length_b', 'length_c'},
 }
-Constants.__annotations__['SHAPE_PARAM'] = dict[str, set[str]]
 
 def _validateParameters(shape: str, params: dict[str, set[str]]) -> None:
-    expected = Constants.SHAPE_PARAM.get(shape)
+    expected = _SHAPE_PARAM.get(shape)
 
     if expected is None:
         raise ValueError(f"Unknown shape '{shape}'.")
