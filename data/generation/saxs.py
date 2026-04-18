@@ -12,7 +12,7 @@ except ImportError:
         """No-op replacement when line_profiler is not installed."""
         return fn
 
-# Small Angular X-ray Scatering
+# Small Angular X-ray Scattering
 
 #? doc for add more shape: https://www.sasview.org/docs/user/qtgui/Perspectives/Fitting/models/index.html
 from ...other.loggingUtils import getLogger
@@ -27,7 +27,7 @@ Scattering Length Density in 10⁻⁶ Å⁻²
 
 https://slddb.reflectometry.org/
 
-        1. look for the desire one
+        1. look for the desired one
         2. click on select
         3. Choose Cu-Ka or Mo-Ka
         4. Choose SLD unit
@@ -215,12 +215,13 @@ def buildParameterGrid(parameters: dict, operator: str) -> list[dict]:
                 f"Got lengths: { {k: len(v) for k, v in parameters.items()} }"
             )
 
-        # Generate dictionnary list
+        # Generate dictionary list
         return [
             dict(zip(parameters.keys(), values))
             for values in zip(*parameters.values())
         ]
-    else: raise ValueError(f'parameters_operator must be either product or stack.')
+    else:
+        raise ValueError(f'parameters_operator must be either product or stack.')
 
 
 
@@ -236,6 +237,9 @@ def main(
     max_workers:int=None,
     save_h5_filepath='./signals.h5',
 ):
+    """
+    concentration in part cm-3
+    """
     _validateParameters(shape, parameters)
 
     if other_attrs is None:
@@ -306,8 +310,8 @@ def main(
         f.attrs["type"] = "simulation"
         f.attrs["shape"] = shape
         f.attrs["environment"] = env
-        f.attrs["scattering_length_density"] = material_sld_cm2
-        f.attrs["environment_scattering_length_density"] = solvent_sld_cm2
+        f.attrs["scattering_length_density"] = material_sld
+        f.attrs["environment_scattering_length_density"] = solvent_sld
 
         for key, value in other_attrs.items():
             f.attrs[key] = value
@@ -329,7 +333,7 @@ def safePath(path: str, suffix: str = "_", max_try:int = 1000) -> str:
 
 if __name__ == '__main__':
     # py -m kernprof -l -v saxs_simulation_generation.py > report.txt
-    # -l line by line -v in the consol > consol display in a txt
+    # -l line by line -v in the console > console display in a txt
     q = np.linspace(1e-3, 1, 1000)
     concentrations = np.logspace(8, 19, 1000).astype(np.float64)
     shape = "cube"
@@ -375,7 +379,7 @@ if __name__ == '__main__':
             'length': unit_converter.convert(np.arange(5, 16, 4), "nanometre", "angstrom", "length"),
             }
     else:
-        raise Exception(f'{shape} parameters is not define. Please set this shape before going farwer.')
+        raise Exception(f'{shape} parameters is not define. Please set this shape before going further.')
 
     main(
         q = q,
