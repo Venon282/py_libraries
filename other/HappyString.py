@@ -7,7 +7,7 @@ class HappyString:
     """
     def __init__(self, chars='abc'):
         self.chars = chars
-                
+
 
     def nThHappyStringOfLength(self, size: int, k: int) -> str:
         """
@@ -58,28 +58,28 @@ class HappyString:
                 if not word or c != word[-1]:
                     res.extend(happyStringsRec(word + c, n))
             return res
-        
+
         return happyStringsRec("", n)
 
     def isHappyString(self, string):
         if string[0] not in self.chars:
             return False
-        
+
         for i in range(1, len(string)):
             if string[i] not in self.chars or string[i] == string[i - 1]:
                 return False
         return True
-    
-    def substringsContainingAllC(self, string):
+
+    def substringsContainingAllChars(self, string):
         """
         :type s: str
         :rtype: int
         """
-        last_seen = {c:-1 for c in self.chars} 
+        last_seen = {c:-1 for c in self.chars}
 
         total = 0
         for i in range(len(string)):
             last_seen[string[i]] = i
             total += min(last_seen.values()) + 1
-        
+
         return total
