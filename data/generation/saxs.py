@@ -10,8 +10,31 @@ from line_profiler import profile
 
 #? doc for add more shape: https://www.sasview.org/docs/user/qtgui/Perspectives/Fitting/models/index.html
 from ...other.loggingUtils import getLogger
+from ...constant.Constant import Constants
 
 logger = getLogger(__name__)
+
+"""
+Scattering Length Density in cm^2
+
+https://slddb.reflectometry.org/
+
+        1. look for the desire one
+        2. click on select
+        3. Choose Cu-Ka or Mo-Ka
+        4. Choose SLD unit
+        5. Multiply it by the defined value (eg: (10⁻⁶ Å⁻²) -> multiply by *10**(-6))
+        6. Use the UnitConvertor.Å2ToCm2
+"""
+Constants.SLD = {
+    'h2o_21c': 9.44948e+10,
+    'au': 1.25387e+12,
+    'ag': 7.82265e+11,
+    'fe': 5.98198e+11,
+    'sio2': 1.88952e+11,
+    'h8c8_latex': 9.60732e+10,
+}
+Constants.__annotations__['SLD'] = dict[str, float]
 
 class VolumeShape:
     @staticmethod
@@ -75,41 +98,6 @@ class UnitConvertor:
         return data * 1e24
 
 
-def scatteringLengthDensityCm2(name):
-    """
-        https://slddb.reflectometry.org/
-
-        1. look for the desire one
-        2. click on select
-        3. Choose Cu-Ka or Mo-Ka
-        4. Choose SLD unit
-        5. Multiply it by the defined value (eg: (10⁻⁶ Å⁻²) -> multiply by *10**(-6))
-        6. Use the UnitConvertor.Å2ToCm2
-
-    """
-    name = name.strip().lower()
-
-    values = {
-        'h2o_21c': 9.44948e+10,
-        'au': 1.25387e+12,
-        'ag': 7.82265e+11,
-        'fe': 5.98198e+11,
-        'sio2': 1.88952e+11,
-        'h8c8_latex': 9.60732e+10,
-
-        # 'au': 1.31596e+12,
-        # 'ag': 7.76211e+11,
-        # 'latex': 8.81075e+10,
-        # 'sio2': 1.86206e+11,
-        # 'h2o': 9.39845e10,
-        # 'water': 9.39845e10
-    }
-
-    if name in values:
-        return values[name]
-
-    raise ValueError(f"Unknow {name} material")
-
 _model_cache: dict[tuple, object] = {}
 def _get_model(q: np.ndarray, shape: str):
     key = (tuple(q), shape)
@@ -167,10 +155,14 @@ def main(
     max_workers:int=None,
     save_h5_filepath='./signals.h5',
 ):
+    # ensure materials consistency
+    material = material.strip().lower()
+    env = env.strip().lower()
+
     save_h5_filepath = safePath(save_h5_filepath)
-    material_sld_cm2 = scatteringLengthDensityCm2(material)
+    material_sld_cm2 = Constants.SLD[material]
     material_sld = UnitConvertor.cm2ToÅ2(material_sld_cm2)
-    solvent_sld_cm2 = scatteringLengthDensityCm2(env)
+    solvent_sld_cm2 = Constants.SLD[env]
     solvent_sld = UnitConvertor.cm2ToÅ2(solvent_sld_cm2)
 
     logger.debug([[k,len(v)] for k, v in parameters.items()])
