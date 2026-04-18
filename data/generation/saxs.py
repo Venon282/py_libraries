@@ -23,7 +23,7 @@ logger = getLogger(__name__)
 unit_converter = UnitConverter()
 
 """
-Scattering Length Density in cm^2
+Scattering Length Density in 10⁻⁶ Å⁻²
 
 https://slddb.reflectometry.org/
 
@@ -31,16 +31,14 @@ https://slddb.reflectometry.org/
         2. click on select
         3. Choose Cu-Ka or Mo-Ka
         4. Choose SLD unit
-        5. Multiply it by the defined value (eg: (10⁻⁶ Å⁻²) -> multiply by *10**(-6))
-        6. Use the unit_converter.convert(value, "per_square_angstrom", "per_square_centimetre", "inverse_area")
 """
 Constants.SLD = {
-    'h2o_21c': 9.44948e+10,
-    'au': 1.25387e+12,
-    'ag': 7.82265e+11,
-    'fe': 5.98198e+11,
-    'sio2': 1.88952e+11,
-    'h8c8_latex': 9.60732e+10,
+    'h2o_21c': 9.44948,
+    'au': 125.38724,
+    'ag': 78.22652,
+    'fe': 59.81977,
+    'sio2': 18.89519,
+    'h8c8_latex': 9.60732,
 }
 Constants.__annotations__['SLD'] = dict[str, float]
 
@@ -88,7 +86,7 @@ class VolumeShape:
         return np.pi * radius**2 * length
 
 _model_cache: dict[tuple, object] = {}
-def _get_model(q: np.ndarray, shape: str):
+def _getModel(q: np.ndarray, shape: str):
     key = (tuple(q), shape)
     if key not in _model_cache:
         from sasmodels.core import load_model
@@ -138,9 +136,9 @@ def generateSignal(
     shape:
         sasmodels shape name (e.g. ``'sphere'``, ``'cylinder'``).
     material_sld_val:
-        Material SLD in Å⁻².
+        Material SLD in 10⁻⁶ Å⁻².
     solvent_sld_val:
-        Solvent SLD in Å⁻².
+        Solvent SLD in 10⁻⁶ Å⁻².
 
     Returns
     -------
@@ -153,7 +151,7 @@ def generateSignal(
             f"Available: {[m for m in dir(VolumeShape) if not m.startswith('_')]}"
         )
 
-    Model = _get_model(q, shape)
+    Model = _getModel(q, shape)
 
     # extract concentration and geometric params
     params = dict(params)  # copy
@@ -172,7 +170,7 @@ def generateSignal(
         **params,                         # geometric params in Å
     }
 
-    intensity = Model(**params_model) * 1e12
+    intensity = Model(**params_model)
 
     params_nm = {k: unit_converter.convert(v, "angstrom", "nanometre", "length") for k, v in params.items()}
 
@@ -229,33 +227,34 @@ def buildParameterGrid(parameters: dict, operator: str) -> list[dict]:
 @profile
 def main(
     q:list,
-    parameters:dict[list],
+    parameters:dict[str, list],
     shape:str,
     material:str,
     env:str,
-    other_attrs:dict={},
+    other_attrs: dict | None = None,
     parameters_operator:str='product',
     max_workers:int=None,
     save_h5_filepath='./signals.h5',
 ):
     _validateParameters(shape, parameters)
 
+    if other_attrs is None:
+        other_attrs = {}
+
     # ensure materials consistency
     material = material.strip().lower()
     env = env.strip().lower()
 
     save_h5_filepath = safePath(save_h5_filepath)
-    material_sld_cm2 = Constants.SLD[material]
-    material_sld = unit_converter.convert(material_sld_cm2, "per_square_centimetre", "per_square_angstrom", "inverse_area")
-    solvent_sld_cm2 = Constants.SLD[env]
-    solvent_sld = unit_converter.convert(solvent_sld_cm2, "per_square_centimetre", "per_square_angstrom", "inverse_area")
+    material_sld = Constants.SLD[material]
+    solvent_sld = Constants.SLD[env]
 
     logger.debug("Parameter sizes: %s", {k: len(v) for k, v in parameters.items()})
 
     param_grid = buildParameterGrid(parameters, parameters_operator)
     n_signal = len(param_grid)
 
-    logger.info(f'{n_signal} signal of {material} {shape} will be generate.')
+    logger.info(f'{n_signal} signals of {material} {shape} will be generated.')
 
     # Open HDF5 file
     with h5py.File(save_h5_filepath, 'w') as f:
@@ -274,7 +273,8 @@ def main(
 
         def _writeH5(res:SignalResult, index:int):
             dset_intensities[index, :] = res.intensity
-            for k in parameters.keys():
+            dsets_meta['concentration'][index] = res.concentration
+            for k in parameters.keys() - {'concentration'}:
                 dsets_meta[k][index] = res.params_nm[k]
 
         logger.info(f'Starting the generation with {os.cpu_count()} CPU...')
@@ -334,7 +334,7 @@ if __name__ == '__main__':
     concentrations = np.logspace(8, 19, 1000).astype(np.float64)
     shape = "cube"
     material = "ag"
-    env = "water"
+    env = "h2o_21c"
     parameters_operator = 'product'
     save_h5_filepath = rf'C:\Users\ET281306\Downloads\saxs_{material}_{shape}.h5'
     max_workers=0
