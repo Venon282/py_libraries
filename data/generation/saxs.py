@@ -1,9 +1,7 @@
 import numpy as np
 import h5py
 from itertools import product, repeat
-from multiprocessing import Pool, cpu_count
 from tqdm import tqdm
-import logging
 import os
 import concurrent.futures
 from line_profiler import profile
@@ -27,8 +25,6 @@ class VolumeShape:
     @staticmethod
     def cylinder(radius, length):
         return np.pi * radius**2 * length
-
-import numpy as np
 
 class UnitConvertor:
     """
@@ -114,26 +110,24 @@ def scatteringLengthDensityCm2(name):
 
     raise ValueError(f"Unknow {name} material")
 
-Model = None
-@profile
-def _globalInitModel(q, shape):
-    global Model
-    from sasmodels.core import load_model
-    from sasmodels.direct_model import DirectModel
-    from sasmodels.data import empty_data1D
-
-    empty_data_1d = empty_data1D(q)
-    model_def = load_model(shape)
-    Model = DirectModel(empty_data_1d, model_def)
+_model_cache: dict[tuple, object] = {}
+def _get_model(q: np.ndarray, shape: str):
+    key = (tuple(q), shape)
+    if key not in _model_cache:
+        from sasmodels.core import load_model
+        from sasmodels.direct_model import DirectModel
+        from sasmodels.data import empty_data1D
+        _model_cache[key] = DirectModel(empty_data1D(q), load_model(shape))
+    return _model_cache[key]
 
 @profile
-def generateSignal(params: dict, shape: str, material_sld_val, solvent_sld_val):
+def generateSignal(params: dict, q:np.ndarray, shape: str, material_sld_val, solvent_sld_val):
     """
     Worker executed in each process.
     `params` should include 'concentration' and the geometric parameters (radius, length_a, ...).
     Returns a tuple (params_dict, intensity_array).
     """
-    global Model
+    Model = _get_model(q, shape)
 
     # extract concentration and geometric params
     params = dict(params)  # copy
@@ -216,9 +210,8 @@ def main(
 
         logger.info(f'Starting the generation with {os.cpu_count()} CPU...')
         if max_workers == 0:
-            _globalInitModel(q, shape)
             for i, params in enumerate(tqdm(iterator, total=n_signal, desc="Generating signals", mininterval=1, miniters=100)):
-                res = generateSignal(params, shape, material_sld, solvent_sld)
+                res = generateSignal(params, q, shape, material_sld, solvent_sld)
                 dset_intensities[i, :] = res['intensity']
                 for k in parameters.keys():
                     dsets_meta[k][i] = res['params'][k]
@@ -226,12 +219,11 @@ def main(
             # Parallel mode
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=max_workers,
-                initializer=_globalInitModel,
-                initargs=(q, shape)
             ) as executor:
                 futures = executor.map(
                     generateSignal,
                     iterator,
+                    repeat(q),
                     repeat(shape),
                     repeat(material_sld),
                     repeat(solvent_sld)
@@ -240,6 +232,8 @@ def main(
                     dset_intensities[i, :] = res['intensity']
                     for k in parameters.keys():
                         dsets_meta[k][i] = res['params'][k]
+
+        # Define attrs
         f.attrs["q"] = q
         f.attrs["material"] = material
         f.attrs["technique"] = "saxs"
@@ -249,6 +243,7 @@ def main(
         f.attrs["environment"] = env
         f.attrs["scattering_length_density"] = material_sld_cm2
         f.attrs["environment_scattering_length_density"] = solvent_sld_cm2
+
         for key, value in other_attrs.items():
             f.attrs[key] = value
 
