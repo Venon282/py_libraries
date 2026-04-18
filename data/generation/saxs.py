@@ -4,15 +4,23 @@ from itertools import product, repeat
 from tqdm import tqdm
 import os
 import concurrent.futures
-from line_profiler import profile
+from dataclasses import dataclass
+try:
+    from line_profiler import profile
+except ImportError:
+    def profile(fn):           # type: ignore[misc]
+        """No-op replacement when line_profiler is not installed."""
+        return fn
 
 # Small Angular X-ray Scatering
 
 #? doc for add more shape: https://www.sasview.org/docs/user/qtgui/Perspectives/Fitting/models/index.html
 from ...other.loggingUtils import getLogger
 from ...constant.Constant import Constants
+from ...other.UnitConverter import UnitConverter
 
 logger = getLogger(__name__)
+unit_converter = UnitConverter()
 
 """
 Scattering Length Density in cm^2
@@ -24,7 +32,7 @@ https://slddb.reflectometry.org/
         3. Choose Cu-Ka or Mo-Ka
         4. Choose SLD unit
         5. Multiply it by the defined value (eg: (10⁻⁶ Å⁻²) -> multiply by *10**(-6))
-        6. Use the UnitConvertor.Å2ToCm2
+        6. Use the unit_converter.convert(value, "per_square_angstrom", "per_square_centimetre", "inverse_area")
 """
 Constants.SLD = {
     'h2o_21c': 9.44948e+10,
@@ -63,6 +71,11 @@ def _validateParameters(shape: str, params: dict[str, set[str]]) -> None:
         raise ValueError(f"Unexpected parameters for '{shape}': {extra}")
 
 class VolumeShape:
+    def __new__(cls):
+        raise TypeError(
+            "VolumeShape is a pure namespace and cannot be instantiated."
+        )
+
     @staticmethod
     def sphere(radius):
         return np.pi * radius**3 *4/3
@@ -74,55 +87,6 @@ class VolumeShape:
     @staticmethod
     def cylinder(radius, length):
         return np.pi * radius**2 * length
-
-class UnitConvertor:
-    """
-    A utility class for converting between metric and Angstrom-based units
-    commonly used in scattering science.
-    """
-
-    @staticmethod
-    def nmToÅ(data: int | float | np.ndarray):
-        """Converts nanometers to Angstroms (1 nm = 10 Å)."""
-        return data * 10.0
-
-    @staticmethod
-    def ÅToNm(data: int | float | np.ndarray):
-        """Converts Angstroms to nanometers (1 Å = 0.1 nm)."""
-        return data / 10.0
-
-    @staticmethod
-    def cm2ToÅ2(data: int | float | np.ndarray):
-        """
-        Converts SLD from cm^-2 to Å^-2.
-        Factor: 1 cm^-2 = (10^8 Å)^-2 = 10^-16 Å^-2.
-        """
-        return data * 1e-16
-
-    @staticmethod
-    def Å2ToCm2(data: int | float | np.ndarray):
-        """
-        Converts SLD from Å^-2 to cm^-2.
-        Factor: 1 Å^-2 = (10^-8 cm)^-2 = 10^16 cm^-2.
-        """
-        return data * 1e16
-
-    @staticmethod
-    def Å3ToCm3(data: int | float | np.ndarray):
-        """
-        Converts volume from Å^3 to cm^3.
-        Factor: 1 Å^3 = (10^-8 cm)^3 = 10^-24 cm^3.
-        """
-        return data * 1e-24
-
-    @staticmethod
-    def cm3ToÅ3(data: int | float | np.ndarray):
-        """
-        Converts volume from cm^3 to Å^3.
-        Factor: 1 cm^3 = (10^8 Å)^3 = 10^24 Å^3.
-        """
-        return data * 1e24
-
 
 _model_cache: dict[tuple, object] = {}
 def _get_model(q: np.ndarray, shape: str):
@@ -197,7 +161,7 @@ def generateSignal(
     concentration = float(params.pop('concentration'))
 
     volume_A3 = getattr(VolumeShape, shape)(**params)
-    volume_cm3 = UnitConvertor.Å3ToCm3(volume_A3)
+    volume_cm3 = unit_converter.convert(volume_A3, "angstrom_cubed", "cubic_centimetre", "volume")
     scale = concentration * volume_cm3
 
     # prepare model parameters (merge dims back)
@@ -211,7 +175,7 @@ def generateSignal(
 
     intensity = Model(**params_model) * 1e12
 
-    params_nm = {k: UnitConvertor.ÅToNm(v) for k, v in params.items()}
+    params_nm = {k: unit_converter.convert(v, "angstrom", "nanometre", "length") for k, v in params.items()}
 
     return SignalResult(
         intensity=intensity,
@@ -283,9 +247,9 @@ def main(
 
     save_h5_filepath = safePath(save_h5_filepath)
     material_sld_cm2 = Constants.SLD[material]
-    material_sld = UnitConvertor.cm2ToÅ2(material_sld_cm2)
+    material_sld = unit_converter.convert(material_sld_cm2, "per_square_centimetre", "per_square_angstrom", "inverse_area")
     solvent_sld_cm2 = Constants.SLD[env]
-    solvent_sld = UnitConvertor.cm2ToÅ2(solvent_sld_cm2)
+    solvent_sld = unit_converter.convert(solvent_sld_cm2, "per_square_centimetre", "per_square_angstrom", "inverse_area")
 
     logger.debug("Parameter sizes: %s", {k: len(v) for k, v in parameters.items()})
 
@@ -389,27 +353,27 @@ if __name__ == '__main__':
         final_length = np.repeat(length, len(concentrations)) # [1, 2, 3] -> [1, 1, 2, 2, 3, 3,]
         parameters = {
             'concentration':np.array(list(concentrations) * len(length)), # [1, 2, 3] -> [1, 2, 3, 1, 2, 3]
-            'length_a': UnitConvertor.nmToÅ(final_length),   # height
-            'length_b': UnitConvertor.nmToÅ(final_length), # width
-            'length_c': UnitConvertor.nmToÅ(final_length)  # length
+            'length_a': unit_converter.convert(final_length, "nanometre", "angstrom", "length"),   # height
+            'length_b': unit_converter.convert(final_length, "nanometre", "angstrom", "length"), # width
+            'length_c': unit_converter.convert(final_length, "nanometre", "angstrom", "length")  # length
             }
     elif shape == 'parallelepiped':
         parameters = {
             'concentration':concentrations,
-            'length_a': UnitConvertor.nmToÅ(np.arange(10, 51, 5)),   # height
-            'length_b': UnitConvertor.nmToÅ(np.arange(20, 101, 10)), # width
-            'length_c': UnitConvertor.nmToÅ(np.arange(50, 201, 10))  # length
+            'length_a': unit_converter.convert(np.arange(10, 51, 5), "nanometre", "angstrom", "length"),   # height
+            'length_b': unit_converter.convert(np.arange(20, 101, 10), "nanometre", "angstrom", "length"), # width
+            'length_c': unit_converter.convert(np.arange(50, 201, 10), "nanometre", "angstrom", "length")  # length
             }
     elif shape == 'sphere':
         parameters = {
         'concentration':concentrations,
-            'radius': UnitConvertor.nmToÅ(np.arange(10, 101, 20)/2)
+            'radius': unit_converter.convert(np.arange(10, 101, 20)/2, "nanometre", "angstrom", "length")
             }
     elif shape == 'cylinder':
         parameters = {
         'concentration':concentrations,
-            'radius': UnitConvertor.nmToÅ(np.arange(10, 101, 20)/2),
-            'length': UnitConvertor.nmToÅ(np.arange(5, 16, 4)),
+            'radius': unit_converter.convert(np.arange(10, 101, 20)/2, "nanometre", "angstrom", "length"),
+            'length': unit_converter.convert(np.arange(5, 16, 4), "nanometre", "angstrom", "length"),
             }
     else:
         raise Exception(f'{shape} parameters is not define. Please set this shape before going farwer.')
