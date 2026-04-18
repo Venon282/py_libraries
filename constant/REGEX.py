@@ -31,7 +31,7 @@ class REGEX(metaclass=ConstantMeta):
     ISO_DATETIME       = ISO_DATE + r'[T ]' + ISO_TIME_24
 
     # Python‐specific
-    class PYTHON(metaclass=ConstMeta):
+    class PYTHON(metaclass=ConstantMeta):
         COMMENT_BLOCK    = r'(?s)(?:\'\'\'[\s\S]*?\'\'\'|\"\"\"[\s\S]*?\"\"\")'
         SINGLE_COMMENT   = r'#.*'
         STRING_LITERAL   = r'(?:r?["\'])(?:\\.|[^\\\n])*?["\']'
