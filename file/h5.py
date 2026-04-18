@@ -44,108 +44,15 @@ def iDatasets(h5, rec=False):
             if isinstance(obj, h5py.Dataset):
                 yield obj
 
-def getGroups(h5):
-    return [name for name, obj in h5.items() if isinstance(obj, h5py.Group)]
-
-def getGroupsRec(h5):
-    groups = []
-
-    def collect(name, obj):
-        if isinstance(obj, h5py.Group):
-            groups.append(name)
-
-    h5.visititems(collect)
-
-    return groups
-
-def getGroupsWithDataset(h5):
-    return [name for name, obj in h5.items() if isinstance(obj, h5py.Group) and haveDataset(obj)]
-
-def getGroupsWithDatasetRec(h5):
-    groups = []
-
-    def collect(name, obj):
-        if isinstance(obj, h5py.Group) and haveDataset(obj):
-            groups.append(name)
-
-    if haveDataset(h5):
-        groups.append('/')
-
-    h5.visititems(collect)
-
-    return groups
-
-def getGroupsWithGroup(h5):
-    return [name for name, obj in h5.items() if isinstance(obj, h5py.Group) and haveGroup(obj)]
-
-def getGroupsWithGroupRec(h5):
-    groups = []
-
-    def collect(name, obj):
-        if isinstance(obj, h5py.Group) and haveGroup(obj):
-            groups.append(name)
-
-    if haveGroup(h5):
-        groups.append('/')
-
-    h5.visititems(collect)
-
-    return groups
-
-def getGroupsAndDatasetsNameRec(h5):
-    groups = []
-    datasets = []
-
-    def collect(name, obj):
-        if isinstance(obj, h5py.Group):
-            groups.append(name)
-        elif isinstance(obj, h5py.Dataset):
-            datasets.append(name)
-
-    h5.visititems(collect)
-    return groups, datasets
-
-def getGroupsAndDatasetsObjectRec(h5):
-    groups = []
-    datasets = []
-
-    def collect(name, obj):
-        if isinstance(obj, h5py.Group):
-            groups.append(name)
-        elif isinstance(obj, h5py.Dataset):
-            datasets.append(obj)
-
-    h5.visititems(collect)
-    return groups, datasets
-
-def getGroupsAndDatasetsRec(h5):
-    groups = []
-    datasets = {}
-
-    def collect(name, obj):
-        if isinstance(obj, h5py.Group):
-            groups.append(name)
-        elif isinstance(obj, h5py.Dataset):
-            datasets[name] = obj
-
-    h5.visititems(collect)
-    return groups, datasets
-
-def haveDataset(h5):
-    for _, obj in h5.items():
-        if isinstance(obj, h5py.Dataset):
-            return True
-    return False
-
-def haveGroup(h5):
-    for _, obj in h5.items():
-        if isinstance(obj, h5py.Group):
-            return True
-    return False
+def haveDataset(h5, rec=False):
+    try:
+        next(iter(iDatasets(h5, rec)))
+        return True
+    except StopIteration:
+        return False
 
 def display(h5):
     h5.visit(print)
-
 
 def displayWithDetails(h5):
     def displayInfo(name, obj):
@@ -163,22 +70,10 @@ def getDescribe(h5):
 
     def collect(name, obj):
         if isinstance(obj, h5py.Dataset):
-            logger.debug(f'Processing {name}')
             df[name] = describeValues(obj[:])
 
     h5.visititems(collect)
     return pd.DataFrame.from_dict(df, orient='index')
-
-def describe(h5):
-    from ..type.lst import describe
-
-    def collect(name, obj):
-        if isinstance(obj, h5py.Dataset):
-            print(name)
-            describe(obj[:])
-            print()
-
-    h5.visititems(collect)
 
 def iterate(
     h5: h5py.File | h5py.Group,
@@ -269,17 +164,7 @@ def iterate(
 
     yield from _walk(h5, path_parts, root='')
 
-def iterateDatasetRec(h5: h5py.File | h5py.Group, sep: str = '/'):
-    for path, obj in iterate(h5, '*', sep=sep):
-        if isinstance(obj, h5py.Dataset):
-            yield path, obj
-
-def iterateGroupRec(h5: h5py.File | h5py.Group, sep: str = '/'):
-    for path, obj in iterate(h5, '*', sep=sep):
-        if isinstance(obj, h5py.Group):
-            yield path, obj
-
-def append(h5, name, values, dtype=None):
+def extend(h5, name, values, dtype=None):
     """
     Create or append data to an HDF5 dataset dynamically, allowing for unlimited rows.
 
