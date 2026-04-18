@@ -336,7 +336,7 @@ def main(
                     _writeH5(res, i)
 
         # Define attrs
-        f.attrs["q"] = q
+        f.create_dataset('q', data=q, dtype=np.float64)
         f.attrs["material"] = material
         f.attrs["technique"] = "saxs"
         f.attrs["techno"] = "sasmodels"
@@ -351,24 +351,18 @@ def main(
 
     logger.info(f"All signals written to {save_h5_filepath}.")
 
-def safePath(path, suffix="_", max_tries=1000):
-    """Create a unique name next to the original.
-    Returns the path of the created copy.
-    """
-    if not os.path.exists(path):
-        return path
+def safePath(path: str, suffix: str = "_", max_try:int = 1000) -> str:
+    base, ext = os.path.splitext(path)
 
-    folder, filename = os.path.split(path)
-    base, ext = os.path.splitext(filename)
+    for i in range(max_try):
+        candidate = path if i == 0 else f"{base}{suffix}{i}{ext}"
+        try:
+            with open(candidate, "x"):
+                return candidate  # file is now reserved
+        except FileExistsError:
+            continue
 
-    for i in range(max_tries):
-        new_name = f"{base}{suffix}{i}{ext}"
-
-        new_path = os.path.join(folder, new_name)
-        if not os.path.exists(new_path):
-            return new_path
-
-    raise FileExistsError(f"Could not create a unique path of {path} after {max_tries} attempts")
+    raise FileExistsError(f"Could not find unique path for '{path}'")
 
 if __name__ == '__main__':
     # py -m kernprof -l -v saxs_simulation_generation.py > report.txt
