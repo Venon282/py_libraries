@@ -36,6 +36,32 @@ Constants.SLD = {
 }
 Constants.__annotations__['SLD'] = dict[str, float]
 
+"""
+To ensure that the parameters pass are valid depending of the shape
+"""
+Constants.SHAPE_PARAM = {
+    'sphere': {'radius'},
+    'cylinder': {'radius', 'length'},
+    'parallelepiped': {'length_a', 'length_b', 'length_c'},
+}
+Constants.__annotations__['SHAPE_PARAM'] = dict[str, set[str]]
+
+def _validateParameters(shape: str, params: dict[str, set[str]]) -> None:
+    expected = Constants.SHAPE_PARAM.get(shape)
+
+    if expected is None:
+        raise ValueError(f"Unknown shape '{shape}'.")
+
+    geometric_keys = set(params) - {'concentration'}
+    missing = expected - geometric_keys
+    extra = geometric_keys - expected
+
+    if missing:
+        raise ValueError(f"Missing parameters for '{shape}': {missing}")
+
+    if extra:
+        raise ValueError(f"Unexpected parameters for '{shape}': {extra}")
+
 class VolumeShape:
     @staticmethod
     def sphere(radius):
@@ -143,6 +169,46 @@ def generateSignal(params: dict, q:np.ndarray, shape: str, material_sld_val, sol
 
     return {'params': model_pars, 'intensity': intensity}
 
+def buildParameterGrid(parameters: dict, operator: str) -> list[dict]:
+    """
+    Expand *parameters* into a flat list of per-signal parameter dicts.
+
+    Parameters
+    ----------
+    parameters:
+        Mapping of parameter name → list of values.
+    operator:
+        ``'product'`` - cartesian product of all lists.
+
+        ``'stack'``   - element-wise zip (all lists must have equal length).
+
+    Returns
+    -------
+    list of dict
+        Each dict maps parameter names to a single numeric value.
+    """
+    if operator == 'product':
+        return [
+            dict(zip(parameters.keys(), values))
+            for values in product(*parameters.values())
+        ]
+
+    elif operator == 'stack':
+        # All list must have the same size
+        lengths = [len(v) for v in parameters.values()]
+        if len(set(lengths)) != 1:
+            raise ValueError(
+                "All parameter lists must have equal length for operator='stack'. "
+                f"Got lengths: { {k: len(v) for k, v in parameters.items()} }"
+            )
+
+        # Generate dictionnary list
+        return [
+            dict(zip(parameters.keys(), values))
+            for values in zip(*parameters.values())
+        ]
+    else: raise ValueError(f'parameters_operator must be either product or stack.')
+
 @profile
 def main(
     q:list,
@@ -155,6 +221,8 @@ def main(
     max_workers:int=None,
     save_h5_filepath='./signals.h5',
 ):
+    _validateParameters(shape, parameters)
+
     # ensure materials consistency
     material = material.strip().lower()
     env = env.strip().lower()
@@ -165,23 +233,10 @@ def main(
     solvent_sld_cm2 = Constants.SLD[env]
     solvent_sld = UnitConvertor.cm2ToÅ2(solvent_sld_cm2)
 
-    logger.debug([[k,len(v)] for k, v in parameters.items()])
-    if parameters_operator == 'product':
-        iterator = [
-            dict(zip(parameters.keys(), values))
-            for values in product(*parameters.values())
-        ]
-        n_signal = np.prod([len(v) for v in parameters.values()]).astype(int)
-    elif parameters_operator == 'stack':
-        # All list must have the same size
-        lengths = [len(v) for v in parameters.values()]
-        if len(set(lengths)) != 1:
-            raise ValueError("All lists must have the same length for 'stack' operator.")
+    logger.debug("Parameter sizes: %s", {k: len(v) for k, v in parameters.items()})
 
-        # Generate dictionnary list
-        iterator = [dict(zip(parameters.keys(), values)) for values in zip(*parameters.values())]
-        n_signal = lengths[0]
-    else: raise ValueError(f'parameters_operator must be either product or stack.')
+    param_grid = buildParameterGrid(parameters, parameters_operator)
+    n_signal = len(param_grid)
 
     logger.info(f'{n_signal} signal of {material} {shape} will be generate.')
 
@@ -202,7 +257,7 @@ def main(
 
         logger.info(f'Starting the generation with {os.cpu_count()} CPU...')
         if max_workers == 0:
-            for i, params in enumerate(tqdm(iterator, total=n_signal, desc="Generating signals", mininterval=1, miniters=100)):
+            for i, params in enumerate(tqdm(param_grid, total=n_signal, desc="Generating signals", mininterval=1, miniters=100)):
                 res = generateSignal(params, q, shape, material_sld, solvent_sld)
                 dset_intensities[i, :] = res['intensity']
                 for k in parameters.keys():
@@ -214,7 +269,7 @@ def main(
             ) as executor:
                 futures = executor.map(
                     generateSignal,
-                    iterator,
+                    param_grid,
                     repeat(q),
                     repeat(shape),
                     repeat(material_sld),
