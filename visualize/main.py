@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 import numpy as np
 
+# internal
+from ..other.loggingUtils import getLogger
+logger = getLogger(__name__)
+
 def save(fig, file_path, dpi=200):
     dir_path = os.path.dirname(file_path)
     if dir_path:
@@ -29,7 +33,7 @@ def _createPlot(**kwargs):
     elif fig is None:
         return ax.figure, ax
     elif ax is None:
-        print('WARNING: you provided the fig, but not the ax.')
+        logger.warning('fig provided without ax; falling back to last axes.')
         return fig, fig.axes[-1]
     else:
         return fig, ax
