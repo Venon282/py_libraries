@@ -74,7 +74,6 @@ class Plot:
             ax.grid(True, **grid)
         else: raise TypeError(f'Unsupported grid type {type(grid)}. Should be either a bool or a dict.')
         
-        ax.grid(style['grid'])
         if extras['xlim'] is not None:   ax.set_xlim(extras['xlim'])
         if extras['ylim'] is not None:   ax.set_ylim(extras['ylim'])
         if extras['xscale'] is not None: ax.set_xscale(extras['xscale'])

@@ -53,7 +53,7 @@ class Color:
         return [name for name in Color.all() if name.lower().startswith('light')]
 
     @staticmethod
-    def dark():
+    def darkNamed():
         """Named colors whose names start with 'dark' (case-insensitive)."""
         return [name for name in Color.all() if name.lower().startswith('dark')]
 
