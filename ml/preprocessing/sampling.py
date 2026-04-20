@@ -160,8 +160,10 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True,
         else:
             raise ValueError("Each argument must have 2, 3, 4, or 5 elements")
         arr = np.asarray(arr)
+
         if trim_bound_excess:
             mask = mask & (arr >= lo) & (arr <= hi)
+            
         data_arrays.append(arr)
         bound_specs.append((lo, hi, int(n), cm))
     if trim_bound_excess:
