@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.stats
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -55,12 +56,12 @@ class Plot:
         return fig, ax, style, extras, path, show, kwargs
 
     @staticmethod
-    def _apply_style(fig: Figure, ax: Axes, 
+    def _applyStyle(fig: Figure, ax: Axes, 
                      style: Dict[str, Any], extras: Dict[str, Any]) -> None:
         if style['title'] != '': ax.set_title(style['title'])
         if style['xlabel'] != '': ax.set_xlabel(style['xlabel'])
         if style['ylabel'] != '': ax.set_ylabel(style['ylabel'])
-        if style['y2label'] != '':
+        if style['y2label']:
             #todo modify the class for handle more than 1 ax
             ax2 = ax.twinx()
             ax2.set_ylabel(style['y2label'])
@@ -103,9 +104,9 @@ class Plot:
     
     @staticmethod
     def _end(fig, ax, style, extras, path, show):
-        Plot._apply_style(fig, ax, style, extras)
+        Plot._applyStyle(fig, ax, style, extras)
         if path:    save(fig, path)
-        
+
         if show:    
             plt.show()
             return None
@@ -121,8 +122,11 @@ class Plot:
         if cmap:
             cmap_obj = cm.get_cmap(cmap)
             if cmap_values is not None:
+                cmap_arr = np.array(cmap_values, dtype=float)
+
                 # Normalize cmap_values to [0,1]
-                normed = (np.array(cmap_values) - np.min(cmap_values)) / (np.max(cmap_values) - np.min(cmap_values))
+                cmap_range = cmap_arr.max() - cmap_arr.min()
+                normed = (cmap_arr - cmap_arr.min()) / cmap_range if cmap_range > 0 else np.zeros(len(cmap_arr))
                 colors = cmap_obj(normed)
             else:
                 # Evenly spaced colors for each line
@@ -131,7 +135,7 @@ class Plot:
         for i, arg in enumerate(args):
             x, y, opts = Plot._unwrap(arg)
             
-            if cmap and colors[i] is not None:
+            if cmap:
                 opts['color'] = colors[i]
                 
             ax.plot(x, y, **{**gb_opts, **opts})
@@ -188,7 +192,7 @@ class Plot:
     
     
     @staticmethod
-    def scatter_density(*args, alpha=False, center=False, rate=False, bw_method: Optional[Union[str, float]] = None, cbar_label: Optional[str] = None, **kwargs) -> Optional[Figure]:
+    def scatterDensity(*args, density_alpha=False, center=False, rate=False, bw_method: Optional[Union[str, float]] = None, cbar_label: Optional[str] = None, **kwargs) -> Optional[Figure]:
         """
         Scatter plot colored by a 2D Gaussian KDE estimate of density.
         
@@ -202,7 +206,6 @@ class Plot:
         - plus all the usual kwargs (fig, ax, title, xlabel, path, show, etc.)
         - center: If true, center (the last plot, useless if many args) on the 90% denser values. If a number on it's pourcentage or rate
         """
-        import scipy.stats as scipy_stats
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
         
         legend_handles = []
@@ -225,10 +228,11 @@ class Plot:
                  
             x, y, z = x[idx], y[idx], z[idx] # Apply the potential rate and order
             # Allow do add a visibility lebel
-            if alpha:
+            if density_alpha:
                 # z is sorted so we know where is the max and min
                 z_norm = (z - z[0]) / (z[-1] - z[0])
-            else: z_norm = None
+            else: 
+                z_norm = None
             
             if center:
                 center_rate = 0.9 if center is True else center if 0.0 < center <= 1.0 else float(center) / 100
@@ -276,7 +280,7 @@ class Plot:
     
     @staticmethod
     def bar(*args, text=False, **kwargs) -> Optional[Figure]:
-        """Scatter / dot plot."""
+        """Bar chart."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
         for arg in args:
             x, y, opts = Plot._unwrap(arg)
@@ -285,18 +289,23 @@ class Plot:
             if text:
                 for bar in bars:
                     height = bar.get_height()
-                    ax.annotate(f'{height: }',
-                                xy=(bar.get_x() + bar.get_width() / 2, height),
-                                xytext=(0, 3),  # 3 points vertical offset
-                                textcoords="offset points",
-                                ha='center', va='bottom')
+                    ax.annotate(
+                        f'{height}',
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        xytext=(0, 3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom'
+                    )
         return Plot._end(fig, ax, style, extras, path, show)
 
     @staticmethod
     def heatmap(*args, bins: int=100, cmap: str='viridis', **kwargs) -> Optional[Figure]:
         """2D density heatmap."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
+
+        cbar_label       = gb_opts.pop('cbar_label',   '')
         global_intensity = gb_opts.pop("intensity", None)
+
         for arg in args:
             x, y, opts = Plot._unwrap(arg)
             intensity = opts.pop("intensity", None) or global_intensity
@@ -306,13 +315,15 @@ class Plot:
                 heat = np.divide(heat_sum, heat_count, out=np.zeros_like(heat_sum), where=heat_count != 0)
             else:
                 heat, xedges, yedges = np.histogram2d(x, y, bins=bins)
+
             extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
             im = ax.imshow(
                 heat.T, extent=extent, origin='lower',
                 aspect='auto', cmap=cm.get_cmap(cmap),
                 **gb_opts, **opts
             )
-            fig.colorbar(im, ax=ax, label=gb_opts.get('cbar_label',''))
+            fig.colorbar(im, ax=ax, label=cbar_label)
+
         return Plot._end(fig, ax, style, extras, path, show)
 
     @staticmethod
@@ -329,14 +340,13 @@ class Plot:
         """
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
         data = np.asarray(data)
-        xs = np.arange(len(data))
         for i, (o, h, l, c) in enumerate(data):
             color = open_color if c >= o else close_color
             # wick
-            ax.plot([xs[i], xs[i]], [l, h], color=color, lw=wick_width)
+            ax.plot([i, i], [l, h], color=color, lw=wick_width)
             # body
             low, high = sorted((o, c))
-            rect = Rectangle((xs[i]-width/2, low), width, high-low,
+            rect = Rectangle((i-width/2, low), width, high-low,
                          facecolor=color, edgecolor=color)
             ax.add_patch(rect)
         if legend:

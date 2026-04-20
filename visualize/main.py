@@ -19,31 +19,18 @@ def _isFigureActive(ax: Axes) -> bool:
     return fig_manager in active_fig_managers                    # If our figure manager is not in the active list, the figure was closed
 
     
-def isClose(ax: Axes) -> bool:
+def isOpen(ax: Axes) -> bool:
     return _isFigureActive(ax)
 
-def isOpen(ax: Axes) -> bool:
+def isClose(ax: Axes) -> bool:
     return not _isFigureActive(ax)
-
-def _createPlot(**kwargs):
-    fig = kwargs.pop('fig', None)
-    ax = kwargs.pop('ax', None)
-    if fig is None and ax is None:
-        return plt.subplots(figsize=(10, 6))
-    elif fig is None:
-        return ax.figure, ax
-    elif ax is None:
-        logger.warning('fig provided without ax; falling back to last axes.')
-        return fig, fig.axes[-1]
-    else:
-        return fig, ax
     
 def makeBins(data, bins=100, bin_type: str = "linear"):
     """
     Create histogram bin edges with different spacing types.
 
     Parameters
-    ----------
+    -
     data : array-like
         The data from which to infer min/max values (used only if bins is int).
     bins : int or array-like
@@ -57,7 +44,7 @@ def makeBins(data, bins=100, bin_type: str = "linear"):
         - "quantile" : equal number of samples (ignored if bins are array-like)
 
     Returns
-    -------
+    -
     np.ndarray
         Array of bin edges.
     """
@@ -69,28 +56,27 @@ def makeBins(data, bins=100, bin_type: str = "linear"):
 
     bin_type = bin_type.lower()
 
-    # --- If bins are array-like, apply transform directly ---
+    #  If bins are array-like, apply transform directly 
     if not isinstance(bins, int):
         bins = np.asarray(bins)
         if bin_type == "linear":
-            edges = bins
+            return bins
         elif bin_type == "log":
             # interpret bins as linear positions, map to logspace range
             if np.any(bins <= 0):
                 raise ValueError("Log binning requires positive bin edges")
-            edges = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
+            return np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
         elif bin_type == "sqrt":
             if np.any(bins < 0):
                 raise ValueError("Sqrt binning requires non-negative bin edges")
-            edges = np.linspace(np.sqrt(bins[0]), np.sqrt(bins[-1]), len(bins)) ** 2
+            return np.linspace(np.sqrt(bins[0]), np.sqrt(bins[-1]), len(bins)) ** 2
         else:
             raise ValueError(
                 f"Unsupported bin_type '{bin_type}' for array-like bins. "
                 "Supported: 'linear', 'log', 'sqrt'."
             )
-        return edges
 
-    # --- If bins is an integer, generate new edges ---
+    #  If bins is an integer, generate new edges 
     dmin, dmax = np.nanmin(data), np.nanmax(data)
     if dmin == dmax:
         dmin, dmax = dmin - 1, dmax + 1  # avoid degenerate case
