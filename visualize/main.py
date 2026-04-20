@@ -4,8 +4,10 @@ from matplotlib.axes import Axes
 import numpy as np
 
 def save(fig, file_path, dpi=200):
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    fig.savefig(file_path, dpi=dpi) 
+    dir_path = os.path.dirname(file_path)
+    if dir_path:
+        os.makedirs(dir_path, exist_ok=True)
+    fig.savefig(file_path, dpi=dpi)
 
 def _isFigureActive(ax: Axes) -> bool:
     fig_manager = ax.figure.canvas.manager                      # Get the figure's manager associated with the Axes
