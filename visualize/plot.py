@@ -22,7 +22,7 @@ class Plot:
     """
 
     @staticmethod
-    def _init(kwargs: Dict[str, Any]) -> Tuple[Figure, Axes, Dict[str, Any], Dict[str, Any]]:
+    def _init(kwargs: Dict[str, Any]) -> Tuple[Figure, Axes, dict, dict, Optional[str], bool, dict]:
         
         fig = kwargs.pop('fig', None)
         ax  = kwargs.pop('ax', None)
@@ -105,7 +105,11 @@ class Plot:
     def _end(fig, ax, style, extras, path, show):
         Plot._apply_style(fig, ax, style, extras)
         if path:    save(fig, path)
-        if show:    plt.show(); return None
+        
+        if show:    
+            plt.show()
+            return None
+        
         if extras['close']:   plt.close(fig)
         return fig, ax
 
@@ -262,7 +266,7 @@ class Plot:
         return Plot._end(fig, ax, style, extras, path, show)
     
     @staticmethod
-    def histogram(data: Union[List, np.ndarray], bins: int=None, bin_type='linear', **kwargs) -> Optional[Figure]:
+    def histogram(data: Union[List, np.ndarray], bins: int|None=None, bin_type='linear', **kwargs) -> Optional[Figure]:
         """Univariate histogram."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
         if bin_type!='linear':
