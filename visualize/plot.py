@@ -227,8 +227,8 @@ class Plot:
             else: z_norm = None
             
             if center:
-                rate = 0.9 if center is True else center if 0.0 < center <= 1.0 else float(center) / 100
-                sub_idx = int((1.0-rate) * len(x))
+                center_rate = 0.9 if center is True else center if 0.0 < center <= 1.0 else float(center) / 100
+                sub_idx = int((1.0-center_rate) * len(x))
                 sub_x, sub_y = x[sub_idx:], y[sub_idx:]
                 x_min, x_max = min(sub_x), max(sub_x)
                 y_min, y_max = min(sub_y), max(sub_y)
