@@ -90,6 +90,10 @@ class Maker:
     @staticmethod
     def directional():
         return Maker.tick() + Maker.caret()
+    
+    @staticmethod
+    def caret():
+        return [4, 5, 6, 7]  # CARETRIGHT, CARETLEFT, CARETUP, CARETDOWN
 
     # — everything else —————
 
