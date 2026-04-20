@@ -11,7 +11,7 @@ class Maker:
         """All named markers."""
         return list(set(markers.MarkerStyle.markers.keys()) - set(Maker.none()))
 
-    # — filled vs. unfilled —————
+    #  filled vs. unfilled 
 
     @staticmethod
     def filled():
@@ -28,7 +28,7 @@ class Maker:
     def fillstyles():
         return list(markers.MarkerStyle.fillstyles)
 
-    # — geometric shapes —————
+    #  geometric shapes 
 
     @staticmethod
     def pixel():
@@ -66,7 +66,7 @@ class Maker:
     def cross():
         return ['+', 'x']
 
-    # — numeric / digit markers —————
+    #  numeric / digit markers 
 
     @staticmethod
     def numeric():
@@ -75,7 +75,7 @@ class Maker:
             if isinstance(m, int) or (isinstance(m, str) and m.isdigit())
         ]
 
-    # — text‐style / functional —————
+    #  text‐style / functional 
 
     @staticmethod
     def tick():
@@ -85,7 +85,7 @@ class Maker:
     def none():
         return ['None', 'none', ' ', '']
 
-    # —组合 for directional —————
+    # directional
 
     @staticmethod
     def directional():
@@ -95,7 +95,7 @@ class Maker:
     def caret():
         return [4, 5, 6, 7]  # CARETRIGHT, CARETLEFT, CARETUP, CARETDOWN
 
-    # — everything else —————
+    #  everything else 
 
     @staticmethod
     def other():
@@ -110,7 +110,7 @@ class Maker:
         )
         return [m for m in Maker.all() if m not in known]
 
-    # — sanity check —————
+    #  sanity check 
 
     @staticmethod
     def verify():
