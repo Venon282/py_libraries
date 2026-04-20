@@ -6,7 +6,7 @@ class ColoredFormatter(logging.Formatter):
     """
     Custom Formatter to add colors to the levelname based on the log level.
     """
-    
+
     # ANSI Escape Sequences
     BLUE = "\x1b[34m"
     GREEN = "\x1b[32m"
@@ -31,34 +31,34 @@ class ColoredFormatter(logging.Formatter):
     def format(self, record):
         # Apply color to the levelname
         level_color = self.COLORS.get(record.levelno, self.RESET)
-        
+
         # Save original levelname to restore it later (so file logs stay clean)
         orig_levelname = record.levelname
         record.levelname = f"{level_color}{orig_levelname}{self.RESET}"
-        
+
         formatter = logging.Formatter(self.fmt, datefmt="%Y-%m-%d %H:%M:%S")
         result = formatter.format(record)
-        
+
         # Restore original levelname for other handlers (like file logging)
         record.levelname = orig_levelname
         return result
 
 def getLogger(
-    name: str, 
-    level: int = logging.DEBUG, 
+    name: str,
+    level: int = logging.INFO,
     log_file: Optional[str] = None,
     format_str: Optional[str] = "%(levelname)s - %(name)s - %(asctime)s  - %(message)s"
 ) -> logging.Logger:
     """
     Configures and returns a logger instance.
-    
+
     Args:
         name: Name of the logger (usually __name__).
         level: Logging level (e.g., logging.INFO).
         log_file: Optional path to save logs to a file.
     """
     logger = logging.getLogger(name)
-    
+
     if logger.hasHandlers():
         return logger
 
@@ -76,4 +76,3 @@ def getLogger(
         logger.addHandler(file_handler)
 
     return logger
-

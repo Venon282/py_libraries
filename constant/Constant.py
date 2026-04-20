@@ -1,8 +1,11 @@
 class ConstantMeta(type):
+    def __call__(cls, *args, **kwargs):  # blocks instantiation
+        raise TypeError(f"{cls.__name__} is a namespace, not instantiable")
+
     def __setattr__(cls, key, value):
         if key in cls.__dict__:
             raise TypeError(f"Cannot reassign constant '{key}'")
         super().__setattr__(key, value)
-    
+
 class Constants(metaclass=ConstantMeta):
     ...

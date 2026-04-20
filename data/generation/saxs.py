@@ -1,152 +1,265 @@
 import numpy as np
 import h5py
 from itertools import product, repeat
-from multiprocessing import Pool, cpu_count
 from tqdm import tqdm
-import logging
 import os
 import concurrent.futures
-from line_profiler import profile
+from dataclasses import dataclass
+try:
+    from line_profiler import profile
+except ImportError:
+    def profile(fn):           # type: ignore[misc]
+        """No-op replacement when line_profiler is not installed."""
+        return fn
 
-# Small Angular X-ray Scatering
+# Small Angular X-ray Scattering
 
 #? doc for add more shape: https://www.sasview.org/docs/user/qtgui/Perspectives/Fitting/models/index.html
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+from ...other.loggingUtils import getLogger
+from ...constant.Constant import Constants
+from ...other.UnitConverter import UnitConverter
+
+logger = getLogger(__name__)
+unit_converter = UnitConverter()
+
+"""
+Scattering Length Density in 10⁻⁶ Å⁻²
+
+https://slddb.reflectometry.org/
+
+        1. look for the desired one
+        2. click on select
+        3. Choose Cu-Ka or Mo-Ka
+        4. Choose SLD unit
+"""
+Constants.SLD = {
+    'h2o_21c': 9.44948,
+    'au': 125.38724,
+    'ag': 78.22652,
+    'fe': 59.81977,
+    'sio2': 18.89519,
+    'h8c8_latex': 9.60732,
+}
+Constants.__annotations__['SLD'] = dict[str, float]
+
+"""
+To ensure that the parameters pass are valid depending of the shape
+"""
+_SHAPE_PARAM:dict[str, set[str]] = {
+    'sphere': {'radius'},
+    'cylinder': {'radius', 'length'},
+    'parallelepiped': {'length_a', 'length_b', 'length_c'},
+}
+
+def _validateParameters(shape: str, params: dict[str, set[str]]) -> None:
+    expected = _SHAPE_PARAM.get(shape)
+
+    if expected is None:
+        raise ValueError(f"Unknown shape '{shape}'.")
+
+    geometric_keys = set(params) - {'concentration'}
+    missing = expected - geometric_keys
+    extra = geometric_keys - expected
+
+    if missing:
+        raise ValueError(f"Missing parameters for '{shape}': {missing}")
+
+    if extra:
+        raise ValueError(f"Unexpected parameters for '{shape}': {extra}")
 
 class VolumeShape:
+    def __new__(cls):
+        raise TypeError(
+            "VolumeShape is a pure namespace and cannot be instantiated."
+        )
+
     @staticmethod
     def sphere(radius):
         return np.pi * radius**3 *4/3
-    
+
     @staticmethod
     def parallelepiped(length_a, length_b, length_c):
         return length_a * length_b * length_c
-    
+
     @staticmethod
     def cylinder(radius, length):
         return np.pi * radius**2 * length
 
-class UnitConvertor:
-    @staticmethod
-    def nmToÅ(data:int|float|np.ndarray):
-        return data * 10.0
-    
-    @staticmethod
-    def ÅToNm(data:int|float|np.ndarray):
-        return data / 10.0
+_model_cache: dict[tuple, object] = {}
+def _getModel(q: np.ndarray, shape: str):
+    key = (tuple(q), shape)
+    if key not in _model_cache:
+        from sasmodels.core import load_model
+        from sasmodels.direct_model import DirectModel
+        from sasmodels.data import empty_data1D
+        _model_cache[key] = DirectModel(empty_data1D(q), load_model(shape))
+    return _model_cache[key]
 
-    @staticmethod
-    def cm2ToÅ2(data:int|float|np.ndarray):
-        return data * 1e-16
-    
-    @staticmethod
-    def Å3ToCm3(data:int|float|np.ndarray):
-        return data * 1e-24
+@dataclass
+class SignalResult:
+    """
+    Holds the output of a single :func:`generateSignal` call.
 
-
-def scatteringLengthDensityCm2(name):
-    name = name.strip().lower()
-    
-    values = {
-        'au': 1.31596e+12,
-        'ag': 7.76211e+11,
-        'latex': 8.81075e+10, #(not sure ??)
-        'sio2': 1.86206e+11,
-        'h2o': 9.39845e10,
-        'water': 9.39845e10
-    }
-    
-    if name in values:
-        return values[name]
-    
-    raise ValueError(f"Unknow {name} material")
-
-Model = None
-@profile
-def _globalInitModel(q, shape):
-    global Model
-    from sasmodels.core import load_model
-    from sasmodels.direct_model import DirectModel
-    from sasmodels.data import empty_data1D
-    
-    empty_data_1d = empty_data1D(q)
-    model_def = load_model(shape)
-    Model = DirectModel(empty_data_1d, model_def)
+    Attributes
+    ----------
+    intensity:
+        Scattering intensity array (same length as q).
+    params_nm:
+        Geometric parameters expressed in **nanometres** (human-readable).
+    params_model:
+        Raw parameters forwarded to sasmodels (geometric values in **Å**,
+        plus scale and background).
+    concentration:
+        Particle number concentration (cm⁻³).
+    """
+    intensity: np.ndarray
+    params_nm: dict[str, float]
+    params_model: dict[str, float]
+    concentration: float
 
 @profile
-def generateSignal(params: dict, shape: str, material_sld_val, solvent_sld_val):
+def generateSignal(
+    params: dict,
+    q:np.ndarray,
+    shape: str,
+    material_sld_val,
+    solvent_sld_val
+    ) -> SignalResult:
     """
-    Worker executed in each process. 
-    `params` should include 'concentration' and the geometric parameters (radius, length_a, ...).
-    Returns a tuple (params_dict, intensity_array).
+    Compute a single SAXS intensity curve.
+
+    Parameters
+    ----------
+    params:
+        Must contain ``'concentration'`` and all geometric keys for *shape*,
+        with geometric values expressed in **Å**.
+    shape:
+        sasmodels shape name (e.g. ``'sphere'``, ``'cylinder'``).
+    material_sld_val:
+        Material SLD in 10⁻⁶ Å⁻².
+    solvent_sld_val:
+        Solvent SLD in 10⁻⁶ Å⁻².
+
+    Returns
+    -------
+    SignalResult
     """
-    global Model
+    # compute volume in Å^3 using the requested shape function
+    if not hasattr(VolumeShape, shape):
+        raise ValueError(
+            f"VolumeShape has no method for '{shape}'. "
+            f"Available: {[m for m in dir(VolumeShape) if not m.startswith('_')]}"
+        )
+
+    Model = _getModel(q, shape)
 
     # extract concentration and geometric params
     params = dict(params)  # copy
     concentration = float(params.pop('concentration'))
 
-    # compute volume in Å^3 using the requested shape function
-    if not hasattr(VolumeShape, shape):
-        raise ValueError(f"Unknown shape '{shape}' for volume computation.")
-    
     volume_A3 = getattr(VolumeShape, shape)(**params)
-    volume_cm3 = UnitConvertor.Å3ToCm3(volume_A3)
-
+    volume_cm3 = unit_converter.convert(volume_A3, "angstrom_cubed", "cubic_centimetre", "volume")
     scale = concentration * volume_cm3
 
     # prepare model parameters (merge dims back)
-    model_pars = dict(scale=scale, background=0.0, sld=material_sld_val, sld_solvent=solvent_sld_val)
-    model_pars.update(params)
+    params_model: dict[str, float] = {
+        "scale":       scale,
+        "background":  0.0,
+        "sld":         material_sld_val,
+        "sld_solvent": solvent_sld_val,
+        **params,                         # geometric params in Å
+    }
 
-    intensity = Model(**model_pars) * 1e12
-    
-    for key, value in params.items():
-        params[key] = UnitConvertor.ÅToNm(value)
-    params['concentration'] = concentration    
-    model_pars.update(params)
+    intensity = Model(**params_model)
 
-    return {'params': model_pars, 'intensity': intensity}
-    
+    params_nm = {k: unit_converter.convert(v, "angstrom", "nanometre", "length") for k, v in params.items()}
+
+    return SignalResult(
+        intensity=intensity,
+        params_nm=params_nm,
+        params_model=params_model,
+        concentration=concentration,
+    )
+
+
+def buildParameterGrid(parameters: dict, operator: str) -> list[dict]:
+    """
+    Expand *parameters* into a flat list of per-signal parameter dicts.
+
+    Parameters
+    ----------
+    parameters:
+        Mapping of parameter name → list of values.
+    operator:
+        ``'product'`` - cartesian product of all lists.
+
+        ``'stack'``   - element-wise zip (all lists must have equal length).
+
+    Returns
+    -------
+    list of dict
+        Each dict maps parameter names to a single numeric value.
+    """
+    if operator == 'product':
+        return [
+            dict(zip(parameters.keys(), values))
+            for values in product(*parameters.values())
+        ]
+
+    elif operator == 'stack':
+        # All list must have the same size
+        lengths = [len(v) for v in parameters.values()]
+        if len(set(lengths)) != 1:
+            raise ValueError(
+                "All parameter lists must have equal length for operator='stack'. "
+                f"Got lengths: { {k: len(v) for k, v in parameters.items()} }"
+            )
+
+        # Generate dictionary list
+        return [
+            dict(zip(parameters.keys(), values))
+            for values in zip(*parameters.values())
+        ]
+    else:
+        raise ValueError(f'parameters_operator must be either product or stack.')
+
+
+
 @profile
 def main(
     q:list,
-    parameters:dict[list],
+    parameters:dict[str, list],
     shape:str,
     material:str,
     env:str,
-    other_attrs:dict={},
+    other_attrs: dict | None = None,
     parameters_operator:str='product',
     max_workers:int=None,
     save_h5_filepath='./signals.h5',
 ):
-    save_h5_filepath = safePath(save_h5_filepath)
-    material_sld_cm2 = scatteringLengthDensityCm2(material)
-    material_sld = UnitConvertor.cm2ToÅ2(material_sld_cm2)
-    solvent_sld_cm2 = scatteringLengthDensityCm2(env)
-    solvent_sld = UnitConvertor.cm2ToÅ2(solvent_sld_cm2)
-    
-    logger.debug([[k,len(v)] for k, v in parameters.items()])
-    if parameters_operator == 'product':
-        iterator = [
-            dict(zip(parameters.keys(), values))
-            for values in product(*parameters.values())
-        ]
-        n_signal = np.prod([len(v) for v in parameters.values()]).astype(int)
-    elif parameters_operator == 'stack':
-        # All list must have the same size
-        lengths = [len(v) for v in parameters.values()]
-        if len(set(lengths)) != 1:
-            raise ValueError("All lists must have the same length for 'stack' operator.")
+    """
+    concentration in part cm-3
+    """
+    _validateParameters(shape, parameters)
 
-        # Generate dictionnary list
-        iterator = [dict(zip(parameters.keys(), values)) for values in zip(*parameters.values())]
-        n_signal = lengths[0]
-    else: raise ValueError(f'parameters_operator must be either product or stack.')
-    
-    logger.info(f'{n_signal} signal of {material} {shape} will be generate.')
-    
+    if other_attrs is None:
+        other_attrs = {}
+
+    # ensure materials consistency
+    material = material.strip().lower()
+    env = env.strip().lower()
+
+    save_h5_filepath = safePath(save_h5_filepath)
+    material_sld = Constants.SLD[material]
+    solvent_sld = Constants.SLD[env]
+
+    logger.debug("Parameter sizes: %s", {k: len(v) for k, v in parameters.items()})
+
+    param_grid = buildParameterGrid(parameters, parameters_operator)
+    n_signal = len(param_grid)
+
+    logger.info(f'{n_signal} signals of {material} {shape} will be generated.')
+
     # Open HDF5 file
     with h5py.File(save_h5_filepath, 'w') as f:
         logger.info(f'Dataset creations...')
@@ -157,78 +270,75 @@ def main(
             dtype=np.float32,
             chunks=True,
         )
-        dset_q = f.create_dataset('q', data=q)
+        #dset_q = f.create_dataset('q', data=q)
         dsets_meta = {}
         for k in parameters.keys():
             dsets_meta[k] = f.create_dataset(k, shape=(n_signal,), dtype=np.float64, chunks=True)
 
+        def _writeH5(res:SignalResult, index:int):
+            dset_intensities[index, :] = res.intensity
+            dsets_meta['concentration'][index] = res.concentration
+            for k in parameters.keys() - {'concentration'}:
+                dsets_meta[k][index] = res.params_nm[k]
+
         logger.info(f'Starting the generation with {os.cpu_count()} CPU...')
         if max_workers == 0:
-            _globalInitModel(q, shape)  
-            for i, params in enumerate(tqdm(iterator, total=n_signal, desc="Generating signals", mininterval=1, miniters=100)):
-                res = generateSignal(params, shape, material_sld, solvent_sld)
-                dset_intensities[i, :] = res['intensity']
-                for k in parameters.keys():
-                    dsets_meta[k][i] = res['params'][k]
+            for i, params in enumerate(tqdm(param_grid, total=n_signal, desc="Generating signals", mininterval=1, miniters=100)):
+                res = generateSignal(params, q, shape, material_sld, solvent_sld)
+                _writeH5(res, i)
         else:
             # Parallel mode
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=max_workers,
-                initializer=_globalInitModel,
-                initargs=(q, shape)
             ) as executor:
                 futures = executor.map(
                     generateSignal,
-                    iterator,
+                    param_grid,
+                    repeat(q),
                     repeat(shape),
                     repeat(material_sld),
                     repeat(solvent_sld)
                 )
                 for i, res in enumerate(tqdm(futures, total=n_signal, desc="Generating signals", mininterval=1, miniters=100)):
-                    dset_intensities[i, :] = res['intensity']
-                    for k in parameters.keys():
-                        dsets_meta[k][i] = res['params'][k]
-        f.attrs["q"] = q
+                    _writeH5(res, i)
+
+        # Define attrs
+        f.create_dataset('q', data=q, dtype=np.float64)
         f.attrs["material"] = material
         f.attrs["technique"] = "saxs"
         f.attrs["techno"] = "sasmodels"
         f.attrs["type"] = "simulation"
         f.attrs["shape"] = shape
         f.attrs["environment"] = env
-        f.attrs["scattering_length_density"] = material_sld_cm2
-        f.attrs["environment_scattering_length_density"] = solvent_sld_cm2
+        f.attrs["scattering_length_density"] = material_sld
+        f.attrs["environment_scattering_length_density"] = solvent_sld
+
         for key, value in other_attrs.items():
             f.attrs[key] = value
-        
+
     logger.info(f"All signals written to {save_h5_filepath}.")
-    
-def safePath(path, suffix="_", max_tries=1000):
-    """Create a unique name next to the original.
-    Returns the path of the created copy.
-    """
-    if not os.path.exists(path):
-        return path
-    
-    folder, filename = os.path.split(path)
-    base, ext = os.path.splitext(filename)
-    
-    for i in range(max_tries):
-        new_name = f"{base}{suffix}{i}{ext}"
-            
-        new_path = os.path.join(folder, new_name)
-        if not os.path.exists(new_path):
-            return new_path
-        
-    raise FileExistsError(f"Could not create a unique path of {path} after {max_tries} attempts")
+
+def safePath(path: str, suffix: str = "_", max_try:int = 1000) -> str:
+    base, ext = os.path.splitext(path)
+
+    for i in range(max_try):
+        candidate = path if i == 0 else f"{base}{suffix}{i}{ext}"
+        try:
+            with open(candidate, "x"):
+                return candidate  # file is now reserved
+        except FileExistsError:
+            continue
+
+    raise FileExistsError(f"Could not find unique path for '{path}'")
 
 if __name__ == '__main__':
     # py -m kernprof -l -v saxs_simulation_generation.py > report.txt
-    # -l line by line -v in the consol > consol display in a txt
+    # -l line by line -v in the console > console display in a txt
     q = np.linspace(1e-3, 1, 1000)
     concentrations = np.logspace(8, 19, 1000).astype(np.float64)
     shape = "cube"
     material = "ag"
-    env = "water"
+    env = "h2o_21c"
     parameters_operator = 'product'
     save_h5_filepath = rf'C:\Users\ET281306\Downloads\saxs_{material}_{shape}.h5'
     max_workers=0
@@ -236,7 +346,7 @@ if __name__ == '__main__':
         "author":"Esteban THEVENON",
         "type":"simulation"
     }
-    
+
     # define parameters
     if shape == 'cube':
         parameters_operator = 'stack'
@@ -246,31 +356,31 @@ if __name__ == '__main__':
         final_length = np.repeat(length, len(concentrations)) # [1, 2, 3] -> [1, 1, 2, 2, 3, 3,]
         parameters = {
             'concentration':np.array(list(concentrations) * len(length)), # [1, 2, 3] -> [1, 2, 3, 1, 2, 3]
-            'length_a': UnitConvertor.nmToÅ(final_length),   # height
-            'length_b': UnitConvertor.nmToÅ(final_length), # width
-            'length_c': UnitConvertor.nmToÅ(final_length)  # length
+            'length_a': unit_converter.convert(final_length, "nanometre", "angstrom", "length"),   # height
+            'length_b': unit_converter.convert(final_length, "nanometre", "angstrom", "length"), # width
+            'length_c': unit_converter.convert(final_length, "nanometre", "angstrom", "length")  # length
             }
     elif shape == 'parallelepiped':
         parameters = {
             'concentration':concentrations,
-            'length_a': UnitConvertor.nmToÅ(np.arange(10, 51, 5)),   # height
-            'length_b': UnitConvertor.nmToÅ(np.arange(20, 101, 10)), # width
-            'length_c': UnitConvertor.nmToÅ(np.arange(50, 201, 10))  # length
+            'length_a': unit_converter.convert(np.arange(10, 51, 5), "nanometre", "angstrom", "length"),   # height
+            'length_b': unit_converter.convert(np.arange(20, 101, 10), "nanometre", "angstrom", "length"), # width
+            'length_c': unit_converter.convert(np.arange(50, 201, 10), "nanometre", "angstrom", "length")  # length
             }
     elif shape == 'sphere':
         parameters = {
         'concentration':concentrations,
-            'radius': UnitConvertor.nmToÅ(np.arange(10, 101, 20)/2)
+            'radius': unit_converter.convert(np.arange(10, 101, 20)/2, "nanometre", "angstrom", "length")
             }
     elif shape == 'cylinder':
         parameters = {
         'concentration':concentrations,
-            'radius': UnitConvertor.nmToÅ(np.arange(10, 101, 20)/2),
-            'length': UnitConvertor.nmToÅ(np.arange(5, 16, 4)),
+            'radius': unit_converter.convert(np.arange(10, 101, 20)/2, "nanometre", "angstrom", "length"),
+            'length': unit_converter.convert(np.arange(5, 16, 4), "nanometre", "angstrom", "length"),
             }
     else:
-        raise Exception(f'{shape} parameters is not define. Please set this shape before going farwer.')
-    
+        raise Exception(f'{shape} parameters is not define. Please set this shape before going further.')
+
     main(
         q = q,
         parameters = parameters,
