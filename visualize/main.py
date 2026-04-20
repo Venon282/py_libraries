@@ -6,38 +6,18 @@ import numpy as np
 def save(fig, file_path, dpi=200):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     fig.savefig(file_path, dpi=dpi) 
+
+def _isFigureActive(ax: Axes) -> bool:
+    fig_manager = ax.figure.canvas.manager                      # Get the figure's manager associated with the Axes
+    active_fig_managers = plt._pylab_helpers.Gcf.figs.values()  # Get the list of currently active figure managers
+    return fig_manager in active_fig_managers                    # If our figure manager is not in the active list, the figure was closed
+
     
 def isClose(ax: Axes) -> bool:
-    """
-    Check whether the Matplotlib figure window associated with a given Axes object has been closed.
-    Parameters
-    ----------
-    ax : matplotlib.axes.Axes
-        The Axes object whose parent figure should be checked.
-    Returns
-    -------
-    bool
-        True if the figure window has been closed, False otherwise.
-    """
-    fig_manager = ax.figure.canvas.manager # Get the figure's manager associated with the Axes
-    active_fig_managers = plt._pylab_helpers.Gcf.figs.values() # Get the list of currently active figure managers
-    return fig_manager not in active_fig_managers # If our figure manager is not in the active list, the figure was closed
+    return _isFigureActive(ax)
 
 def isOpen(ax: Axes) -> bool:
-    """
-    Check whether the Matplotlib figure window associated with a given Axes object has is still open.
-    Parameters
-    ----------
-    ax : matplotlib.axes.Axes
-        The Axes object whose parent figure should be checked.
-    Returns
-    -------
-    bool
-        True if the figure window has been closed, False otherwise.
-    """
-    fig_manager = ax.figure.canvas.manager # Get the figure's manager associated with the Axes
-    active_fig_managers = plt._pylab_helpers.Gcf.figs.values() # Get the list of currently active figure managers
-    return fig_manager in active_fig_managers # If our figure manager is not in the active list, the figure was closed
+    return not _isFigureActive(ax)
 
 def _createPlot(**kwargs):
     fig = kwargs.pop('fig', None)
