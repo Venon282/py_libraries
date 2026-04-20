@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.lines import Line2D
 from matplotlib.figure import Figure
-from matplotlib.patches import Patch
+from matplotlib.patches import Patch, Rectangle
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 # internal
@@ -292,7 +292,7 @@ class Plot:
     def heatmap(*args, bins: int=100, cmap: str='viridis', **kwargs) -> Optional[Figure]:
         """2D density heatmap."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
-        global_intensity = kwargs.pop("intensity", None)
+        global_intensity = gb_opts.pop("intensity", None)
         for arg in args:
             x, y, opts = Plot._unwrap(arg)
             intensity = opts.pop("intensity", None) or global_intensity
@@ -308,7 +308,7 @@ class Plot:
                 aspect='auto', cmap=cm.get_cmap(cmap),
                 **gb_opts, **opts
             )
-            fig.colorbar(im, ax=ax, label=kwargs.get('cbar_label',''))
+            fig.colorbar(im, ax=ax, label=gb_opts.get('cbar_label',''))
         return Plot._end(fig, ax, style, extras, path, show)
 
     @staticmethod
@@ -332,7 +332,7 @@ class Plot:
             ax.plot([xs[i], xs[i]], [l, h], color=color, lw=wick_width)
             # body
             low, high = sorted((o, c))
-            rect = Patch((xs[i]-width/2, low), width, high-low,
+            rect = Rectangle((xs[i]-width/2, low), width, high-low,
                          facecolor=color, edgecolor=color)
             ax.add_patch(rect)
         if legend:
