@@ -119,7 +119,7 @@ class Color:
             h, l, s = colorsys.rgb_to_hls(r, g, b)
             items.append((h, name, hexcode))
         items.sort(key=lambda x: x[0])
-        return [(name, hex) if include_hex else name for _, name, hex in items]
+        return [(name, hex_val) if include_hex else name for _, name, hex_val in items]
 
     @staticmethod
     def random(n=5, seed=None):

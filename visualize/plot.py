@@ -175,7 +175,7 @@ class Plot:
     
     @staticmethod
     def errorbar(*args, **kwargs) -> Optional[Figure]:
-        """Scatter / dot plot."""
+        """Error bar plot using per-series mean and standard deviation."""
         fig, ax, style, extras, path, show, gb_opts = Plot._init(kwargs)
         for arg in args:
             x, y, opts = Plot._unwrap(arg)
