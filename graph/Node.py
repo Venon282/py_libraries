@@ -27,7 +27,7 @@ class Node:
     # region updates
     def addEdge(self, edge):
         is_start = edge.start is self
-        is_end = edge.end is self
+        is_end   = edge.end   is self
         
         if is_start:
             self._edges_out.add(edge)

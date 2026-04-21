@@ -36,7 +36,7 @@ class Tree(Graph):
         """
         if properties is None:
             properties = {}
-            
+
         if parent.key not in self.nodes:
             raise ValueError(f'The parent node "{parent.key}" is not in the tree.')
 
@@ -104,7 +104,7 @@ class Tree(Graph):
         return node_b is self.getParent(node_a)
     
     def isChildOf(self, node_a: Node, node_b: Node) -> bool:
-        raise self.isParentOf(node_a=node_b, node_b=node_a)
+        return self.isParentOf(node_a=node_b, node_b=node_a)
     
     def isSiblingOf(self, node_a: Node, node_b: Node) -> bool:
         for sibling in self.getISiblings(node_a):
