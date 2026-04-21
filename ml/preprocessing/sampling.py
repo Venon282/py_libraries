@@ -3,6 +3,7 @@ from itertools import product
 from tqdm import tqdm
 import random
 from typing import Union
+from scipy.spatial import cKDTree
 import logging
 
 def _getChunks(bound_min, bound_max, n_values, method):
@@ -284,7 +285,7 @@ def equilibrate(*args, method='max', fill_method='random', return_all=True,
                     grids = [np.linspace(lo, hi, n_sub + 2)[1:-1] for lo, hi in zip(lows, highs)]
                     candidates = np.array(list(product(*grids)))
                     existing = np.column_stack(current_points)
-                    from scipy.spatial import cKDTree
+                    
                     tree = cKDTree(existing)
                     dists, _ = tree.query(candidates)
                     point = candidates[np.argmax(dists)]
