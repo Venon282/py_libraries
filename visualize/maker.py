@@ -100,12 +100,12 @@ class Maker:
     @staticmethod
     def other():
         known = (
-            Maker.pixel()   + Maker.circle() +
-            Maker.square()  + Maker.diamond() +
-            Maker.triangle()+ Maker.pentagon() +
-            Maker.hexagon() + Maker.star()    +
-            Maker.cross()   + Maker.numeric() +
-            Maker.tick()  +
+            Maker.pixel()   + Maker.circle()    +
+            Maker.square()  + Maker.diamond()   +
+            Maker.triangle()+ Maker.pentagon()  +
+            Maker.hexagon() + Maker.star()      +
+            Maker.cross()   + Maker.numeric()   +
+            Maker.tick()    + Maker.caret()     +
             Maker.none()
         )
         return [m for m in Maker.all() if m not in known]
