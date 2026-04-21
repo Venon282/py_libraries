@@ -1,10 +1,10 @@
 #! better to use deque from collections
 class Queue:
-    def __init__(self, queue=[]):
+    def __init__(self, queue=None):
         """
         Initializes an empty Stack.
         """
-        self.queue = queue
+        self.queue = queue if queue is not None else []
 
     def enqueue(self, element):
         self.queue = [element] + self.queue
