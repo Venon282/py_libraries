@@ -2,12 +2,12 @@ import math
 import numpy as np
 
 class Edge:
-    def __init__(self, start, end, weight=1, properties={},
+    def __init__(self, start, end, weight=1, properties=None,
                  color='black', width=0.003):
         self.start = start
         self.end = end
         self.weight = weight
-        self.properties = properties
+        self.properties = properties if properties is not None else {}
         
         # aspect
         self.color = color

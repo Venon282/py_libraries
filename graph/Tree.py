@@ -17,7 +17,7 @@ class Tree(Graph):
         self._root: Node | None = None
     
     # region construction
-    def addChild(self, parent: Node, child: Node, weight=1, color='black', width=0.003, properties={}):
+    def addChild(self, parent: Node, child: Node, weight=1, color='black', width=0.003, properties=None):
         """ 
         Adds a child node to a parent node in the tree.
         Creates the directed edge from parent to child.
@@ -34,6 +34,9 @@ class Tree(Graph):
             ValueError: If the parent is missing, if the child is already in the tree,
                         or if the addition would create a cycle.
         """
+        if properties is None:
+            properties = {}
+            
         if parent.key not in self.nodes:
             raise ValueError(f'The parent node "{parent.key}" is not in the tree.')
 
