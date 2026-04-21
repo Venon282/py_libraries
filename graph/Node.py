@@ -2,7 +2,7 @@ import random
 
 class Node:
     
-    def __init__(self, key='undefined', value=None,  properties={},
+    def __init__(self, key='undefined', value=None,  properties=None,
                  x=None, y=None, radius=2, 
                  color='white', edge_color='black', edge_width=1):
         # Identification and additional properties
@@ -11,7 +11,7 @@ class Node:
         self._edges = set()
         self._edges_in = set()
         self._edges_out = set()
-        self.properties = properties
+        self.properties = properties if properties is not None else {}
         
         # Position
         self.x = x if x is not None else 100*random.random()
