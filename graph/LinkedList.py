@@ -157,7 +157,7 @@ class LinkedList(Tree):
         """
         Inserts a new node built from 'new_key' after the node with 'ref_key'.
         """
-        ref = self.getNodeByKey(ref_key),
+        ref = self.getNodeByKey(ref_key)
         if ref is None:
             raise ValueError(f'No node found with key "{ref_key}".')
         self.insertAfter(ref, Node(new_key), **kwargs)
