@@ -138,14 +138,12 @@ class PlotAxes:
                     )
         return self
 
-    def errorbar(self, *args, xerr=None, yerr=None, **kwargs) -> PlotAxes:
+    def errorbar(self, *args, **kwargs) -> PlotAxes:
         """Error bar plot. Each series is plotted as mean +/- std."""
         for arg in args:
             x, y, opts = _unwrap(arg)
             self._ax.errorbar(
-                np.mean(x), np.mean(y),
-                xerr=opts.get('xerr', xerr if xerr is None or isinstance(xerr, (list, np.ndarray)) else np.std(x)) , 
-                yerr=opts.get('yerr', yerr if yerr is None or isinstance(yerr, (list, np.ndarray)) else np.std(y)) ,
+                x, y,
                 **{**kwargs, **opts},
             )
         return self
