@@ -138,7 +138,7 @@ class PlotAxes:
                     )
         return self
 
-    def errorbar(self, xerr=None, yerr=None, *args, **kwargs) -> PlotAxes:
+    def errorbar(self, *args, xerr=None, yerr=None, **kwargs) -> PlotAxes:
         """Error bar plot. Each series is plotted as mean +/- std."""
         for arg in args:
             x, y, opts = _unwrap(arg)
@@ -394,7 +394,7 @@ class Figure:
 
     def __init__(self,
                  theme: Union[str, Theme] = 'paper',
-                 figsize: Tuple[float, float] = (8, 5),
+                 figsize: Tuple[float, float] = (10, 6),
                  **kwargs) -> None:
         if isinstance(theme, str):
             theme = THEMES.get(theme, THEMES['default'])
