@@ -138,13 +138,14 @@ class PlotAxes:
                     )
         return self
 
-    def errorbar(self, *args, **kwargs) -> PlotAxes:
+    def errorbar(self, xerr=None, yerr=None, *args, **kwargs) -> PlotAxes:
         """Error bar plot. Each series is plotted as mean +/- std."""
         for arg in args:
             x, y, opts = _unwrap(arg)
             self._ax.errorbar(
                 np.mean(x), np.mean(y),
-                xerr=np.std(x), yerr=np.std(y),
+                xerr=opts.get('xerr', xerr if xerr is None or isinstance(xerr, (list, np.ndarray)) else np.std(x)) , 
+                yerr=opts.get('yerr', yerr if yerr is None or isinstance(yerr, (list, np.ndarray)) else np.std(y)) ,
                 **{**kwargs, **opts},
             )
         return self
@@ -505,11 +506,13 @@ class Figure:
         """Render and display the figure interactively."""
         self._renderAll()
         plt.show()
+        return self
 
     def save(self, path: str, dpi: int = 150) -> None:
         """Render and write the figure to disk."""
         self._renderAll()
         saveFig(self._fig, path, dpi=dpi)
+        return self
 
     def close(self) -> None:
         """Close the figure and release its memory."""
