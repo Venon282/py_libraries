@@ -4,6 +4,7 @@ from tqdm import tqdm
 import os
 import shutil
 from collections import deque
+from itertools import chain
 from ..other.loggingUtils import getLogger
 
 logger = getLogger(__name__)
@@ -310,7 +311,8 @@ def toExcel(h5, excel_path='./h5_to_excel.xlsx', verbose=0, max_rows=1_048_576, 
                     pd.DataFrame(data_chunk).to_excel(writer, sheet_name=sub_sheet_name, index=False)
 
 def getName(h5):
-    """Return the current group or dataset name
+    """
+    Return the current group or dataset name
     """
     return h5.name.split('/')[-1]
 
@@ -342,7 +344,8 @@ def dfToH5(df, h5_path, overwrite=True, mode='x'):
 
 
 def makeH5Copy(h5_path, suffix="_copy", max_tries=1000):
-    """Create a unique copy of h5_path next to the original.
+    """
+    Create a unique copy of h5_path next to the original.
     Returns the path of the created copy.
     """
     folder, filename = os.path.split(h5_path)
@@ -377,3 +380,72 @@ def getH5RowSet(h5_path, columns, chunk_size=100_000):
             unique_rows.update(zip(*col_data))
 
     return unique_rows
+
+def mask(h5_path, filters, mask=None, chunk_size=10_000, verbose=False):
+    """
+    Filter HDF5 dataset indices using a set of predicate functions.
+
+    All datasets referenced in filters must have the same length.
+
+    Parameters
+    ----------
+    h5_path : str or Path
+        Path to the HDF5 file.
+    filters : dict[str, callable] | list[tuple[str, callable]]
+        Mapping from dataset path to a predicate. Each predicate receives a
+        numpy array and must return a boolean array of the same length.
+    mask : None | array-like, optional
+        Indices to consider. Accepts a boolean array, an integer array, or
+        None to include all rows.
+    chunk_size : int, optional
+        Number of rows read per iteration.
+    verbose : bool, optional
+        Display a progress bar when True.
+
+    Returns
+    -------
+    numpy.ndarray
+        Sorted integer array of indices that passed all filters.
+    """
+    if not len(filters):
+        return np.array([], dtype=np.intp)
+
+    if isinstance(filters, dict):
+        filters = list(filters.items())
+
+    with h5py.File(h5_path, 'r') as f:
+        dataset_size = f[filters[0][0]].shape[0]
+
+        if mask is None:
+            active_indices = np.arange(dataset_size, dtype=np.intp)
+        else:
+            mask = np.asarray(mask)
+            if mask.dtype == bool:
+                active_indices = np.where(mask)[0].astype(np.intp)
+            elif np.issubdtype(mask.dtype, np.integer):
+                active_indices = mask.astype(np.intp)
+            else:
+                raise TypeError("mask must be None, a boolean array, or an integer array.")
+
+        for dataset_path, predicate in tqdm(
+            filters,
+            total=len(filters),
+            mininterval=1,
+            unit=" filter",
+            disable=not verbose,
+        ):
+            dataset = f[dataset_path]
+            kept_chunks = []
+
+            for i in range(0, len(active_indices), chunk_size):
+                chunk_indices = active_indices[i : i + chunk_size]
+                bool_result = np.asarray(predicate(dataset[chunk_indices]), dtype=bool)
+                kept_chunks.append(chunk_indices[bool_result])
+
+            active_indices = (
+                np.concatenate(kept_chunks)
+                if kept_chunks
+                else np.array([], dtype=np.intp)
+            )
+
+    return active_indices
