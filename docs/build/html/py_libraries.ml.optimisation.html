@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>py_libraries.ml.optimisation package &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="py_libraries.ml.preprocessing package" href="py_libraries.ml.preprocessing.html" />
+    <link rel="prev" title="py_libraries.ml.model package" href="py_libraries.ml.model.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-py_libraries.ml.optimisation">
+<span id="py-libraries-ml-optimisation-package"></span><h1>py_libraries.ml.optimisation package<a class="headerlink" href="#module-py_libraries.ml.optimisation" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.BayesianTuner">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.optimisation.</span></span><span class="sig-name descname"><span class="pre">BayesianTuner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixe_hparams</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/BayesianTuner.html#BayesianTuner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.BayesianTuner" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BayesianOptimization</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.BayesianTuner.run_trial">
+<span class="sig-name descname"><span class="pre">run_trial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trial</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/BayesianTuner.html#BayesianTuner.run_trial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.BayesianTuner.run_trial" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluates a set of hyperparameter values.</p>
+<p>This method is called multiple times during <cite>search</cite> to build and
+evaluate the models with different hyperparameters and return the
+objective value.</p>
+<p>Example:</p>
+<p>You can use it with <cite>self.hypermodel</cite> to build and fit the model.</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
+def run_trial(self, trial, <a href="#id5"><span class="problematic" id="id6">*</span></a>args, <a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs):</p>
+<blockquote>
+<div><p>hp = trial.hyperparameters
+model = self.hypermodel.build(hp)
+return self.hypermodel.fit(hp, model, <a href="#id9"><span class="problematic" id="id10">*</span></a>args, <a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs)</p>
+</div></blockquote>
+<p><a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
+<p>You can also use it as a black-box optimizer for anything.</p>
+<p><a href="#id17"><span class="problematic" id="id18">``</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>python
+def run_trial(self, trial, <a href="#id21"><span class="problematic" id="id22">*</span></a>args, <a href="#id23"><span class="problematic" id="id24">**</span></a>kwargs):</p>
+<blockquote>
+<div><p>hp = trial.hyperparameters
+x = hp.Float(“x”, -2.0, 2.0)
+y = x * x + 2 * x + 1
+return y</p>
+</div></blockquote>
+<p><a href="#id25"><span class="problematic" id="id26">``</span></a><a href="#id27"><span class="problematic" id="id28">`</span></a></p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>trial: A <cite>Trial</cite> instance that contains the information needed to</dt><dd><p>run this trial. Hyperparameters can be accessed via
+<cite>trial.hyperparameters</cite>.</p>
+</dd>
+</dl>
+<p><a href="#id29"><span class="problematic" id="id30">*</span></a>args: Positional arguments passed by <cite>search</cite>.
+<a href="#id31"><span class="problematic" id="id32">**</span></a>kwargs: Keyword arguments passed by <cite>search</cite>.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A <cite>History</cite> object, which is the return value of <cite>model.fit()</cite>, a
+dictionary, a float, or a list of one of these types.</p>
+<p>If return a dictionary, it should be a dictionary of the metrics to
+track. The keys are the metric names, which contains the
+<cite>objective</cite> name. The values should be the metric values.</p>
+<p>If return a float, it should be the <cite>objective</cite> value.</p>
+<p>If evaluating the model for multiple times, you may return a list
+of results of any of the types above. The final objective value is
+the average of the results in the list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.DnnModelBuilder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.optimisation.</span></span><span class="sig-name descname"><span class="pre">DnnModelBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_labels_linear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_labels_sigmoid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_softmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_linear_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_sigmoid_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_softmax_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixe_hparams</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'linear':</span> <span class="pre">1.0,</span> <span class="pre">'sigmoid':</span> <span class="pre">0.5,</span> <span class="pre">'softmax':</span> <span class="pre">0.5}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/DnnModelBuilder.html#DnnModelBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.DnnModelBuilder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder" title="py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModelBuilder</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.DnnModelBuilder.block">
+<span class="sig-name descname"><span class="pre">block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/DnnModelBuilder.html#DnnModelBuilder.block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.DnnModelBuilder.block" title="Link to this definition">¶</a></dt>
+<dd><p>Build a dense block comprising multiple layers with tunable hyperparameters.</p>
+<p>Hyperparameters for each layer are registered conditionally based on the chosen
+number of active layers. Optionally, a residual (skip) connection is added.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>hp: Hyperparameter tuning object.
+x: Input tensor.
+block_id (str): Unique identifier for the block.
+min_layers (int, optional): Minimum layers to include (defaults to self.min_layers).
+max_layers (int, optional): Maximum layers to include (defaults to self.max_layers).</p>
+</dd>
+<dt>Returns:</dt><dd><p>Output tensor after applying the dense block (including a residual connection if enabled).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.DnnModelBuilder.build_model">
+<span class="sig-name descname"><span class="pre">build_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/DnnModelBuilder.html#DnnModelBuilder.build_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.DnnModelBuilder.build_model" title="Link to this definition">¶</a></dt>
+<dd><p>Construct and compile the tunable model using hyperparameter selections.</p>
+<p>The model can optionally include a start branch (with separate branches per label),
+a middle dense block, and an end branch. The optimizer is also selected and tuned.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>hp: Hyperparameter tuning object.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A compiled Keras model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.DnnModelBuilder.completeDenseLayer">
+<span class="sig-name descname"><span class="pre">completeDenseLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_reg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias_reg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activity_reg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/DnnModelBuilder.html#DnnModelBuilder.completeDenseLayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.DnnModelBuilder.completeDenseLayer" title="Link to this definition">¶</a></dt>
+<dd><p>Build a dense layer with configurable activation, dropout, and batch normalization.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>x: Input tensor.
+units (int): Number of neurons in the layer.
+activation (str): Activation function.
+dropout_rate (float): Dropout rate to apply after activation.
+batch_norm (bool): Whether to apply batch normalization.
+kernel_reg: Regularizer for kernel weights.
+bias_reg: Regularizer for bias.
+activity_reg: Regularizer for activations.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Output tensor after applying the Dense layer, activation, optional dropout, and batch normalization.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-py_libraries.ml.optimisation.BayesianTuner">
+<span id="py-libraries-ml-optimisation-bayesiantuner-module"></span><h2>py_libraries.ml.optimisation.BayesianTuner module<a class="headerlink" href="#module-py_libraries.ml.optimisation.BayesianTuner" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.BayesianTuner.BayesianTuner">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.optimisation.BayesianTuner.</span></span><span class="sig-name descname"><span class="pre">BayesianTuner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixe_hparams</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/BayesianTuner.html#BayesianTuner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.BayesianTuner.BayesianTuner" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BayesianOptimization</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.BayesianTuner.BayesianTuner.run_trial">
+<span class="sig-name descname"><span class="pre">run_trial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trial</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/BayesianTuner.html#BayesianTuner.run_trial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.BayesianTuner.BayesianTuner.run_trial" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluates a set of hyperparameter values.</p>
+<p>This method is called multiple times during <cite>search</cite> to build and
+evaluate the models with different hyperparameters and return the
+objective value.</p>
+<p>Example:</p>
+<p>You can use it with <cite>self.hypermodel</cite> to build and fit the model.</p>
+<p><a href="#id33"><span class="problematic" id="id34">``</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a>python
+def run_trial(self, trial, <a href="#id37"><span class="problematic" id="id38">*</span></a>args, <a href="#id39"><span class="problematic" id="id40">**</span></a>kwargs):</p>
+<blockquote>
+<div><p>hp = trial.hyperparameters
+model = self.hypermodel.build(hp)
+return self.hypermodel.fit(hp, model, <a href="#id41"><span class="problematic" id="id42">*</span></a>args, <a href="#id43"><span class="problematic" id="id44">**</span></a>kwargs)</p>
+</div></blockquote>
+<p><a href="#id45"><span class="problematic" id="id46">``</span></a><a href="#id47"><span class="problematic" id="id48">`</span></a></p>
+<p>You can also use it as a black-box optimizer for anything.</p>
+<p><a href="#id49"><span class="problematic" id="id50">``</span></a><a href="#id51"><span class="problematic" id="id52">`</span></a>python
+def run_trial(self, trial, <a href="#id53"><span class="problematic" id="id54">*</span></a>args, <a href="#id55"><span class="problematic" id="id56">**</span></a>kwargs):</p>
+<blockquote>
+<div><p>hp = trial.hyperparameters
+x = hp.Float(“x”, -2.0, 2.0)
+y = x * x + 2 * x + 1
+return y</p>
+</div></blockquote>
+<p><a href="#id57"><span class="problematic" id="id58">``</span></a><a href="#id59"><span class="problematic" id="id60">`</span></a></p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>trial: A <cite>Trial</cite> instance that contains the information needed to</dt><dd><p>run this trial. Hyperparameters can be accessed via
+<cite>trial.hyperparameters</cite>.</p>
+</dd>
+</dl>
+<p><a href="#id61"><span class="problematic" id="id62">*</span></a>args: Positional arguments passed by <cite>search</cite>.
+<a href="#id63"><span class="problematic" id="id64">**</span></a>kwargs: Keyword arguments passed by <cite>search</cite>.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A <cite>History</cite> object, which is the return value of <cite>model.fit()</cite>, a
+dictionary, a float, or a list of one of these types.</p>
+<p>If return a dictionary, it should be a dictionary of the metrics to
+track. The keys are the metric names, which contains the
+<cite>objective</cite> name. The values should be the metric values.</p>
+<p>If return a float, it should be the <cite>objective</cite> value.</p>
+<p>If evaluating the model for multiple times, you may return a list
+of results of any of the types above. The final objective value is
+the average of the results in the list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.optimisation.DnnModelBuilder">
+<span id="py-libraries-ml-optimisation-dnnmodelbuilder-module"></span><h2>py_libraries.ml.optimisation.DnnModelBuilder module<a class="headerlink" href="#module-py_libraries.ml.optimisation.DnnModelBuilder" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.optimisation.DnnModelBuilder.</span></span><span class="sig-name descname"><span class="pre">DnnModelBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_labels_linear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_labels_sigmoid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_softmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_linear_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_sigmoid_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_softmax_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixe_hparams</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'linear':</span> <span class="pre">1.0,</span> <span class="pre">'sigmoid':</span> <span class="pre">0.5,</span> <span class="pre">'softmax':</span> <span class="pre">0.5}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/DnnModelBuilder.html#DnnModelBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder" title="py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModelBuilder</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder.block">
+<span class="sig-name descname"><span class="pre">block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/DnnModelBuilder.html#DnnModelBuilder.block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder.block" title="Link to this definition">¶</a></dt>
+<dd><p>Build a dense block comprising multiple layers with tunable hyperparameters.</p>
+<p>Hyperparameters for each layer are registered conditionally based on the chosen
+number of active layers. Optionally, a residual (skip) connection is added.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>hp: Hyperparameter tuning object.
+x: Input tensor.
+block_id (str): Unique identifier for the block.
+min_layers (int, optional): Minimum layers to include (defaults to self.min_layers).
+max_layers (int, optional): Maximum layers to include (defaults to self.max_layers).</p>
+</dd>
+<dt>Returns:</dt><dd><p>Output tensor after applying the dense block (including a residual connection if enabled).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder.build_model">
+<span class="sig-name descname"><span class="pre">build_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/DnnModelBuilder.html#DnnModelBuilder.build_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder.build_model" title="Link to this definition">¶</a></dt>
+<dd><p>Construct and compile the tunable model using hyperparameter selections.</p>
+<p>The model can optionally include a start branch (with separate branches per label),
+a middle dense block, and an end branch. The optimizer is also selected and tuned.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>hp: Hyperparameter tuning object.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A compiled Keras model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder.completeDenseLayer">
+<span class="sig-name descname"><span class="pre">completeDenseLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_reg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias_reg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activity_reg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/DnnModelBuilder.html#DnnModelBuilder.completeDenseLayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder.completeDenseLayer" title="Link to this definition">¶</a></dt>
+<dd><p>Build a dense layer with configurable activation, dropout, and batch normalization.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>x: Input tensor.
+units (int): Number of neurons in the layer.
+activation (str): Activation function.
+dropout_rate (float): Dropout rate to apply after activation.
+batch_norm (bool): Whether to apply batch normalization.
+kernel_reg: Regularizer for kernel weights.
+bias_reg: Regularizer for bias.
+activity_reg: Regularizer for activations.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Output tensor after applying the Dense layer, activation, optional dropout, and batch normalization.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.optimisation.ModelBuilder">
+<span id="py-libraries-ml-optimisation-modelbuilder-module"></span><h2>py_libraries.ml.optimisation.ModelBuilder module<a class="headerlink" href="#module-py_libraries.ml.optimisation.ModelBuilder" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.optimisation.ModelBuilder.</span></span><span class="sig-name descname"><span class="pre">BaseModelBuilder</span></span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/ModelBuilder.html#BaseModelBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder.build_model">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">build_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/ModelBuilder.html#BaseModelBuilder.build_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder.build_model" title="Link to this definition">¶</a></dt>
+<dd><p>Méthode abstraite devant retourner un modèle compilé,
+en utilisant l’objet ‘hp’ pour définir les hyperparamètres.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.optimisation.TransformerModelBuilder">
+<span id="py-libraries-ml-optimisation-transformermodelbuilder-module"></span><h2>py_libraries.ml.optimisation.TransformerModelBuilder module<a class="headerlink" href="#module-py_libraries.ml.optimisation.TransformerModelBuilder" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.TransformerModelBuilder.TransformerModelBuilder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.optimisation.TransformerModelBuilder.</span></span><span class="sig-name descname"><span class="pre">TransformerModelBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_max_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_max_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixe_hparams</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/TransformerModelBuilder.html#TransformerModelBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.TransformerModelBuilder.TransformerModelBuilder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder" title="py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModelBuilder</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.TransformerModelBuilder.TransformerModelBuilder.build_model">
+<span class="sig-name descname"><span class="pre">build_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/TransformerModelBuilder.html#TransformerModelBuilder.build_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.TransformerModelBuilder.TransformerModelBuilder.build_model" title="Link to this definition">¶</a></dt>
+<dd><p>Méthode abstraite devant retourner un modèle compilé,
+en utilisant l’objet ‘hp’ pour définir les hyperparamètres.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.optimisation.module">
+<span id="py-libraries-ml-optimisation-module-module"></span><h2>py_libraries.ml.optimisation.module module<a class="headerlink" href="#module-py_libraries.ml.optimisation.module" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.ml.optimisation.module.setHyperparameter">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.ml.optimisation.module.</span></span><span class="sig-name descname"><span class="pre">setHyperparameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixe_hparams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/optimisation/module.html#setHyperparameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.optimisation.module.setHyperparameter" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="py_libraries.html">py_libraries package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="py_libraries.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Queue">py_libraries.Queue module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Stack">py_libraries.Stack module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.cipher">py_libraries.cipher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.encoder">py_libraries.encoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.internet">py_libraries.internet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.path">py_libraries.path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.system">py_libraries.system module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.temp">py_libraries.temp module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-test-module">py_libraries.test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.visualize_deprecate">py_libraries.visualize_deprecate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-windows-module">py_libraries.windows module</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="py_libraries.html">py_libraries package</a><ul>
+  <li><a href="py_libraries.ml.html">py_libraries.ml package</a><ul>
+      <li>Previous: <a href="py_libraries.ml.model.html" title="previous chapter">py_libraries.ml.model package</a></li>
+      <li>Next: <a href="py_libraries.ml.preprocessing.html" title="next chapter">py_libraries.ml.preprocessing package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/py_libraries.ml.optimisation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

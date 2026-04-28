@@ -1,0 +1,30 @@
+py\_libraries.ml package
+========================
+
+.. automodule:: py_libraries.ml
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   py_libraries.ml.layer
+   py_libraries.ml.metrics
+   py_libraries.ml.model
+   py_libraries.ml.optimisation
+   py_libraries.ml.preprocessing
+
+Submodules
+----------
+
+py\_libraries.ml.module module
+------------------------------
+
+.. automodule:: py_libraries.ml.module
+   :members:
+   :show-inheritance:
+   :undoc-members:

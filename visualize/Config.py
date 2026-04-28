@@ -30,6 +30,8 @@ class AxisConfig:
     xticklabels: Optional[List[str]]   = None
     yticklabels: Optional[List[str]]   = None
 
+    aspect: Optional[Union[str, Dict[str, Any]]] = None
+
     @classmethod
     def fieldNames(cls) -> frozenset:
         return frozenset(f.name for f in fields(cls))

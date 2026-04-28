@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>py_libraries.ml.optimisation.TransformerModelBuilder &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for py_libraries.ml.optimisation.TransformerModelBuilder</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">.ModelBuilder</span> <span class="kn">import</span> <span class="n">BaseModelBuilder</span>
+<span class="kn">from</span> <span class="nn">.module</span> <span class="kn">import</span> <span class="n">setHyperparameter</span>
+<span class="kn">from</span> <span class="nn">..model</span> <span class="kn">import</span> <span class="n">TransformerForecaster</span>
+<span class="kn">from</span> <span class="nn">..optimizer.schedule</span> <span class="kn">import</span> <span class="n">Noam</span>
+
+<div class="viewcode-block" id="TransformerModelBuilder">
+<a class="viewcode-back" href="../../../../py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.TransformerModelBuilder">[docs]</a>
+<span class="k">class</span> <span class="nc">TransformerModelBuilder</span><span class="p">(</span><span class="n">BaseModelBuilder</span><span class="p">):</span>
+<div class="viewcode-block" id="TransformerModelBuilder.__init__">
+<a class="viewcode-back" href="../../../../generated/py_libraries.ml.optimisation.TransformerModelBuilder.html#py_libraries.ml.optimisation.TransformerModelBuilder.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_features</span><span class="p">,</span> <span class="n">n_max_source</span><span class="p">,</span> <span class="n">n_max_target</span><span class="p">,</span> <span class="n">fixe_hparams</span><span class="o">=</span><span class="p">{},</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_features</span> <span class="o">=</span> <span class="n">n_features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_max_source</span> <span class="o">=</span> <span class="n">n_max_source</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_max_target</span> <span class="o">=</span> <span class="n">n_max_target</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span> <span class="o">=</span> <span class="n">fixe_hparams</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="s1">&#39;mse&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;metrics&#39;</span><span class="p">,</span> <span class="s1">&#39;mae&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_layers_min</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_layers_min&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_layers_max</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_layers_max&#39;</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_layers_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_layers_step&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model_min</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;d_model_min&#39;</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model_max</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;d_model_max&#39;</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;d_model_step&#39;</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_heads_min</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_heads_min&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_heads_max</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_heads_max&#39;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_heads_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_heads_step&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">dff_min</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dff_min&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dff_max</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dff_max&#39;</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dff_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dff_step&#39;</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_min</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dropout_rate_min&#39;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_max</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dropout_rate_max&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dropout_rate_step&#39;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">warmup_steps_min</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;warmup_steps_min&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warmup_steps_max</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;warmup_steps_max&#39;</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warmup_steps_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;warmup_steps_step&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+           
+        <span class="c1"># Initialize the base class with any remaining arguments.</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="TransformerModelBuilder.build_model">
+<a class="viewcode-back" href="../../../../py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.TransformerModelBuilder.build_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">build_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hp</span><span class="p">):</span>
+        <span class="n">num_layers</span>      <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span>   <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;num_layers&#39;</span>  <span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_layers_min</span>  <span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_layers_max</span>  <span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_layers_step</span>  <span class="p">)</span>
+        <span class="n">d_model</span>         <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span>   <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;d_model&#39;</span>     <span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model_min</span>     <span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model_max</span>     <span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model_step</span>     <span class="p">)</span>
+        <span class="n">num_heads</span>       <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span>   <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;num_heads&#39;</span>   <span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_heads_min</span>   <span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_heads_max</span>   <span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_heads_step</span>   <span class="p">)</span>
+        <span class="n">dff</span>             <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span>   <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;dff&#39;</span>         <span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dff_min</span>         <span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dff_max</span>         <span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dff_step</span>         <span class="p">)</span>
+        <span class="n">dropout_rate</span>    <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Float</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;dropout_rate&#39;</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_min</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_max</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_step</span><span class="p">)</span>
+        <span class="n">warmup_steps</span>    <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span>   <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;warmup_steps&#39;</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">warmup_steps_min</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">warmup_steps_max</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">warmup_steps_step</span><span class="p">)</span>
+        
+        <span class="n">transformer</span> <span class="o">=</span> <span class="n">TransformerForecaster</span><span class="p">(</span><span class="n">num_layers</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">n_max_source</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_max_target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_features</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+        
+        <span class="c1"># transformer = tf.keras.Sequential([</span>
+        <span class="c1">#     tf.keras.layers.Input(shape=(100,)),</span>
+        <span class="c1">#     tf.keras.layers.Dense(100),</span>
+        <span class="c1"># ])</span>
+        <span class="c1"># Use the custom Noam learning rate schedule</span>
+        <span class="n">learning_rate</span> <span class="o">=</span> <span class="n">Noam</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">warmup_steps</span><span class="o">=</span><span class="n">warmup_steps</span><span class="p">)</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">)</span> <span class="c1"># beta_1=0.9, beta_2=0.98, epsilon=1e-9</span>
+        
+        <span class="n">transformer</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">transformer</span></div>
+</div>
+
+    
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../py_libraries.html">py_libraries package</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>py_libraries.ml.model.cnn2D &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for py_libraries.ml.model.cnn2D</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span><span class="p">,</span> <span class="n">Model</span> <span class="c1"># type: ignore</span>
+
+<span class="c1">#! bad, delete it</span>
+
+<div class="viewcode-block" id="outputNames">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.cnn2D.outputNames">[docs]</a>
+<span class="k">def</span> <span class="nf">outputNames</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">activation</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">units</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;output_</span><span class="si">{</span><span class="n">activation</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">units</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;units must be int or list&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="build_cnn">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.cnn2D.build_cnn">[docs]</a>
+<span class="k">def</span> <span class="nf">build_cnn</span><span class="p">(</span>
+    <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">conv_blocks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]],</span>
+    <span class="n">dense_blocks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">transition</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;GlobalAveragePooling2D&#39;</span><span class="p">,</span>
+    <span class="n">output_specs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;softmax&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Model</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Builds a configurable 2D CNN using Keras Functional API.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_shape: Shape of the input tensor (H, W, C).</span>
+<span class="sd">        conv_blocks: List of dictionaries, each specifying a conv block:</span>
+<span class="sd">            - filters (int): Number of convolution filters.</span>
+<span class="sd">            - kernel_size (tuple): Kernel size, e.g. (3,3).</span>
+<span class="sd">            - activation (str): Activation after convolution (default &#39;relu&#39;).</span>
+<span class="sd">            - padding (str): Padding mode (default &#39;same&#39;).</span>
+<span class="sd">            - batch_norm (bool): Whether to apply BatchNormalization (default False).</span>
+<span class="sd">            - pool (str): Pooling layer name, e.g. &#39;MaxPooling2D&#39; (optional).</span>
+<span class="sd">            - pool_size (tuple): Pool size for pooling (default (2,2)).</span>
+<span class="sd">            - dropout (float): Dropout rate after block (optional).</span>
+<span class="sd">        dense_blocks: List of dictionaries for dense layers:</span>
+<span class="sd">            - units (int): Number of neurons.</span>
+<span class="sd">            - activation (str): Activation for the dense layer.</span>
+<span class="sd">            - dropout (float): Dropout rate after dense (optional).</span>
+<span class="sd">        output_specs: Mapping from activation name to number of outputs.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Keras Model instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">inputs</span>
+
+    <span class="c1"># Convolutional blocks</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">conv_blocks</span><span class="p">:</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;filters&#39;</span><span class="p">]</span>
+        <span class="n">kernel_size</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kernel_size&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;padding&#39;</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;batch_norm&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">()(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">activation</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;activation&#39;</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="n">activation</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pool&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">PoolLayer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">pool</span><span class="p">)</span>
+            <span class="n">pool_size</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pool_size&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">PoolLayer</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="n">pool_size</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">dropout_rate</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dropout&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dropout_rate</span> <span class="ow">and</span> <span class="n">dropout_rate</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">SpatialDropout2D</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="c1"># Flatten before dense layers</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">transition</span><span class="p">)()(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="c1"># Dense blocks</span>
+    <span class="k">if</span> <span class="n">dense_blocks</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">dense_blocks</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
+            <span class="n">activation</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;activation&#39;</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+
+            <span class="n">dropout_rate</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dropout&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dropout_rate</span> <span class="ow">and</span> <span class="n">dropout_rate</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="c1"># Output layers</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">act_name</span><span class="p">,</span> <span class="n">units</span> <span class="ow">in</span> <span class="n">output_specs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">act_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;softmax&#39;</span><span class="p">,</span> <span class="s1">&#39;sigmoid&#39;</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported activation: </span><span class="si">{</span><span class="n">act_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">outputNames</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">act_name</span><span class="p">):</span>
+            <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">act_name</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+
+<span class="c1"># Example usage:</span>
+<span class="c1"># conv_cfg = [</span>
+<span class="c1">#     {&#39;filters&#39;: 32, &#39;kernel_size&#39;: (3,3), &#39;activation&#39;: &#39;relu&#39;, &#39;batch_norm&#39;: True, &#39;pool&#39;: &#39;MaxPooling2D&#39;, &#39;dropout&#39;: 0.2},</span>
+<span class="c1">#     {&#39;filters&#39;: 64, &#39;kernel_size&#39;: (3,3), &#39;activation&#39;: &#39;relu&#39;, &#39;batch_norm&#39;: True, &#39;pool&#39;: &#39;MaxPooling2D&#39;, &#39;dropout&#39;: 0.3},</span>
+<span class="c1"># ]</span>
+<span class="c1"># dense_cfg = [</span>
+<span class="c1">#     {&#39;units&#39;: 256, &#39;activation&#39;: &#39;relu&#39;, &#39;dropout&#39;: 0.5},</span>
+<span class="c1"># ]</span>
+<span class="c1"># model = build_cnn((128,128,3), conv_cfg, dense_cfg, {&#39;softmax&#39;: 10})</span>
+<span class="c1"># model.compile(&#39;adam&#39;, loss=&#39;sparse_categorical_crossentropy&#39;, metrics=[&#39;accuracy&#39;])</span>
+<span class="c1"># model.summary()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../py_libraries.html">py_libraries package</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

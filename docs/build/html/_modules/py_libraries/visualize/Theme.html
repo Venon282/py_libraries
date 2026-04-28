@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>py_libraries.visualize.Theme &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for py_libraries.visualize.Theme</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
+
+<span class="n">_PALETTE_MUTED</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;#1f77b4&#39;</span><span class="p">,</span> <span class="s1">&#39;#d62728&#39;</span><span class="p">,</span> <span class="s1">&#39;#2ca02c&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff7f0e&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;#9467bd&#39;</span><span class="p">,</span> <span class="s1">&#39;#8c564b&#39;</span><span class="p">,</span> <span class="s1">&#39;#e377c2&#39;</span><span class="p">,</span> <span class="s1">&#39;#7f7f7f&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">_PALETTE_BRIGHT</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;#4477AA&#39;</span><span class="p">,</span> <span class="s1">&#39;#EE6677&#39;</span><span class="p">,</span> <span class="s1">&#39;#228833&#39;</span><span class="p">,</span> <span class="s1">&#39;#CCBB44&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;#66CCEE&#39;</span><span class="p">,</span> <span class="s1">&#39;#AA3377&#39;</span><span class="p">,</span> <span class="s1">&#39;#BBBBBB&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">_BASE_RC</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;xtick.direction&#39;</span><span class="p">:</span>     <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ytick.direction&#39;</span><span class="p">:</span>     <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;xtick.minor.visible&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;ytick.minor.visible&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;axes.spines.top&#39;</span><span class="p">:</span>     <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;axes.spines.right&#39;</span><span class="p">:</span>   <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;legend.framealpha&#39;</span><span class="p">:</span>   <span class="mf">0.8</span><span class="p">,</span>
+    <span class="s1">&#39;savefig.bbox&#39;</span><span class="p">:</span>        <span class="s1">&#39;tight&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">_PAPER_RC</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="o">**</span><span class="n">_BASE_RC</span><span class="p">,</span>
+    <span class="s1">&#39;font.family&#39;</span><span class="p">:</span>     <span class="s1">&#39;serif&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;font.size&#39;</span><span class="p">:</span>       <span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;axes.labelsize&#39;</span><span class="p">:</span>  <span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;axes.titlesize&#39;</span><span class="p">:</span>  <span class="mi">11</span><span class="p">,</span>
+    <span class="s1">&#39;xtick.labelsize&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+    <span class="s1">&#39;ytick.labelsize&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+    <span class="s1">&#39;legend.fontsize&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+    <span class="s1">&#39;figure.dpi&#39;</span><span class="p">:</span>      <span class="mi">150</span><span class="p">,</span>
+    <span class="s1">&#39;savefig.dpi&#39;</span><span class="p">:</span>     <span class="mi">300</span><span class="p">,</span>
+    <span class="s1">&#39;axes.linewidth&#39;</span><span class="p">:</span>  <span class="mf">0.8</span><span class="p">,</span>
+    <span class="s1">&#39;lines.linewidth&#39;</span><span class="p">:</span> <span class="mf">1.4</span><span class="p">,</span>
+    <span class="s1">&#39;lines.markersize&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">_TALK_RC</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="o">**</span><span class="n">_BASE_RC</span><span class="p">,</span>
+    <span class="s1">&#39;font.family&#39;</span><span class="p">:</span>     <span class="s1">&#39;sans-serif&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;font.size&#39;</span><span class="p">:</span>       <span class="mi">14</span><span class="p">,</span>
+    <span class="s1">&#39;axes.labelsize&#39;</span><span class="p">:</span>  <span class="mi">14</span><span class="p">,</span>
+    <span class="s1">&#39;axes.titlesize&#39;</span><span class="p">:</span>  <span class="mi">16</span><span class="p">,</span>
+    <span class="s1">&#39;xtick.labelsize&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="s1">&#39;ytick.labelsize&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="s1">&#39;legend.fontsize&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="s1">&#39;figure.dpi&#39;</span><span class="p">:</span>      <span class="mi">100</span><span class="p">,</span>
+    <span class="s1">&#39;savefig.dpi&#39;</span><span class="p">:</span>     <span class="mi">200</span><span class="p">,</span>
+    <span class="s1">&#39;axes.linewidth&#39;</span><span class="p">:</span>  <span class="mf">1.2</span><span class="p">,</span>
+    <span class="s1">&#39;lines.linewidth&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="s1">&#39;lines.markersize&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">_POSTER_RC</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="o">**</span><span class="n">_BASE_RC</span><span class="p">,</span>
+    <span class="s1">&#39;font.family&#39;</span><span class="p">:</span>     <span class="s1">&#39;sans-serif&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;font.size&#39;</span><span class="p">:</span>       <span class="mi">18</span><span class="p">,</span>
+    <span class="s1">&#39;axes.labelsize&#39;</span><span class="p">:</span>  <span class="mi">18</span><span class="p">,</span>
+    <span class="s1">&#39;axes.titlesize&#39;</span><span class="p">:</span>  <span class="mi">20</span><span class="p">,</span>
+    <span class="s1">&#39;xtick.labelsize&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+    <span class="s1">&#39;ytick.labelsize&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+    <span class="s1">&#39;legend.fontsize&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+    <span class="s1">&#39;figure.dpi&#39;</span><span class="p">:</span>      <span class="mi">100</span><span class="p">,</span>
+    <span class="s1">&#39;savefig.dpi&#39;</span><span class="p">:</span>     <span class="mi">150</span><span class="p">,</span>
+    <span class="s1">&#39;axes.linewidth&#39;</span><span class="p">:</span>  <span class="mf">1.5</span><span class="p">,</span>
+    <span class="s1">&#39;lines.linewidth&#39;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span>
+    <span class="s1">&#39;lines.markersize&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="Theme">
+<a class="viewcode-back" href="../../../py_libraries.visualize.html#py_libraries.visualize.Theme.Theme">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Theme</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span>      <span class="nb">str</span>
+    <span class="n">rc_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">palette</span><span class="p">:</span>   <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>      <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Theme.apply">
+<a class="viewcode-back" href="../../../py_libraries.visualize.html#py_libraries.visualize.Theme.Theme.apply">[docs]</a>
+    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rc_params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">palette</span><span class="p">:</span>
+            <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.prop_cycle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">cycler</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">palette</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Theme.derive">
+<a class="viewcode-back" href="../../../py_libraries.visualize.html#py_libraries.visualize.Theme.Theme.derive">[docs]</a>
+    <span class="k">def</span> <span class="nf">derive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rc_overrides</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="n">palette</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Theme</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a modified copy of this theme.&quot;&quot;&quot;</span>
+        <span class="n">clone</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rc_overrides</span><span class="p">:</span>
+            <span class="n">clone</span><span class="o">.</span><span class="n">rc_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rc_overrides</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">palette</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">clone</span><span class="o">.</span><span class="n">palette</span> <span class="o">=</span> <span class="n">palette</span>
+        <span class="k">return</span> <span class="n">clone</span></div>
+</div>
+
+
+
+<span class="n">THEMES</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Theme</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;paper&#39;</span><span class="p">:</span>   <span class="n">Theme</span><span class="p">(</span><span class="s1">&#39;paper&#39;</span><span class="p">,</span>   <span class="n">_PAPER_RC</span><span class="p">,</span>   <span class="n">_PALETTE_MUTED</span><span class="p">),</span>
+    <span class="s1">&#39;talk&#39;</span><span class="p">:</span>    <span class="n">Theme</span><span class="p">(</span><span class="s1">&#39;talk&#39;</span><span class="p">,</span>    <span class="n">_TALK_RC</span><span class="p">,</span>    <span class="n">_PALETTE_BRIGHT</span><span class="p">),</span>
+    <span class="s1">&#39;poster&#39;</span><span class="p">:</span>  <span class="n">Theme</span><span class="p">(</span><span class="s1">&#39;poster&#39;</span><span class="p">,</span>  <span class="n">_POSTER_RC</span><span class="p">,</span>  <span class="n">_PALETTE_BRIGHT</span><span class="p">),</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">Theme</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="p">{},</span>          <span class="p">[]),</span>
+<span class="p">}</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../py_libraries.html">py_libraries package</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

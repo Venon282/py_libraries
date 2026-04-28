@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>py_libraries.file.file &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for py_libraries.file.file</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<div class="viewcode-block" id="computeGlobalMeanVariance">
+<a class="viewcode-back" href="../../../py_libraries.file.html#py_libraries.file.file.computeGlobalMeanVariance">[docs]</a>
+<span class="k">def</span> <span class="nf">computeGlobalMeanVariance</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;*.txt&quot;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Welford&#39;s algorithm</span>
+<span class="sd">    Compute the global mean and standard deviation of all numeric values</span>
+<span class="sd">    in files matching the given pattern under data_dir, using Welford&#39;s algorithm</span>
+<span class="sd">    and NumPy for flexible file reading.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_dir : str or Path</span>
+<span class="sd">        Directory containing data files.</span>
+<span class="sd">    pattern : str, optional</span>
+<span class="sd">        Glob pattern to match files (default &#39;*.txt&#39;).</span>
+<span class="sd">    delimiter : str or None, optional</span>
+<span class="sd">        Delimiter for np.loadtxt (e.g. &#39;,&#39;, &#39;\t&#39;); None means any whitespace.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mean : float</span>
+<span class="sd">        The computed global mean.</span>
+<span class="sd">    variance : float</span>
+<span class="sd">        The computed global variance (population). sqrt(variance) gives the std.</span>
+<span class="sd">    count : int</span>
+<span class="sd">        Total number of data points processed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>                     <span class="c1"># total count of samples</span>
+    <span class="n">mean</span> <span class="o">=</span> <span class="mf">0.0</span>                <span class="c1"># running mean</span>
+    <span class="n">M2</span> <span class="o">=</span> <span class="mf">0.0</span>                  <span class="c1"># sum of squares of differences from the current mean</span>
+
+    <span class="n">iterator</span> <span class="o">=</span> <span class="n">data_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">verbose</span> <span class="k">else</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">pattern</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Processing files&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">pattern</span><span class="p">))),</span> <span class="n">mininterval</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
+        <span class="c1"># load entire file into a NumPy array, respecting the given delimiter</span>
+        <span class="c1"># assumes files contain only numeric columns</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not parse </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># flatten in case of multi-column files</span>
+        <span class="n">flat</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="c1"># update Welford accumulators for each element</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">flat</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">mean</span>
+            <span class="n">mean</span> <span class="o">+=</span> <span class="n">delta</span> <span class="o">/</span> <span class="n">n</span>
+            <span class="n">delta2</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">mean</span>
+            <span class="n">M2</span> <span class="o">+=</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">delta2</span>
+
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No data points found in any file.&quot;</span><span class="p">)</span>
+
+    <span class="n">variance</span> <span class="o">=</span> <span class="n">M2</span> <span class="o">/</span> <span class="n">n</span>
+
+    <span class="k">return</span> <span class="n">mean</span><span class="p">,</span> <span class="n">variance</span><span class="p">,</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="excelSheetsToCsv">
+<a class="viewcode-back" href="../../../py_libraries.file.html#py_libraries.file.file.excelSheetsToCsv">[docs]</a>
+<span class="k">def</span> <span class="nf">excelSheetsToCsv</span><span class="p">(</span>
+    <span class="n">excel_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="p">,</span>
+    <span class="n">encoding</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+    <span class="n">include_index</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">sheet_name_to_filename</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">to_csv_kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read an Excel file and export each sheet to its own CSV file.</span>
+
+<span class="sd">    :param excel_path:      Path to the .xlsx file.</span>
+<span class="sd">    :param output_dir:      Directory where CSVs will be written (created if needed).</span>
+<span class="sd">    :param sep:             Field delimiter for the CSV (default: &quot;,&quot;).</span>
+<span class="sd">    :param encoding:        File encoding for the CSV (default: &quot;utf-8&quot;).</span>
+<span class="sd">    :param include_index:   Whether to write row indices into the CSV (default: False).</span>
+<span class="sd">    :param sheet_name_to_filename:</span>
+<span class="sd">                             Optional mapping from sheet names -&gt; desired filenames (without extension).</span>
+<span class="sd">                             If a sheet is not in the dict, its sheet name is used (sanitized).</span>
+<span class="sd">    :param to_csv_kwargs:   Any additional keyword args passed straight to DataFrame.to_csv().</span>
+<span class="sd">                            e.g. header=True/False, date_format=&quot;...&quot;, quoting=csv.QUOTE_ALL, etc.</span>
+
+<span class="sd">    :raises FileNotFoundError: If the given Excel file doesn’t exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Prepare paths</span>
+    <span class="n">excel_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">excel_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">excel_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such Excel file: </span><span class="si">{</span><span class="n">excel_path</span><span class="si">!s}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Load workbook (pandas will infer engine)</span>
+    <span class="n">workbook</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelFile</span><span class="p">(</span><span class="n">excel_path</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">sheet</span> <span class="ow">in</span> <span class="n">workbook</span><span class="o">.</span><span class="n">sheet_names</span><span class="p">:</span>
+        <span class="c1"># Read sheet</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">workbook</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="n">sheet</span><span class="p">)</span>
+
+        <span class="c1"># Determine filename: use mapping if provided, else sheet name</span>
+        <span class="k">if</span> <span class="n">sheet_name_to_filename</span> <span class="ow">and</span> <span class="n">sheet</span> <span class="ow">in</span> <span class="n">sheet_name_to_filename</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">sheet_name_to_filename</span><span class="p">[</span><span class="n">sheet</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># sanitize: keep alnum, space, dot, underscore, dash</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="ow">or</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;_&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sheet</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;sheet_</span><span class="si">{</span><span class="n">workbook</span><span class="o">.</span><span class="n">sheet_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sheet</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">csv_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+        
+        <span class="c1"># Export</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+            <span class="n">csv_path</span><span class="p">,</span>
+            <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">include_index</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">to_csv_kwargs</span>
+        <span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../py_libraries.html">py_libraries package</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

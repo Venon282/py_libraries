@@ -337,6 +337,7 @@ class PlotAxes:
         if cfg.yticks      is not None: ax.set_yticks(cfg.yticks)
         if cfg.xticklabels is not None: ax.set_xticklabels(cfg.xticklabels)
         if cfg.yticklabels is not None: ax.set_yticklabels(cfg.yticklabels)
+        if cfg.aspect      is not None: ax.set_aspect(**cfg.aspect if isinstance(cfg.aspect, dict) else {"aspect":cfg.aspect})
         if cfg.legend:                  ax.legend(**cfg.legend_opts)
 
         return self

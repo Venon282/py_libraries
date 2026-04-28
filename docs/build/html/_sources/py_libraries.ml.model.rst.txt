@@ -1,0 +1,26 @@
+py\_libraries.ml.model package
+==============================
+
+.. automodule:: py_libraries.ml.model
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+py\_libraries.ml.model.TransformerForecaster module
+---------------------------------------------------
+
+.. automodule:: py_libraries.ml.model.TransformerForecaster
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.model.cnn2D module
+-----------------------------------
+
+.. automodule:: py_libraries.ml.model.cnn2D
+   :members:
+   :show-inheritance:
+   :undoc-members:

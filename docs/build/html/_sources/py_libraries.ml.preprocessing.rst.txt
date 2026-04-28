@@ -1,0 +1,66 @@
+py\_libraries.ml.preprocessing package
+======================================
+
+.. automodule:: py_libraries.ml.preprocessing
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+py\_libraries.ml.preprocessing.MinMaxGlobalScaler module
+--------------------------------------------------------
+
+.. automodule:: py_libraries.ml.preprocessing.MinMaxGlobalScaler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.preprocessing.MinMaxRowScaler module
+-----------------------------------------------------
+
+.. automodule:: py_libraries.ml.preprocessing.MinMaxRowScaler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.preprocessing.StandardGlobalScaler module
+----------------------------------------------------------
+
+.. automodule:: py_libraries.ml.preprocessing.StandardGlobalScaler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.preprocessing.StandardRowScaler module
+-------------------------------------------------------
+
+.. automodule:: py_libraries.ml.preprocessing.StandardRowScaler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.preprocessing.module module
+--------------------------------------------
+
+.. automodule:: py_libraries.ml.preprocessing.module
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.preprocessing.sampling module
+----------------------------------------------
+
+.. automodule:: py_libraries.ml.preprocessing.sampling
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.preprocessing.split module
+-------------------------------------------
+
+.. automodule:: py_libraries.ml.preprocessing.split
+   :members:
+   :show-inheritance:
+   :undoc-members:

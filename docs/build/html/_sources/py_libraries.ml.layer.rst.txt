@@ -1,0 +1,26 @@
+py\_libraries.ml.layer package
+==============================
+
+.. automodule:: py_libraries.ml.layer
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+py\_libraries.ml.layer.WeightedAverage module
+---------------------------------------------
+
+.. automodule:: py_libraries.ml.layer.WeightedAverage
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.layer.module module
+------------------------------------
+
+.. automodule:: py_libraries.ml.layer.module
+   :members:
+   :show-inheritance:
+   :undoc-members:

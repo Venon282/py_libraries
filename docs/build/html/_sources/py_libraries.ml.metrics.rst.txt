@@ -1,0 +1,34 @@
+py\_libraries.ml.metrics package
+================================
+
+.. automodule:: py_libraries.ml.metrics
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+py\_libraries.ml.metrics.linear module
+--------------------------------------
+
+.. automodule:: py_libraries.ml.metrics.linear
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.metrics.module module
+--------------------------------------
+
+.. automodule:: py_libraries.ml.metrics.module
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.metrics.softmax module
+---------------------------------------
+
+.. automodule:: py_libraries.ml.metrics.softmax
+   :members:
+   :show-inheritance:
+   :undoc-members:

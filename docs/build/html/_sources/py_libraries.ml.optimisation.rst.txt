@@ -1,0 +1,50 @@
+py\_libraries.ml.optimisation package
+=====================================
+
+.. automodule:: py_libraries.ml.optimisation
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+py\_libraries.ml.optimisation.BayesianTuner module
+--------------------------------------------------
+
+.. automodule:: py_libraries.ml.optimisation.BayesianTuner
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.optimisation.DnnModelBuilder module
+----------------------------------------------------
+
+.. automodule:: py_libraries.ml.optimisation.DnnModelBuilder
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.optimisation.ModelBuilder module
+-------------------------------------------------
+
+.. automodule:: py_libraries.ml.optimisation.ModelBuilder
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.optimisation.TransformerModelBuilder module
+------------------------------------------------------------
+
+.. automodule:: py_libraries.ml.optimisation.TransformerModelBuilder
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.ml.optimisation.module module
+-------------------------------------------
+
+.. automodule:: py_libraries.ml.optimisation.module
+   :members:
+   :show-inheritance:
+   :undoc-members:

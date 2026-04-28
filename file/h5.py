@@ -381,7 +381,12 @@ def getH5RowSet(h5_path, columns, chunk_size=100_000):
 
     return unique_rows
 
-def mask(h5_path, filters, mask=None, chunk_size=10_000, verbose=False):
+def mask(
+        h5_path:str, 
+        filters:dict[str, callable] | list[tuple[str, callable]], 
+        mask:list[bool | int]=None, 
+        chunk_size:int=10_000, 
+        verbose:bool=False):
     """
     Filter HDF5 dataset indices using a set of predicate functions.
 

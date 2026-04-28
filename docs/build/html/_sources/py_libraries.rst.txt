@@ -1,0 +1,108 @@
+py\_libraries package
+=====================
+
+.. automodule:: py_libraries
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   py_libraries.file
+   py_libraries.ml
+   py_libraries.visualize
+
+Submodules
+----------
+
+py\_libraries.Queue module
+--------------------------
+
+.. automodule:: py_libraries.Queue
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.Stack module
+--------------------------
+
+.. automodule:: py_libraries.Stack
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.cipher module
+---------------------------
+
+.. automodule:: py_libraries.cipher
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.encoder module
+----------------------------
+
+.. automodule:: py_libraries.encoder
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.internet module
+-----------------------------
+
+.. automodule:: py_libraries.internet
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.path module
+-------------------------
+
+.. automodule:: py_libraries.path
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.system module
+---------------------------
+
+.. automodule:: py_libraries.system
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.temp module
+-------------------------
+
+.. automodule:: py_libraries.temp
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.test module
+-------------------------
+
+.. automodule:: py_libraries.test
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize\_deprecate module
+-----------------------------------------
+
+.. automodule:: py_libraries.visualize_deprecate
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.windows module
+----------------------------
+
+.. automodule:: py_libraries.windows
+   :members:
+   :show-inheritance:
+   :undoc-members:

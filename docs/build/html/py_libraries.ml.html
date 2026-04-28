@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>py_libraries.ml package &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="py_libraries.ml.layer package" href="py_libraries.ml.layer.html" />
+    <link rel="prev" title="py_libraries.file package" href="py_libraries.file.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-py_libraries.ml">
+<span id="py-libraries-ml-package"></span><h1>py_libraries.ml package<a class="headerlink" href="#module-py_libraries.ml" title="Link to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="py_libraries.ml.layer.html">py_libraries.ml.layer package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.layer.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.layer.html#module-py_libraries.ml.layer.WeightedAverage">py_libraries.ml.layer.WeightedAverage module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.layer.html#py_libraries.ml.layer.WeightedAverage.WeightedAverage"><code class="docutils literal notranslate"><span class="pre">WeightedAverage</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.layer.html#py_libraries.ml.layer.WeightedAverage.WeightedAverage.build"><code class="docutils literal notranslate"><span class="pre">WeightedAverage.build()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.layer.html#py_libraries.ml.layer.WeightedAverage.WeightedAverage.call"><code class="docutils literal notranslate"><span class="pre">WeightedAverage.call()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.layer.html#module-py_libraries.ml.layer.module">py_libraries.ml.layer.module module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.layer.html#py_libraries.ml.layer.module.activation"><code class="docutils literal notranslate"><span class="pre">activation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.layer.html#py_libraries.ml.layer.module.merge"><code class="docutils literal notranslate"><span class="pre">merge()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.layer.html#py_libraries.ml.layer.module.residualConnection"><code class="docutils literal notranslate"><span class="pre">residualConnection()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="py_libraries.ml.metrics.html">py_libraries.ml.metrics package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.metrics.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.metrics.html#module-py_libraries.ml.metrics.linear">py_libraries.ml.metrics.linear module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.metrics.html#py_libraries.ml.metrics.linear.metrics"><code class="docutils literal notranslate"><span class="pre">metrics()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.metrics.html#module-py_libraries.ml.metrics.module">py_libraries.ml.metrics.module module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.metrics.html#py_libraries.ml.metrics.module.meanAbsoluteErrorNormalised"><code class="docutils literal notranslate"><span class="pre">meanAbsoluteErrorNormalised()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.metrics.html#py_libraries.ml.metrics.module.symmetricMeanAbsolutePercentageError"><code class="docutils literal notranslate"><span class="pre">symmetricMeanAbsolutePercentageError()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.metrics.html#module-py_libraries.ml.metrics.softmax">py_libraries.ml.metrics.softmax module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.metrics.html#py_libraries.ml.metrics.softmax.metrics"><code class="docutils literal notranslate"><span class="pre">metrics()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="py_libraries.ml.model.html">py_libraries.ml.model package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.model.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.model.html#module-py_libraries.ml.model.TransformerForecaster">py_libraries.ml.model.TransformerForecaster module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Decoder"><code class="docutils literal notranslate"><span class="pre">Decoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Decoder.call"><code class="docutils literal notranslate"><span class="pre">Decoder.call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Decoder.compute_output_shape"><code class="docutils literal notranslate"><span class="pre">Decoder.compute_output_shape()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Decoder.get_config"><code class="docutils literal notranslate"><span class="pre">Decoder.get_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.DecoderLayer"><code class="docutils literal notranslate"><span class="pre">DecoderLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.DecoderLayer.call"><code class="docutils literal notranslate"><span class="pre">DecoderLayer.call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.DecoderLayer.get_config"><code class="docutils literal notranslate"><span class="pre">DecoderLayer.get_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Encoder"><code class="docutils literal notranslate"><span class="pre">Encoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Encoder.call"><code class="docutils literal notranslate"><span class="pre">Encoder.call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Encoder.compute_output_shape"><code class="docutils literal notranslate"><span class="pre">Encoder.compute_output_shape()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Encoder.get_config"><code class="docutils literal notranslate"><span class="pre">Encoder.get_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.EncoderLayer"><code class="docutils literal notranslate"><span class="pre">EncoderLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.EncoderLayer.call"><code class="docutils literal notranslate"><span class="pre">EncoderLayer.call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.EncoderLayer.get_config"><code class="docutils literal notranslate"><span class="pre">EncoderLayer.get_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Final"><code class="docutils literal notranslate"><span class="pre">Final</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.Final.compute_output_shape"><code class="docutils literal notranslate"><span class="pre">Final.compute_output_shape()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.PositionalEncoding"><code class="docutils literal notranslate"><span class="pre">PositionalEncoding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.PositionalEncoding.call"><code class="docutils literal notranslate"><span class="pre">PositionalEncoding.call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.PositionalEncoding.compute_positional_encoding"><code class="docutils literal notranslate"><span class="pre">PositionalEncoding.compute_positional_encoding()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.PositionalEncoding.get_config"><code class="docutils literal notranslate"><span class="pre">PositionalEncoding.get_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.TransformerForecaster"><code class="docutils literal notranslate"><span class="pre">TransformerForecaster</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.TransformerForecaster.autoregressive_predict"><code class="docutils literal notranslate"><span class="pre">TransformerForecaster.autoregressive_predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.TransformerForecaster.call"><code class="docutils literal notranslate"><span class="pre">TransformerForecaster.call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.TransformerForecaster.create_combined_mask"><code class="docutils literal notranslate"><span class="pre">TransformerForecaster.create_combined_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.TransformerForecaster.create_look_ahead_mask"><code class="docutils literal notranslate"><span class="pre">TransformerForecaster.create_look_ahead_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.TransformerForecaster.fit"><code class="docutils literal notranslate"><span class="pre">TransformerForecaster.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.TransformerForecaster.from_config"><code class="docutils literal notranslate"><span class="pre">TransformerForecaster.from_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.TransformerForecaster.get_config"><code class="docutils literal notranslate"><span class="pre">TransformerForecaster.get_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.TransformerForecaster.print_layers"><code class="docutils literal notranslate"><span class="pre">TransformerForecaster.print_layers()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.model.html#module-py_libraries.ml.model.cnn2D">py_libraries.ml.model.cnn2D module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.cnn2D.build_cnn"><code class="docutils literal notranslate"><span class="pre">build_cnn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html#py_libraries.ml.model.cnn2D.outputNames"><code class="docutils literal notranslate"><span class="pre">outputNames()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="py_libraries.ml.optimisation.html">py_libraries.ml.optimisation package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.BayesianTuner"><code class="docutils literal notranslate"><span class="pre">BayesianTuner</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.BayesianTuner.run_trial"><code class="docutils literal notranslate"><span class="pre">BayesianTuner.run_trial()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder"><code class="docutils literal notranslate"><span class="pre">DnnModelBuilder</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.block"><code class="docutils literal notranslate"><span class="pre">DnnModelBuilder.block()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.build_model"><code class="docutils literal notranslate"><span class="pre">DnnModelBuilder.build_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.completeDenseLayer"><code class="docutils literal notranslate"><span class="pre">DnnModelBuilder.completeDenseLayer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.optimisation.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.optimisation.html#module-py_libraries.ml.optimisation.BayesianTuner">py_libraries.ml.optimisation.BayesianTuner module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.BayesianTuner.BayesianTuner"><code class="docutils literal notranslate"><span class="pre">BayesianTuner</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.BayesianTuner.BayesianTuner.run_trial"><code class="docutils literal notranslate"><span class="pre">BayesianTuner.run_trial()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.optimisation.html#module-py_libraries.ml.optimisation.DnnModelBuilder">py_libraries.ml.optimisation.DnnModelBuilder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder"><code class="docutils literal notranslate"><span class="pre">DnnModelBuilder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder.block"><code class="docutils literal notranslate"><span class="pre">DnnModelBuilder.block()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder.build_model"><code class="docutils literal notranslate"><span class="pre">DnnModelBuilder.build_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.DnnModelBuilder.completeDenseLayer"><code class="docutils literal notranslate"><span class="pre">DnnModelBuilder.completeDenseLayer()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.optimisation.html#module-py_libraries.ml.optimisation.ModelBuilder">py_libraries.ml.optimisation.ModelBuilder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder"><code class="docutils literal notranslate"><span class="pre">BaseModelBuilder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.ModelBuilder.BaseModelBuilder.build_model"><code class="docutils literal notranslate"><span class="pre">BaseModelBuilder.build_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.optimisation.html#module-py_libraries.ml.optimisation.TransformerModelBuilder">py_libraries.ml.optimisation.TransformerModelBuilder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.TransformerModelBuilder.TransformerModelBuilder"><code class="docutils literal notranslate"><span class="pre">TransformerModelBuilder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.TransformerModelBuilder.TransformerModelBuilder.build_model"><code class="docutils literal notranslate"><span class="pre">TransformerModelBuilder.build_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.optimisation.html#module-py_libraries.ml.optimisation.module">py_libraries.ml.optimisation.module module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.module.setHyperparameter"><code class="docutils literal notranslate"><span class="pre">setHyperparameter()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="py_libraries.ml.preprocessing.html">py_libraries.ml.preprocessing package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.preprocessing.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.preprocessing.html#module-py_libraries.ml.preprocessing.MinMaxGlobalScaler">py_libraries.ml.preprocessing.MinMaxGlobalScaler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.data_min_"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler.data_min_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.data_max_"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler.data_max_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.data_range_"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler.data_range_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.scale_"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler.scale_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.min_"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler.min_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.fit"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.fit_transform"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler.fit_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.inverse_transform"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler.inverse_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.transform"><code class="docutils literal notranslate"><span class="pre">MinMaxGlobalScaler.transform()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.preprocessing.html#module-py_libraries.ml.preprocessing.MinMaxRowScaler">py_libraries.ml.preprocessing.MinMaxRowScaler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.data_min_"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.data_min_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.data_max_"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.data_max_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.data_range_"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.data_range_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.scale_"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.scale_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.min_"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.min_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.n_rows_seen_"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.n_rows_seen_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.fit"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.fit_transform"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.fit_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.inverse_transform"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.inverse_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.transform"><code class="docutils literal notranslate"><span class="pre">MinMaxRowScaler.transform()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.preprocessing.html#module-py_libraries.ml.preprocessing.StandardGlobalScaler">py_libraries.ml.preprocessing.StandardGlobalScaler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.mean_"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler.mean_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.var_"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler.var_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.std_"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler.std_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.scale_"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler.scale_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.n_samples_seen_"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler.n_samples_seen_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.fit"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.fit_transform"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler.fit_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.inverse_transform"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler.inverse_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.transform"><code class="docutils literal notranslate"><span class="pre">StandardGlobalScaler.transform()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.preprocessing.html#module-py_libraries.ml.preprocessing.StandardRowScaler">py_libraries.ml.preprocessing.StandardRowScaler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler"><code class="docutils literal notranslate"><span class="pre">StandardRowScaler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.mean_"><code class="docutils literal notranslate"><span class="pre">StandardRowScaler.mean_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.scale_"><code class="docutils literal notranslate"><span class="pre">StandardRowScaler.scale_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.n_rows_seen_"><code class="docutils literal notranslate"><span class="pre">StandardRowScaler.n_rows_seen_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.fit"><code class="docutils literal notranslate"><span class="pre">StandardRowScaler.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.fit_transform"><code class="docutils literal notranslate"><span class="pre">StandardRowScaler.fit_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.inverse_transform"><code class="docutils literal notranslate"><span class="pre">StandardRowScaler.inverse_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.transform"><code class="docutils literal notranslate"><span class="pre">StandardRowScaler.transform()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.preprocessing.html#module-py_libraries.ml.preprocessing.module">py_libraries.ml.preprocessing.module module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.module.trainTestSplit"><code class="docutils literal notranslate"><span class="pre">trainTestSplit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.preprocessing.html#module-py_libraries.ml.preprocessing.sampling">py_libraries.ml.preprocessing.sampling module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.sampling.equilibrate"><code class="docutils literal notranslate"><span class="pre">equilibrate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.sampling.stratified"><code class="docutils literal notranslate"><span class="pre">stratified()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.ml.preprocessing.html#module-py_libraries.ml.preprocessing.split">py_libraries.ml.preprocessing.split module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.split.h5"><code class="docutils literal notranslate"><span class="pre">h5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html#py_libraries.ml.preprocessing.split.indice"><code class="docutils literal notranslate"><span class="pre">indice()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-py_libraries.ml.module">
+<span id="py-libraries-ml-module-module"></span><h2>py_libraries.ml.module module<a class="headerlink" href="#module-py_libraries.ml.module" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.ml.module.getOptimizers">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.ml.module.</span></span><span class="sig-name descname"><span class="pre">getOptimizers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/module.html#getOptimizers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.module.getOptimizers" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.ml.module.getRegularizers">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.ml.module.</span></span><span class="sig-name descname"><span class="pre">getRegularizers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/module.html#getRegularizers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.module.getRegularizers" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="py_libraries.html">py_libraries package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="py_libraries.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Queue">py_libraries.Queue module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Stack">py_libraries.Stack module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.cipher">py_libraries.cipher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.encoder">py_libraries.encoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.internet">py_libraries.internet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.path">py_libraries.path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.system">py_libraries.system module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.temp">py_libraries.temp module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-test-module">py_libraries.test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.visualize_deprecate">py_libraries.visualize_deprecate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-windows-module">py_libraries.windows module</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="py_libraries.html">py_libraries package</a><ul>
+      <li>Previous: <a href="py_libraries.file.html" title="previous chapter">py_libraries.file package</a></li>
+      <li>Next: <a href="py_libraries.ml.layer.html" title="next chapter">py_libraries.ml.layer package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/py_libraries.ml.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

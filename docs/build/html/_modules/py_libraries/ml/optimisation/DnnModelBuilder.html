@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>py_libraries.ml.optimisation.DnnModelBuilder &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for py_libraries.ml.optimisation.DnnModelBuilder</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TF_FORCE_GPU_ALLOW_GROWTH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras.layers</span> <span class="kn">import</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Dense</span><span class="p">,</span> <span class="n">Dropout</span><span class="p">,</span> <span class="n">Concatenate</span><span class="p">,</span> <span class="n">BatchNormalization</span> <span class="c1"># type: ignore</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Model</span> <span class="c1"># type: ignore</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">backend</span> <span class="k">as</span> <span class="n">K</span>
+
+<span class="kn">from</span> <span class="nn">.ModelBuilder</span> <span class="kn">import</span> <span class="n">BaseModelBuilder</span>
+<span class="kn">from</span> <span class="nn">..module</span> <span class="kn">import</span> <span class="n">getRegularizers</span><span class="p">,</span> <span class="n">getOptimizers</span>
+<span class="kn">from</span> <span class="nn">..layer.module</span> <span class="kn">import</span> <span class="n">activation</span> <span class="k">as</span> <span class="n">getActivation</span><span class="p">,</span> <span class="n">residualConnection</span><span class="p">,</span> <span class="n">merge</span> <span class="k">as</span> <span class="n">getMerge</span>
+<span class="kn">from</span> <span class="nn">.module</span> <span class="kn">import</span> <span class="n">setHyperparameter</span>
+
+<div class="viewcode-block" id="DnnModelBuilder">
+<a class="viewcode-back" href="../../../../py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder">[docs]</a>
+<span class="k">class</span> <span class="nc">DnnModelBuilder</span><span class="p">(</span><span class="n">BaseModelBuilder</span><span class="p">):</span>
+<div class="viewcode-block" id="DnnModelBuilder.__init__">
+<a class="viewcode-back" href="../../../../generated/py_libraries.ml.optimisation.DnnModelBuilder.html#py_libraries.ml.optimisation.DnnModelBuilder.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">inputs_shape</span><span class="p">,</span> <span class="n">inputs_name</span><span class="o">=</span><span class="s1">&#39;input&#39;</span><span class="p">,</span>
+                 <span class="n">n_labels_linear</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_labels_sigmoid</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">labels_softmax</span><span class="o">=</span><span class="p">[],</span> 
+                 <span class="n">labels_linear_names</span><span class="o">=</span><span class="p">[],</span> <span class="n">labels_sigmoid_names</span><span class="o">=</span><span class="p">[],</span> <span class="n">labels_softmax_names</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">fixe_hparams</span><span class="o">=</span><span class="p">{},</span> <span class="n">loss_weights</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;linear&#39;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;sigmoid&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;softmax&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">},</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the DNN model builder with hyperparameter configurations.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            inputs_shape (tuple): Shape of the inputs. (Excluding the number of elements).</span>
+<span class="sd">            n_labels_linear (int): Number of regression outputs (linear activation).</span>
+<span class="sd">            n_labels_sigmoid (int): Number of binary classification outputs (sigmoid activation).</span>
+<span class="sd">            labels_linear_names</span>
+<span class="sd">            labels_sigmoid_names</span>
+<span class="sd">            labels_softmax_names</span>
+<span class="sd">            labels_softmax (list of int): List specifying the number of classes for each multiclass output (softmax activation).</span>
+<span class="sd">            fixe_hparams (dict): Dictionary of fixed hyperparameters.</span>
+<span class="sd">            loss_weights (dict): The loss weights to apply to the outputs (check first the output name, then the output type, then 1.0 is default)</span>
+
+<span class="sd">        Optional Keyword Arguments:</span>
+<span class="sd">            # Layer architecture settings</span>
+<span class="sd">            min_layers (int): Minimum number of layers. Default is 1.</span>
+<span class="sd">            max_layers (int): Maximum number of layers. Default is 10.</span>
+<span class="sd">            units_min (int): Minimum number of units per layer. Default is 32.</span>
+<span class="sd">            units_max (int): Maximum number of units per layer. Default is 2048.</span>
+<span class="sd">            units_step (int): Step increment for units per layer. Default is 32.</span>
+
+<span class="sd">            # Batch normalization settings</span>
+<span class="sd">            batch_norm (bool): Whether to use batch normalization. Default is True.</span>
+<span class="sd">            batch_norm_obligate (bool): Whether batch normalization is mandatory. Default is False.</span>
+
+<span class="sd">            # Dropout configuration</span>
+<span class="sd">            dropout (bool/float): Activate/set a fixe bool</span>
+<span class="sd">            dropout_min (float): Minimum dropout rate. Default is 0.0.</span>
+<span class="sd">            dropout_max (float): Maximum dropout rate. Default is 0.6.</span>
+<span class="sd">            dropout_step (float): Step increment for dropout rate. Default is 0.1.</span>
+<span class="sd">            </span>
+<span class="sd">            # Learning Rate configuration (log sampling)</span>
+<span class="sd">            learning_rate (float): To fixe the learning rate</span>
+<span class="sd">            learning_rate_min (float): Minimum learning rate. Default is 1e-6.</span>
+<span class="sd">            learning_rate_max (float): Maximum learning rate. Default is 1e-2.</span>
+<span class="sd">            learning_rate_default (float): Step increment for learning rate. Default is 1e-3.</span>
+
+<span class="sd">            # Activation function (leaky variants) negative slope settings</span>
+<span class="sd">            negative_slope_min (float): Minimum negative slope. Default is 0.001.</span>
+<span class="sd">            negative_slope_max (float): Maximum negative slope. Default is 0.5.</span>
+<span class="sd">            negative_slope_step (float): Step increment for negative slope. Default is 0.001.</span>
+
+<span class="sd">            # Regularization settings</span>
+<span class="sd">            regularizer (bool): Enable regularization. Default is True.</span>
+<span class="sd">            regularizer_choice (list): Regularization choise: Default is [&#39;l1&#39;, &#39;l2&#39;, &#39;l1_l2&#39;]. Note values can be remove but this choice is strict.</span>
+<span class="sd">            regularizer_kernel (bool): Regularize kernel weights. Default is True.</span>
+<span class="sd">            regularizer_bias (bool): Regularize bias terms. Default is True.</span>
+<span class="sd">            regularizer_activity (bool): Regularize layer activations. Default is True.</span>
+<span class="sd">            regularizer_min (float): Minimum regularization factor. Default is 1e-6.</span>
+<span class="sd">            regularizer_max (float): Maximum regularization factor. Default is 0.01.</span>
+
+<span class="sd">            # Other hyperparameter options</span>
+<span class="sd">            merges (list): List of merge operations. Default is [&#39;concat&#39;, &#39;add&#39;, &#39;average&#39;, &#39;weighted_avg&#39;].</span>
+<span class="sd">            activations (list): List of activation functions to consider.</span>
+<span class="sd">                Default is [&#39;relu&#39;, &#39;elu&#39;, &#39;selu&#39;, &#39;gelu&#39;, &#39;leaky_relu&#39;, &#39;prelu&#39;, &#39;mish&#39;, &#39;softplus&#39;].</span>
+<span class="sd">            optimizers (list): List of optimizers to consider. Default is [&#39;adam&#39;, &#39;sgd&#39;, &#39;rmsprop&#39;].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Input/Output dimensions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputs_shape</span> <span class="o">=</span> <span class="n">inputs_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputs_name</span> <span class="o">=</span> <span class="n">inputs_name</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_labels_linear</span> <span class="o">=</span> <span class="n">n_labels_linear</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_labels_sigmoid</span><span class="o">=</span> <span class="n">n_labels_sigmoid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax</span> <span class="o">=</span> <span class="n">labels_softmax</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_linear_names</span> <span class="o">=</span> <span class="n">labels_linear_names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_sigmoid_names</span> <span class="o">=</span> <span class="n">labels_sigmoid_names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax_names</span> <span class="o">=</span> <span class="n">labels_softmax_names</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span> <span class="o">=</span> <span class="n">fixe_hparams</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span> <span class="o">=</span> <span class="n">loss_weights</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_labels</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">n_labels_linear</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_labels_sigmoid</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_labels</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;No outputs defined. Please set at least on of the following attributs: n_labels_linear, n_labels_sigmoid, labels_softmax&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># define or complete the names if not done</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_labels_linear</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_linear_names</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">labels_linear_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;output_linear_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_labels_sigmoid</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_sigmoid_names</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">labels_sigmoid_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;output_sigmoid_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax_names</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;output_softmax_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># ---- Layer Architecture ----</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_layers</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;min_layers&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_layers</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;max_layers&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">units_min</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;units_min&#39;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">units_max</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;units_max&#39;</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">units_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;units_step&#39;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">units_default</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_max</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+
+        <span class="c1"># ---- Batch Normalization Settings ----</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;batch_norm&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm_obligate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;batch_norm_obligate&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        
+        <span class="c1"># ---- Dropout Settings ----</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dropout&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_min</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dropout_min&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_max</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dropout_max&#39;</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dropout_step&#39;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_default</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_max</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">fixe_hparams</span><span class="p">[</span><span class="s1">&#39;dropout&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span>
+        
+        <span class="c1"># ---- Learning rate Settings ----</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate_default</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;learning_rate_default&#39;</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate_min</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;learning_rate_min&#39;</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate_max</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;learning_rate_max&#39;</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">:</span>
+            <span class="n">fixe_hparams</span><span class="p">[</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span>
+
+         <span class="c1"># ---- Negative Slope for Leaky Activations ----</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">negative_slope_min</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;negative_slope_min&#39;</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">negative_slope_max</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;negative_slope_max&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">negative_slope_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;negative_slope_step&#39;</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span>
+
+        <span class="c1"># ---- Regularization Settings ----</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span>            <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;regularizer&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_choice</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;regularizer_choice&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;l1&#39;</span><span class="p">,</span> <span class="s1">&#39;l2&#39;</span><span class="p">,</span> <span class="s1">&#39;l1_l2&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_kernel</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;regularizer_kernel&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_bias</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;regularizer_bias&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_activity</span>   <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;regularizer_activity&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_min</span>        <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;regularizer_min&#39;</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_max</span>        <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;regularizer_max&#39;</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+        
+         <span class="c1"># If regularization is disabled, disable all specific regularizers</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_kernel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_bias</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_activity</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span>
+        
+        <span class="c1"># ---- Additional Hyperparameters ----</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">merges</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;merges&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;concat&#39;</span><span class="p">,</span><span class="s1">&#39;add&#39;</span><span class="p">,</span><span class="s1">&#39;average&#39;</span><span class="p">,</span><span class="s1">&#39;weighted_avg&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">activations</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;activations&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span><span class="s1">&#39;elu&#39;</span><span class="p">,</span><span class="s1">&#39;selu&#39;</span><span class="p">,</span><span class="s1">&#39;gelu&#39;</span><span class="p">,</span><span class="s1">&#39;leaky_relu&#39;</span><span class="p">,</span><span class="s1">&#39;prelu&#39;</span><span class="p">,</span><span class="s1">&#39;mish&#39;</span><span class="p">,</span><span class="s1">&#39;softplus&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;optimizers&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;adam&#39;</span><span class="p">,</span> <span class="s1">&#39;sgd&#39;</span><span class="p">,</span> <span class="s1">&#39;rmsprop&#39;</span><span class="p">])</span>
+        
+        <span class="c1"># Initialize the base class with any remaining arguments.</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+        
+    <span class="k">def</span> <span class="nf">_regularizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hp</span><span class="p">,</span> <span class="n">block_id</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">is_desire</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configure a regularizer for a given hyperparameter tuning block if desired.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            hp: Hyperparameter tuning object.</span>
+<span class="sd">            block_id (str): Identifier for the block.</span>
+<span class="sd">            i (int): Index of the current layer.</span>
+<span class="sd">            is_desire (bool): Flag indicating whether to apply this regularizer.</span>
+<span class="sd">            name (str): Name prefix for the regularizer type (e.g., &#39;kernel&#39;, &#39;bias&#39;, &#39;activity&#39;).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A configured regularizer object (via getRegularizers) or None if not desired.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">is_desire</span><span class="p">:</span>
+            <span class="c1"># Determine if the regularizer should be applied.</span>
+            <span class="n">use_reg</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;use_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">_regularizer_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">hp</span><span class="o">.</span><span class="n">conditional_scope</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;use_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">_regularizer_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">]):</span>
+                <span class="c1"># Choose the regularizer type: &#39;l1&#39;, &#39;l2&#39;, or &#39;l1_l2&#39;</span>
+                <span class="n">reg_choice</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Choice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">_regularizer_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_choice</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;l2&#39;</span><span class="p">)</span>
+                
+                <span class="c1"># Primary regularization factor.</span>
+                <span class="n">reg_factor</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Float</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">_regularizer_factor_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_min</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_max</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_max</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                
+                <span class="c1"># Secondary factor needed only when using &#39;l1_l2&#39;</span>
+                <span class="n">reg_factor2</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Float</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">_regularizer_factor2_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_min</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_max</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_max</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                                            <span class="n">parent_name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">_regularizer_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">parent_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;l1_l2&#39;</span><span class="p">])</span>
+            <span class="c1"># If l1_l2 is not chosen, use the primary factor for both.</span>
+            <span class="n">reg_factor2</span> <span class="o">=</span> <span class="n">reg_factor2</span> <span class="k">if</span> <span class="n">reg_choice</span> <span class="o">==</span> <span class="s1">&#39;l1_l2&#39;</span> <span class="k">else</span> <span class="n">reg_factor</span>
+            <span class="k">return</span> <span class="n">getRegularizers</span><span class="p">(</span><span class="n">reg_choice</span><span class="p">,</span> <span class="n">reg_factor</span><span class="p">,</span> <span class="n">reg_factor2</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_reg</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        
+    <span class="k">def</span> <span class="nf">_choices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hp</span><span class="p">,</span> <span class="n">block_id</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Define a dictionary of hyperparameter choices for a given layer.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            hp: Hyperparameter tuning object.</span>
+<span class="sd">            block_id (str): Identifier for the block.</span>
+<span class="sd">            i (int): Index of the layer within the block.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A dictionary containing:</span>
+<span class="sd">                - units: Number of neurons.</span>
+<span class="sd">                - activation: Activation function.</span>
+<span class="sd">                - dropout_rate: Dropout rate.</span>
+<span class="sd">                - negative_slope: Negative slope for leaky activations (if applicable).</span>
+<span class="sd">                - batch_norm: Whether to use batch normalization.</span>
+<span class="sd">                - kernel_reg: Kernel regularizer.</span>
+<span class="sd">                - bias_reg: Bias regularizer.</span>
+<span class="sd">                - activity_reg: Activity regularizer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;units_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">sub_names</span><span class="o">=</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units_min</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units_max</span><span class="p">,</span>
+                               <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units_step</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units_default</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_default</span> 
+        
+        <span class="n">activation</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Choice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;activation_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">sub_names</span><span class="o">=</span><span class="s1">&#39;activation&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activations</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span>
+        
+        
+        <span class="n">dropout_rate</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Float</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;dropout_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">sub_names</span><span class="o">=</span><span class="s1">&#39;dropout&#39;</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_min</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_max</span><span class="p">,</span>
+                                <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_step</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_max</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_default</span>
+        
+        <span class="c1"># Define negative slope only if using leaky_relu.</span>
+        <span class="n">negative_slope</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Float</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;negative_slope_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">sub_names</span><span class="o">=</span><span class="s1">&#39;negative_slope&#39;</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">negative_slope_min</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">negative_slope_max</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">negative_slope_step</span><span class="p">,</span> 
+                                  <span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">negative_slope_min</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">negative_slope_max</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">parent_name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;activation_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">parent_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;leaky_relu&#39;</span><span class="p">])</span>
+        
+        
+        <span class="n">batch_norm</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;use_batchnorm_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">sub_names</span><span class="o">=</span><span class="s1">&#39;use_batchnorm&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span> <span class="k">else</span> <span class="kc">None</span>
+        
+        <span class="c1"># --- Regularization Options ---</span>
+        <span class="n">kernel_reg</span>      <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regularizer</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">block_id</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">is_desire</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_kernel</span>    <span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;kernel&#39;</span><span class="p">)</span>
+        <span class="n">bias_reg</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regularizer</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">block_id</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">is_desire</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_bias</span>      <span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;bias&#39;</span><span class="p">)</span>
+        <span class="n">activity_reg</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regularizer</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">block_id</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">is_desire</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_activity</span>  <span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;activity&#39;</span><span class="p">)</span>
+                
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;units&#39;</span><span class="p">:</span><span class="n">units</span><span class="p">,</span> 
+            <span class="s1">&#39;activation&#39;</span><span class="p">:</span><span class="n">activation</span><span class="p">,</span> 
+            <span class="s1">&#39;dropout_rate&#39;</span><span class="p">:</span><span class="n">dropout_rate</span><span class="p">,</span>
+            <span class="s1">&#39;negative_slope&#39;</span><span class="p">:</span><span class="n">negative_slope</span><span class="p">,</span> 
+            <span class="s1">&#39;batch_norm&#39;</span><span class="p">:</span><span class="n">batch_norm</span><span class="p">,</span> 
+            <span class="s1">&#39;kernel_reg&#39;</span><span class="p">:</span><span class="n">kernel_reg</span><span class="p">,</span> 
+            <span class="s1">&#39;bias_reg&#39;</span><span class="p">:</span><span class="n">bias_reg</span><span class="p">,</span> 
+            <span class="s1">&#39;activity_reg&#39;</span><span class="p">:</span><span class="n">activity_reg</span><span class="p">}</span>
+        
+<div class="viewcode-block" id="DnnModelBuilder.completeDenseLayer">
+<a class="viewcode-back" href="../../../../py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.completeDenseLayer">[docs]</a>
+    <span class="k">def</span> <span class="nf">completeDenseLayer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">,</span> <span class="n">batch_norm</span><span class="p">,</span> <span class="n">kernel_reg</span><span class="p">,</span> <span class="n">bias_reg</span><span class="p">,</span> <span class="n">activity_reg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a dense layer with configurable activation, dropout, and batch normalization.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            x: Input tensor.</span>
+<span class="sd">            units (int): Number of neurons in the layer.</span>
+<span class="sd">            activation (str): Activation function.</span>
+<span class="sd">            dropout_rate (float): Dropout rate to apply after activation.</span>
+<span class="sd">            batch_norm (bool): Whether to apply batch normalization.</span>
+<span class="sd">            kernel_reg: Regularizer for kernel weights.</span>
+<span class="sd">            bias_reg: Regularizer for bias.</span>
+<span class="sd">            activity_reg: Regularizer for activations.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Output tensor after applying the Dense layer, activation, optional dropout, and batch normalization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">kernel_reg</span><span class="p">,</span> <span class="n">bias_regularizer</span><span class="o">=</span><span class="n">bias_reg</span><span class="p">,</span> <span class="n">activity_regularizer</span><span class="o">=</span><span class="n">activity_reg</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">getActivation</span><span class="p">(</span><span class="n">activation</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="ow">and</span> <span class="n">dropout_rate</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c1"># Apply batch normalization if enabled either by global settings or per-layer choice.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span> <span class="ow">and</span> <span class="n">batch_norm</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm_obligate</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">BatchNormalization</span><span class="p">()(</span><span class="n">x</span><span class="p">)</span>    
+        <span class="k">return</span> <span class="n">x</span></div>
+
+    
+<div class="viewcode-block" id="DnnModelBuilder.block">
+<a class="viewcode-back" href="../../../../py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.block">[docs]</a>
+    <span class="k">def</span> <span class="nf">block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hp</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">block_id</span><span class="p">,</span> <span class="n">min_layers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_layers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a dense block comprising multiple layers with tunable hyperparameters.</span>
+
+<span class="sd">        Hyperparameters for each layer are registered conditionally based on the chosen</span>
+<span class="sd">        number of active layers. Optionally, a residual (skip) connection is added.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            hp: Hyperparameter tuning object.</span>
+<span class="sd">            x: Input tensor.</span>
+<span class="sd">            block_id (str): Unique identifier for the block.</span>
+<span class="sd">            min_layers (int, optional): Minimum layers to include (defaults to self.min_layers).</span>
+<span class="sd">            max_layers (int, optional): Maximum layers to include (defaults to self.max_layers).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Output tensor after applying the dense block (including a residual connection if enabled).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Determine effective layer limits.</span>
+        <span class="n">max_layers_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_layers</span> <span class="k">if</span> <span class="n">max_layers</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">max_layers</span>
+        <span class="n">min_layers_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_layers</span> <span class="k">if</span> <span class="n">min_layers</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">min_layers</span>
+        
+        <span class="n">x_in</span> <span class="o">=</span> <span class="n">x</span>  <span class="c1"># For potential skip connection.</span>
+        
+        <span class="c1"># Option to use a residual connection for this block.</span>
+        <span class="n">use_skip</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;use_skip_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">sub_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;use_skip&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> 
+        
+        <span class="c1"># Choose how many layers to activate in this block</span>
+        <span class="n">n_layers</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;n_layers_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">sub_names</span><span class="o">=</span><span class="s1">&#39;n_layers&#39;</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="n">min_layers_use</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="n">max_layers_use</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_layers_use</span><span class="p">):</span>
+            <span class="c1"># Only register hyperparameters if layer index i is within the active number.</span>
+            <span class="k">with</span> <span class="n">hp</span><span class="o">.</span><span class="n">conditional_scope</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;n_layers_</span><span class="si">{</span><span class="n">block_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_layers_use</span><span class="o">+</span><span class="mi">1</span><span class="p">))):</span>
+                <span class="n">choice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_choices</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">block_id</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                
+                <span class="c1"># Only add the layer if it is within the active n_layers.</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n_layers</span><span class="p">:</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">completeDenseLayer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;dropout_rate&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;kernel_reg&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;bias_reg&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;activity_reg&quot;</span><span class="p">])</span>
+                    
+        <span class="c1"># Apply a residual connection if enabled.</span>
+        <span class="k">if</span> <span class="n">use_skip</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">residualConnection</span><span class="p">(</span><span class="n">x_in</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="DnnModelBuilder.build_model">
+<a class="viewcode-back" href="../../../../py_libraries.ml.optimisation.html#py_libraries.ml.optimisation.DnnModelBuilder.build_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">build_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hp</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct and compile the tunable model using hyperparameter selections.</span>
+
+<span class="sd">        The model can optionally include a start branch (with separate branches per label),</span>
+<span class="sd">        a middle dense block, and an end branch. The optimizer is also selected and tuned.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            hp: Hyperparameter tuning object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A compiled Keras model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">K</span><span class="o">.</span><span class="n">clear_session</span><span class="p">()</span>
+        <span class="c1"># Exclude &#39;concat&#39; from alternative merge modes.</span>
+        <span class="n">merges_without_concat</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">merges</span> <span class="k">if</span> <span class="n">item</span> <span class="o">!=</span> <span class="s1">&#39;concat&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Input layer</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs_shape</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs_name</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">inputs</span>
+
+        <span class="c1"># Optional separate start branch</span>
+        <span class="n">use_start_branch</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="s1">&#39;use_start_branch&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">hp</span><span class="o">.</span><span class="n">conditional_scope</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;use_start_branch&#39;</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">use_start_branch</span><span class="p">:</span>
+                <span class="n">merge_mode_start</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Choice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="s1">&#39;merge_mode_start&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">merges</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">merges_without_concat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">merges_without_concat</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">merges</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">merge_mode_start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">max_layers_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_layers</span>
+                    <span class="n">min_layers_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_layers</span>
+
+                    <span class="k">if</span> <span class="n">merge_mode_start</span> <span class="ow">in</span> <span class="n">merges_without_concat</span><span class="p">:</span>
+                        <span class="n">max_layers_use</span> <span class="o">-=</span> <span class="mi">1</span>
+                        <span class="n">min_layers_use</span> <span class="o">-=</span><span class="mi">1</span>
+                        
+                    <span class="n">start_branches</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">block_id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;start_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">min_layers</span><span class="o">=</span><span class="n">min_layers_use</span><span class="p">,</span> <span class="n">max_layers</span><span class="o">=</span><span class="n">max_layers_use</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_labels</span><span class="p">)]</span>
+                    
+                    <span class="k">with</span> <span class="n">hp</span><span class="o">.</span><span class="n">conditional_scope</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;merge_mode_start&#39;</span><span class="p">,</span> <span class="n">merges_without_concat</span><span class="p">):</span>
+                        <span class="n">choice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_choices</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="s1">&#39;start_merge&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">merge_mode_start</span> <span class="ow">in</span> <span class="n">merges_without_concat</span><span class="p">:</span>
+                            <span class="n">start_branches</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">completeDenseLayer</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;dropout_rate&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;kernel_reg&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;bias_reg&quot;</span><span class="p">],</span> <span class="n">choice</span><span class="p">[</span><span class="s2">&quot;activity_reg&quot;</span><span class="p">])</span> <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">start_branches</span><span class="p">]</span>
+                    
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">getMerge</span><span class="p">(</span><span class="n">merge_mode_start</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;start&#39;</span><span class="p">)(</span><span class="n">start_branches</span><span class="p">)</span>
+                
+        <span class="c1"># Optional main sequential dense block</span>
+        <span class="n">use_middle_block</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="s1">&#39;use_middle_block&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">hp</span><span class="o">.</span><span class="n">conditional_scope</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;use_middle_block&#39;</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">use_middle_block</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">block_id</span><span class="o">=</span><span class="s1">&#39;middle&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Optional end up by separate branchs</span>
+        <span class="n">use_end_branch</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="s1">&#39;use_end_branch&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">hp</span><span class="o">.</span><span class="n">conditional_scope</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;use_end_branch&#39;</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">]):</span>
+            <span class="c1"># For each labels, create a separate branch for its prediction</span>
+            <span class="k">if</span> <span class="n">use_end_branch</span><span class="p">:</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Dense</span><span class="p">(</span><span class="mi">1</span>        <span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span> <span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">block_id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;end_linear_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span> <span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span>              <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_linear_names</span><span class="p">)},</span>
+                    <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Dense</span><span class="p">(</span><span class="mi">1</span>        <span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;sigmoid&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">block_id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;end_sigmoid_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span>              <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_sigmoid_names</span><span class="p">)},</span>
+                    <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Dense</span><span class="p">(</span><span class="n">n_classes</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;softmax&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">block_id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;end_softmax_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">n_classes</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax_names</span><span class="p">))}</span>
+                <span class="p">}</span>
+                
+        <span class="k">with</span> <span class="n">hp</span><span class="o">.</span><span class="n">conditional_scope</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;use_end_branch&#39;</span><span class="p">,</span> <span class="p">[</span><span class="kc">False</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">use_end_branch</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Dense</span><span class="p">(</span><span class="mi">1</span>        <span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span> <span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span>            <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_linear_names</span><span class="p">},</span>
+                    <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Dense</span><span class="p">(</span><span class="mi">1</span>        <span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;sigmoid&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span>            <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_sigmoid_names</span><span class="p">},</span>
+                    <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Dense</span><span class="p">(</span><span class="n">n_classes</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;softmax&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax_names</span><span class="p">)}</span>
+                <span class="p">}</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tunable_model&#39;</span><span class="p">)</span>
+        
+        <span class="n">losses</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="s1">&#39;mse&#39;</span>                      <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_linear_names</span><span class="p">},</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="s1">&#39;binary_crossentropy&#39;</span>      <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_sigmoid_names</span><span class="p">},</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="s1">&#39;categorical_crossentropy&#39;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax_names</span><span class="p">}</span>
+        <span class="p">}</span>
+        
+        <span class="n">loss_weights</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_linear_names</span><span class="p">},</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sigmoid&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_sigmoid_names</span><span class="p">},</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;softmax&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax_names</span><span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="s1">&#39;mae&#39;</span>      <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_linear_names</span><span class="p">},</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="s1">&#39;accuracy&#39;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_sigmoid_names</span><span class="p">},</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="s1">&#39;accuracy&#39;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_softmax_names</span><span class="p">}</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># loss_weights = {</span>
+        <span class="c1">#     **{name: 1.0 for name in self.labels_linear_names},</span>
+        <span class="c1">#     **{name: 1.0 for name in self.labels_sigmoid_names},</span>
+        <span class="c1">#     **{name: 0.1 for name in self.labels_softmax_names}  # reduced weight for softmax outputs</span>
+        <span class="c1"># }</span>
+        
+        <span class="c1"># Optimizer selection using conditional scopes.</span>
+        <span class="n">optimizer_choice</span> <span class="o">=</span> <span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Choice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="s1">&#39;optimizer&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        
+        <span class="n">lrs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">optimizer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">hp</span><span class="o">.</span><span class="n">conditional_scope</span><span class="p">(</span><span class="s1">&#39;optimizer&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">optimizer</span><span class="p">]):</span>
+                <span class="n">lrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">setHyperparameter</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">Float</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixe_hparams</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">optimizer</span><span class="si">}</span><span class="s1">_lr&#39;</span><span class="p">,</span> <span class="n">sub_names</span><span class="o">=</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate_min</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate_max</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate_default</span><span class="p">))</span>
+
+        <span class="n">lr</span> <span class="o">=</span> <span class="n">lrs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">optimizer_choice</span><span class="p">)]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="n">getOptimizers</span><span class="p">(</span><span class="n">optimizer_choice</span><span class="p">,</span> <span class="n">lr</span><span class="p">),</span> <span class="n">loss</span><span class="o">=</span><span class="n">losses</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="n">metrics</span><span class="p">,</span> <span class="n">loss_weights</span><span class="o">=</span><span class="n">loss_weights</span><span class="p">)</span> <span class="c1"># , loss_weights=loss_weights</span>
+        
+        <span class="k">return</span> <span class="n">model</span></div>
+</div>
+
+
+
+<span class="w">    </span>
+<span class="sd">&quot;&quot;&quot;Usage</span>
+
+<span class="sd"># Binding du constructeur de modèle avec les dimensions des données</span>
+<span class="sd">dnn_model_builder = ml.optimisation.DnnModelBuilder(inputs_shape=tuple(train_data.shape[1:]), </span>
+<span class="sd">                                                    n_labels_linear=2,</span>
+<span class="sd">                                                    n_labels_sigmoid=0,</span>
+<span class="sd">                                                    labels_softmax=[4, 2 , 1]]) # multiclassification. Numbers are the number of class for each</span>
+<span class="sd">model_builder = dnn_model_builder.build_model</span>
+
+<span class="sd"># Initialisation du tuner Hyperband</span>
+<span class="sd">tuner = ml.optimisation.BayesianTuner(</span>
+<span class="sd">    model_builder,</span>
+<span class="sd">    objective=&#39;val_loss&#39;,      </span>
+<span class="sd">    max_trials=10000, </span>
+<span class="sd">    directory=str(result_path),  # Dossier pour sauvegarder les résultats</span>
+<span class="sd">    project_name=id_       # Nom du projet</span>
+<span class="sd">)</span>
+
+<span class="sd"># Lancer la recherche d&#39;hyperparamètres</span>
+<span class="sd">tuner.search(</span>
+<span class="sd">    train_data, train_labels,</span>
+<span class="sd">    validation_data=(val_data, val_labels),</span>
+<span class="sd">    epochs=100,</span>
+<span class="sd">    verbose=1</span>
+<span class="sd">)</span>
+
+<span class="sd"># Récupération des meilleurs hyperparamètres trouvés</span>
+<span class="sd">best_hp = tuner.get_best_hyperparameters(num_trials=1)[0]</span>
+
+<span class="sd"># Reconstruction et entraînement du modèle avec les meilleurs hyperparamètres</span>
+<span class="sd">best_model = tuner.hypermodel.build(best_hp)</span>
+
+<span class="sd"># Sauvegarde du meilleur modèle entraîné</span>
+<span class="sd">best_model.save(result_path / f&#39;best_model_{id_}.keras&#39;)</span>
+
+<span class="sd">print(&quot;Meilleurs hyperparamètres trouvés :&quot;)</span>
+<span class="sd">for key, value in best_hp.values.items():</span>
+<span class="sd">    print(f&#39;{key} : {value}&#39;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../py_libraries.html">py_libraries package</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

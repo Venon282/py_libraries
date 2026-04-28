@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>py_libraries.ml.layer.WeightedAverage &mdash; py_libraries 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="py_libraries.ml.layer.module" href="py_libraries.ml.layer.module.html" />
+    <link rel="prev" title="py_libraries.ml.layer" href="py_libraries.ml.layer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            py_libraries
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="py_libraries.html">py_libraries</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.Queue.html">py_libraries.Queue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.Stack.html">py_libraries.Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.cipher.html">py_libraries.cipher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.encoder.html">py_libraries.encoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.file.html">py_libraries.file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.internet.html">py_libraries.internet</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="py_libraries.ml.html">py_libraries.ml</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="py_libraries.ml.layer.html">py_libraries.ml.layer</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">py_libraries.ml.layer.WeightedAverage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.layer.module.html">py_libraries.ml.layer.module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.metrics.html">py_libraries.ml.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.model.html">py_libraries.ml.model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.module.html">py_libraries.ml.module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html">py_libraries.ml.optimisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html">py_libraries.ml.preprocessing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.path.html">py_libraries.path</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.system.html">py_libraries.system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.temp.html">py_libraries.temp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.visualize.html">py_libraries.visualize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.visualize_deprecate.html">py_libraries.visualize_deprecate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.windows.html">py_libraries.windows</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">py_libraries</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="py_libraries.html">py_libraries</a></li>
+          <li class="breadcrumb-item"><a href="py_libraries.ml.html">py_libraries.ml</a></li>
+          <li class="breadcrumb-item"><a href="py_libraries.ml.layer.html">py_libraries.ml.layer</a></li>
+      <li class="breadcrumb-item active">py_libraries.ml.layer.WeightedAverage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/py_libraries.ml.layer.WeightedAverage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="py-libraries-ml-layer-weightedaverage">
+<h1>py_libraries.ml.layer.WeightedAverage<a class="headerlink" href="#py-libraries-ml-layer-weightedaverage" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.layer.WeightedAverage">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.layer.</span></span><span class="sig-name descname"><span class="pre">WeightedAverage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/py_libraries/ml/layer/WeightedAverage.html#WeightedAverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.layer.WeightedAverage" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.layer.WeightedAverage.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/py_libraries/ml/layer/WeightedAverage.html#WeightedAverage.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.layer.WeightedAverage.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code>(**kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_loss</span></code>(loss)</p></td>
+<td><p>Can be called inside of the <cite>call()</cite> method to add a scalar loss.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_metric</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_variable</span></code>(shape, initializer[, dtype, ...])</p></td>
+<td><p>Add a weight variable to the layer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_weight</span></code>([shape, initializer, dtype, ...])</p></td>
+<td><p>Add a weight variable to the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build</span></code>(input_shape)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_from_config</span></code>(config)</p></td>
+<td><p>Builds the layer's states with the supplied config dict.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">call</span></code>(inputs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_mask</span></code>(inputs, previous_mask)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_shape</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_spec</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">count_params</span></code>()</p></td>
+<td><p>Count the total number of scalars composing the weights.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code>(config)</p></td>
+<td><p>Creates an operation from its config.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_build_config</span></code>()</p></td>
+<td><p>Returns a dictionary with the layer's input shape.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code>()</p></td>
+<td><p>Returns the config of the object.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_weights</span></code>()</p></td>
+<td><p>Return the values of <cite>layer.weights</cite> as a list of NumPy arrays.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_own_variables</span></code>(store)</p></td>
+<td><p>Loads the state of the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantize</span></code>(mode[, type_check])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantized_build</span></code>(input_shape, mode)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantized_call</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_own_variables</span></code>(store)</p></td>
+<td><p>Saves the state of the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_weights</span></code>(weights)</p></td>
+<td><p>Sets the values of <cite>layer.weights</cite> from a list of NumPy arrays.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">stateless_call</span></code>(trainable_variables, ...[, ...])</p></td>
+<td><p>Call the layer without any side effects.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">symbolic_call</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_dtype</span></code></p></td>
+<td><p>The dtype of the computations performed by the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
+<td><p>Alias of <cite>layer.variable_dtype</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype_policy</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input</span></code></p></td>
+<td><p>Retrieves the input tensor(s) of a symbolic operation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_dtype</span></code></p></td>
+<td><p>The dtype layer inputs should be converted to.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_spec</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">losses</span></code></p></td>
+<td><p>List of scalar losses from <cite>add_loss</cite>, regularizers and sublayers.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics</span></code></p></td>
+<td><p>List of all metrics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics_variables</span></code></p></td>
+<td><p>List of all metric variables.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">non_trainable_variables</span></code></p></td>
+<td><p>List of all non-trainable layer state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">non_trainable_weights</span></code></p></td>
+<td><p>List of all non-trainable weight variables of the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
+<td><p>Retrieves the output tensor(s) of a layer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span></code></p></td>
+<td><p>The path of the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantization_mode</span></code></p></td>
+<td><p>The quantization mode of this layer, <cite>None</cite> if not quantized.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports_masking</span></code></p></td>
+<td><p>Whether this layer supports computing a mask using <cite>compute_mask</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trainable</span></code></p></td>
+<td><p>Settable boolean, whether this layer should be trainable or not.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trainable_variables</span></code></p></td>
+<td><p>List of all trainable layer state.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trainable_weights</span></code></p></td>
+<td><p>List of all trainable weight variables of the layer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">variable_dtype</span></code></p></td>
+<td><p>The dtype of the state (weights) of the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">variables</span></code></p></td>
+<td><p>List of all layer state, including random seeds.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">weights</span></code></p></td>
+<td><p>List of all weight variables of the layer.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="py_libraries.ml.layer.html" class="btn btn-neutral float-left" title="py_libraries.ml.layer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="py_libraries.ml.layer.module.html" class="btn btn-neutral float-right" title="py_libraries.ml.layer.module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Esteban Thevenon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

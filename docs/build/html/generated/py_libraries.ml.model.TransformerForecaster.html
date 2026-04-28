@@ -1,0 +1,433 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>py_libraries.ml.model.TransformerForecaster &mdash; py_libraries 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="py_libraries.ml.model.cnn2D" href="py_libraries.ml.model.cnn2D.html" />
+    <link rel="prev" title="py_libraries.ml.model" href="py_libraries.ml.model.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            py_libraries
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="py_libraries.html">py_libraries</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.Queue.html">py_libraries.Queue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.Stack.html">py_libraries.Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.cipher.html">py_libraries.cipher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.encoder.html">py_libraries.encoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.file.html">py_libraries.file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.internet.html">py_libraries.internet</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="py_libraries.ml.html">py_libraries.ml</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.layer.html">py_libraries.ml.layer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.metrics.html">py_libraries.ml.metrics</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="py_libraries.ml.model.html">py_libraries.ml.model</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">py_libraries.ml.model.TransformerForecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="py_libraries.ml.model.cnn2D.html">py_libraries.ml.model.cnn2D</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.module.html">py_libraries.ml.module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.optimisation.html">py_libraries.ml.optimisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_libraries.ml.preprocessing.html">py_libraries.ml.preprocessing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.path.html">py_libraries.path</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.system.html">py_libraries.system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.temp.html">py_libraries.temp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.visualize.html">py_libraries.visualize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.visualize_deprecate.html">py_libraries.visualize_deprecate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.windows.html">py_libraries.windows</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">py_libraries</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="py_libraries.html">py_libraries</a></li>
+          <li class="breadcrumb-item"><a href="py_libraries.ml.html">py_libraries.ml</a></li>
+          <li class="breadcrumb-item"><a href="py_libraries.ml.model.html">py_libraries.ml.model</a></li>
+      <li class="breadcrumb-item active">py_libraries.ml.model.TransformerForecaster</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/py_libraries.ml.model.TransformerForecaster.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="py-libraries-ml-model-transformerforecaster">
+<h1>py_libraries.ml.model.TransformerForecaster<a class="headerlink" href="#py-libraries-ml-model-transformerforecaster" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.model.TransformerForecaster">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.model.</span></span><span class="sig-name descname"><span class="pre">TransformerForecaster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/py_libraries/ml/model/TransformerForecaster.html#TransformerForecaster"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.model.TransformerForecaster" title="Link to this definition"></a></dt>
+<dd><p>Transformer Forecaster: Complete encoder-decoder model for time series prediction.</p>
+<dl class="simple">
+<dt>Input modes supported:</dt><dd><ul class="simple">
+<li><p>Training: (encoder_input, decoder_input) or (encoder_input, decoder_input, mask)</p></li>
+<li><dl class="simple">
+<dt>Autoregressive inference: (encoder_input, target_seq_len)</dt><dd><p>where encoder_input can be a 2D (T, n_features) or 3D (batch, T, n_features) tensor.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<p>The model also accepts a “return_attention” Boolean argument in call() to return
+attention weights without first duplicating the propagation code.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.model.TransformerForecaster.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_input_seq_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_target_seq_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/py_libraries/ml/model/TransformerForecaster.html#TransformerForecaster.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.model.TransformerForecaster.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code>(num_layers, d_model, num_heads, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_loss</span></code>(loss)</p></td>
+<td><p>Can be called inside of the <cite>call()</cite> method to add a scalar loss.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_metric</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_variable</span></code>(shape, initializer[, dtype, ...])</p></td>
+<td><p>Add a weight variable to the layer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_weight</span></code>([shape, initializer, dtype, ...])</p></td>
+<td><p>Add a weight variable to the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">autoregressive_predict</span></code>(encoder_input, ...[, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build</span></code>(input_shape)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_from_config</span></code>(config)</p></td>
+<td><p>Builds the layer's states with the supplied config dict.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">call</span></code>(encoder_input[, decoder_input, ...])</p></td>
+<td><p>Runs a forward pass through the TransformerForecaster model.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile</span></code>([optimizer, loss, loss_weights, ...])</p></td>
+<td><p>Configures the model for training.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_from_config</span></code>(config)</p></td>
+<td><p>Compiles the model with the information given in config.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compiled_loss</span></code>(y, y_pred[, sample_weight, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_loss</span></code>([x, y, y_pred, sample_weight, ...])</p></td>
+<td><p>Compute the total loss, validate it, and return it.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_mask</span></code>(inputs, previous_mask)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_metrics</span></code>(x, y, y_pred[, sample_weight])</p></td>
+<td><p>Update metric states and collect all metrics to be returned.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_shape</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_spec</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">count_params</span></code>()</p></td>
+<td><p>Count the total number of scalars composing the weights.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_combined_mask</span></code>(seq)</p></td>
+<td><p>Combines look-ahead mask with decoder padding mask. Args:     decoder_mask: Shape tensor (batch, T_dec) or (T_dec,) with 1 for valid tokens. Returns:     combined_mask: Form tensor (batch, T_dec, T_dec).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_look_ahead_mask</span></code>(size)</p></td>
+<td><p>Creates a lower triangular mask of shape (size, size) to prevent attention being drawn to future tokens.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code>([x, y, batch_size, verbose, ...])</p></td>
+<td><p>Returns the loss value &amp; metrics values for the model in test mode.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code>(filepath[, format, verbose])</p></td>
+<td><p>Create a TF SavedModel artifact for inference.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code>(*args, **kwargs)</p></td>
+<td><p>Trains the model for a fixed number of epochs (dataset iterations).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code>(config)</p></td>
+<td><p>Creates an operation from its config.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_build_config</span></code>()</p></td>
+<td><p>Returns a dictionary with the layer's input shape.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_compile_config</span></code>()</p></td>
+<td><p>Returns a serialized config with information for compiling the model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code>()</p></td>
+<td><p>Returns the config of the object.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer</span></code>([name, index])</p></td>
+<td><p>Retrieves a layer based on either its name (unique) or index.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_metrics_result</span></code>()</p></td>
+<td><p>Returns the model's metrics values as a dict.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_state_tree</span></code>([value_format])</p></td>
+<td><p>Retrieves tree-like structure of model variables.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_weights</span></code>()</p></td>
+<td><p>Return the values of <cite>layer.weights</cite> as a list of NumPy arrays.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_own_variables</span></code>(store)</p></td>
+<td><p>Loads the state of the layer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_weights</span></code>(filepath[, skip_mismatch])</p></td>
+<td><p>Load weights from a file saved via <cite>save_weights()</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">loss</span></code>(y, y_pred[, sample_weight])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_predict_function</span></code>([force])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_test_function</span></code>([force])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_train_function</span></code>([force])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>(x[, batch_size, verbose, steps, ...])</p></td>
+<td><p>Generates output predictions for the input samples.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_on_batch</span></code>(x)</p></td>
+<td><p>Returns predictions for a single batch of samples.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_step</span></code>(data)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_layers</span></code>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantize</span></code>(mode, **kwargs)</p></td>
+<td><p>Quantize the weights of the model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantized_build</span></code>(input_shape, mode)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantized_call</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_metrics</span></code>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code>(filepath[, overwrite, zipped])</p></td>
+<td><p>Saves a model as a <cite>.keras</cite> file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_own_variables</span></code>(store)</p></td>
+<td><p>Saves the state of the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_weights</span></code>(filepath[, overwrite])</p></td>
+<td><p>Saves all layer weights to a <cite>.weights.h5</cite> file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_state_tree</span></code>(state_tree)</p></td>
+<td><p>Assigns values to variables of the model.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_weights</span></code>(weights)</p></td>
+<td><p>Sets the values of <cite>layer.weights</cite> from a list of NumPy arrays.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">stateless_call</span></code>(trainable_variables, ...[, ...])</p></td>
+<td><p>Call the layer without any side effects.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">stateless_compute_loss</span></code>(trainable_variables, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">summary</span></code>([line_length, positions, print_fn, ...])</p></td>
+<td><p>Prints a string summary of the network.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">symbolic_call</span></code>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">test_on_batch</span></code>(x[, y, sample_weight, return_dict])</p></td>
+<td><p>Test the model on a single batch of samples.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">test_step</span></code>(data)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_json</span></code>(**kwargs)</p></td>
+<td><p>Returns a JSON string containing the network configuration.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">train_on_batch</span></code>(x[, y, sample_weight, ...])</p></td>
+<td><p>Runs a single gradient update on a single batch of data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">train_step</span></code>(data)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compiled_metrics</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_dtype</span></code></p></td>
+<td><p>The dtype of the computations performed by the layer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">distribute_reduction_method</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">distribute_strategy</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
+<td><p>Alias of <cite>layer.variable_dtype</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype_policy</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input</span></code></p></td>
+<td><p>Retrieves the input tensor(s) of a symbolic operation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_dtype</span></code></p></td>
+<td><p>The dtype layer inputs should be converted to.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_spec</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">jit_compile</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">layers</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">losses</span></code></p></td>
+<td><p>List of scalar losses from <cite>add_loss</cite>, regularizers and sublayers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics</span></code></p></td>
+<td><p>List of all metrics.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics_names</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics_variables</span></code></p></td>
+<td><p>List of all metric variables.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">non_trainable_variables</span></code></p></td>
+<td><p>List of all non-trainable layer state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">non_trainable_weights</span></code></p></td>
+<td><p>List of all non-trainable weight variables of the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
+<td><p>Retrieves the output tensor(s) of a layer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span></code></p></td>
+<td><p>The path of the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantization_mode</span></code></p></td>
+<td><p>The quantization mode of this layer, <cite>None</cite> if not quantized.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_eagerly</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports_masking</span></code></p></td>
+<td><p>Whether this layer supports computing a mask using <cite>compute_mask</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trainable</span></code></p></td>
+<td><p>Settable boolean, whether this layer should be trainable or not.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trainable_variables</span></code></p></td>
+<td><p>List of all trainable layer state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trainable_weights</span></code></p></td>
+<td><p>List of all trainable weight variables of the layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">variable_dtype</span></code></p></td>
+<td><p>The dtype of the state (weights) of the layer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">variables</span></code></p></td>
+<td><p>List of all layer state, including random seeds.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">weights</span></code></p></td>
+<td><p>List of all weight variables of the layer.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="py_libraries.ml.model.html" class="btn btn-neutral float-left" title="py_libraries.ml.model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="py_libraries.ml.model.cnn2D.html" class="btn btn-neutral float-right" title="py_libraries.ml.model.cnn2D" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Esteban Thevenon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

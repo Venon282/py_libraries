@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>py_libraries.ml.model.TransformerForecaster &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for py_libraries.ml.model.TransformerForecaster</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="n">gpus</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">list_physical_devices</span><span class="p">(</span><span class="s1">&#39;GPU&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">gpus</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">gpu</span> <span class="ow">in</span> <span class="n">gpus</span><span class="p">:</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">experimental</span><span class="o">.</span><span class="n">set_memory_growth</span><span class="p">(</span><span class="n">gpu</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        
+<span class="kn">from</span> <span class="nn">tensorflow.keras.layers</span> <span class="kn">import</span> <span class="n">Dense</span><span class="p">,</span> <span class="n">LayerNormalization</span><span class="p">,</span> <span class="n">Dropout</span><span class="p">,</span> <span class="n">MultiHeadAttention</span> <span class="c1"># type: ignore</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="sd">&quot;&quot;&quot; For display a value in grap mode:</span>
+<span class="sd">Activate eagerly: tf.config.run_functions_eagerly(True)</span>
+<span class="sd">convert to numpy: target_seq_len.numpy()</span>
+<span class="sd">!!!Warning!!! Extremly slow</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Positional Encoding</span>
+<span class="c1">########################################################################</span>
+<div class="viewcode-block" id="PositionalEncoding">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.PositionalEncoding">[docs]</a>
+<span class="nd">@tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">register_keras_serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">PositionalEncoding</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implements sinusoidal positional encoding as described in &quot;Attention Is All You Need&quot;.</span>
+<span class="sd">    Precomputes the encoding matrix for a maximum sequence length.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_seq_len</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PositionalEncoding</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_seq_len</span> <span class="o">=</span> <span class="n">max_seq_len</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_positional_encoding</span><span class="p">(</span><span class="n">max_seq_len</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PositionalEncoding.compute_positional_encoding">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.PositionalEncoding.compute_positional_encoding">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_positional_encoding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_seq_len</span><span class="p">,</span> <span class="n">d_model</span><span class="p">):</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_seq_len</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>  <span class="c1"># (max_seq_len, 1)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">d_model</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>         <span class="c1"># (1, d_model)</span>
+        <span class="n">angle_rates</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">d_model</span><span class="p">))</span>
+        <span class="n">angle_rads</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">*</span> <span class="n">angle_rates</span>                <span class="c1"># (max_seq_len, d_model)</span>
+        <span class="c1"># Apply sin to even indices and cos to odd indices</span>
+        <span class="n">angle_rads</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle_rads</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">angle_rads</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle_rads</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">pos_encoding</span> <span class="o">=</span> <span class="n">angle_rads</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>      <span class="c1"># (1, max_seq_len, d_model)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pos_encoding</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PositionalEncoding.call">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.PositionalEncoding.call">[docs]</a>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            inputs: Tensor of shape (batch, seq_len, d_model)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tensor with positional encoding added.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">seq_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">inputs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_encoding</span><span class="p">[:,</span> <span class="p">:</span><span class="n">seq_len</span><span class="p">,</span> <span class="p">:]</span></div>
+
+
+<div class="viewcode-block" id="PositionalEncoding.get_config">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.PositionalEncoding.get_config">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">PositionalEncoding</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;max_seq_len&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_seq_len</span><span class="p">,</span> <span class="s2">&quot;d_model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">config</span></div>
+</div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Encoder Layer</span>
+<span class="c1">########################################################################</span>
+<div class="viewcode-block" id="EncoderLayer">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.EncoderLayer">[docs]</a>
+<span class="nd">@tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">register_keras_serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">EncoderLayer</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Single layer of the Transformer encoder.</span>
+<span class="sd">    Consists of:</span>
+<span class="sd">      - Multi-Head Self-Attention</span>
+<span class="sd">      - Dropout + Residual Connection + Layer Normalization</span>
+<span class="sd">      - Feed-Forward Network (FFN) with dropout and residual connection.</span>
+<span class="sd">      </span>
+<span class="sd">    Optionally returns attention weights.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EncoderLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span> <span class="o">=</span> <span class="n">num_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dff</span> <span class="o">=</span> <span class="n">dff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span> <span class="o">=</span> <span class="n">dropout_rate</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mha</span> <span class="o">=</span> <span class="n">MultiHeadAttention</span><span class="p">(</span><span class="n">num_heads</span><span class="o">=</span><span class="n">num_heads</span><span class="p">,</span> <span class="n">key_dim</span><span class="o">=</span><span class="n">d_model</span>  <span class="o">//</span> <span class="n">num_heads</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">([</span>
+            <span class="n">Dense</span><span class="p">(</span><span class="n">dff</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+            <span class="n">Dense</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layernorm1</span> <span class="o">=</span> <span class="n">LayerNormalization</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layernorm2</span> <span class="o">=</span> <span class="n">LayerNormalization</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout1</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout2</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EncoderLayer.call">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.EncoderLayer.call">[docs]</a>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+            <span class="n">attn_output</span><span class="p">,</span> <span class="n">attn_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mha</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">return_attention_scores</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">attn_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mha</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+        <span class="n">attn_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout1</span><span class="p">(</span><span class="n">attn_output</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">)</span>
+        <span class="n">out1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layernorm1</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">attn_output</span><span class="p">)</span>
+
+        <span class="n">ffn_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span><span class="p">(</span><span class="n">out1</span><span class="p">)</span>
+        <span class="n">ffn_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout2</span><span class="p">(</span><span class="n">ffn_output</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layernorm2</span><span class="p">(</span><span class="n">out1</span> <span class="o">+</span> <span class="n">ffn_output</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">attn_scores</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="EncoderLayer.get_config">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.EncoderLayer.get_config">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">EncoderLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s2">&quot;d_model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="s2">&quot;num_heads&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span><span class="p">,</span>
+            <span class="s2">&quot;dff&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dff</span><span class="p">,</span>
+            <span class="s2">&quot;dropout_rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span>
+        <span class="p">})</span>
+        <span class="k">return</span> <span class="n">config</span></div>
+</div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Encoder</span>
+<span class="c1">########################################################################</span>
+<div class="viewcode-block" id="Encoder">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Encoder">[docs]</a>
+<span class="nd">@tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">register_keras_serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">Encoder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transformer Encoder: projects inputs to d_model dimensions, adds positional encoding,</span>
+<span class="sd">    applies dropout, and passes data through a stack of EncoderLayer modules.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span> <span class="n">max_seq_len</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Encoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">=</span> <span class="n">num_layers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_seq_len</span> <span class="o">=</span> <span class="n">max_seq_len</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span> <span class="o">=</span> <span class="n">dropout_rate</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_projection</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_encoding</span> <span class="o">=</span> <span class="n">PositionalEncoding</span><span class="p">(</span><span class="n">max_seq_len</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enc_layers</span> <span class="o">=</span> <span class="p">[</span><span class="n">EncoderLayer</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Encoder.call">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Encoder.call">[docs]</a>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_projection</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">*=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_encoding</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">)</span>
+
+        <span class="n">encoder_attentions</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List to collect attention weights if requested.</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enc_layers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">attn_scores</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">encoder_attentions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attn_scores</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">encoder_attentions</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span></div>
+
+    
+<div class="viewcode-block" id="Encoder.compute_output_shape">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Encoder.compute_output_shape">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_output_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Encoder.get_config">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Encoder.get_config">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Encoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s2">&quot;num_layers&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span><span class="p">,</span>
+            <span class="s2">&quot;d_model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="s2">&quot;max_seq_len&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_seq_len</span><span class="p">,</span>
+            <span class="s2">&quot;dropout_rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span>
+        <span class="p">})</span>
+        <span class="k">return</span> <span class="n">config</span></div>
+</div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Decoder Layer</span>
+<span class="c1">########################################################################</span>
+<div class="viewcode-block" id="DecoderLayer">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.DecoderLayer">[docs]</a>
+<span class="nd">@tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">register_keras_serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">DecoderLayer</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Single layer of the Transformer decoder. Consists of:</span>
+<span class="sd">      - Self-attention (with look-ahead mask)</span>
+<span class="sd">      - Encoder-decoder (cross) attention (with padding mask)</span>
+<span class="sd">      - Feed-Forward Network</span>
+<span class="sd">    Residual connections, dropout, and layer normalization are applied.</span>
+<span class="sd">    </span>
+<span class="sd">    Optionally returns attention weights.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DecoderLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span> <span class="o">=</span> <span class="n">num_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dff</span> <span class="o">=</span> <span class="n">dff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span> <span class="o">=</span> <span class="n">dropout_rate</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mha1</span> <span class="o">=</span> <span class="n">MultiHeadAttention</span><span class="p">(</span><span class="n">num_heads</span><span class="o">=</span><span class="n">num_heads</span><span class="p">,</span> <span class="n">key_dim</span><span class="o">=</span><span class="n">d_model</span> <span class="o">//</span> <span class="n">num_heads</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mha2</span> <span class="o">=</span> <span class="n">MultiHeadAttention</span><span class="p">(</span><span class="n">num_heads</span><span class="o">=</span><span class="n">num_heads</span><span class="p">,</span> <span class="n">key_dim</span><span class="o">=</span><span class="n">d_model</span> <span class="o">//</span> <span class="n">num_heads</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">([</span>
+            <span class="n">Dense</span><span class="p">(</span><span class="n">dff</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+            <span class="n">Dense</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layernorm1</span> <span class="o">=</span> <span class="n">LayerNormalization</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layernorm2</span> <span class="o">=</span> <span class="n">LayerNormalization</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layernorm3</span> <span class="o">=</span> <span class="n">LayerNormalization</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout1</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout2</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout3</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DecoderLayer.call">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.DecoderLayer.call">[docs]</a>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">enc_output</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">look_ahead_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">padding_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Self-attention block with look-ahead mask.</span>
+        <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+            <span class="n">attn1_output</span><span class="p">,</span> <span class="n">attn1_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mha1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">look_ahead_mask</span><span class="p">,</span> <span class="n">return_attention_scores</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">attn1_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mha1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">look_ahead_mask</span><span class="p">)</span>
+        <span class="n">attn1_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout1</span><span class="p">(</span><span class="n">attn1_output</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">)</span>
+        <span class="n">out1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layernorm1</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">attn1_output</span><span class="p">)</span>
+
+        <span class="c1"># Encoder-decoder (cross) attention block.</span>
+        <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+            <span class="n">attn2_output</span><span class="p">,</span> <span class="n">attn2_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mha2</span><span class="p">(</span><span class="n">out1</span><span class="p">,</span> <span class="n">enc_output</span><span class="p">,</span> <span class="n">enc_output</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">padding_mask</span><span class="p">,</span> <span class="n">return_attention_scores</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">attn2_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mha2</span><span class="p">(</span><span class="n">out1</span><span class="p">,</span> <span class="n">enc_output</span><span class="p">,</span> <span class="n">enc_output</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">padding_mask</span><span class="p">)</span>
+        <span class="n">attn2_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout2</span><span class="p">(</span><span class="n">attn2_output</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">)</span>
+        <span class="n">out2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layernorm2</span><span class="p">(</span><span class="n">out1</span> <span class="o">+</span> <span class="n">attn2_output</span><span class="p">)</span>
+
+        <span class="c1"># Feed-Forward Network block.</span>
+        <span class="n">ffn_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span><span class="p">(</span><span class="n">out2</span><span class="p">)</span>
+        <span class="n">ffn_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout3</span><span class="p">(</span><span class="n">ffn_output</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layernorm3</span><span class="p">(</span><span class="n">out2</span> <span class="o">+</span> <span class="n">ffn_output</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+            <span class="n">attn_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;self_attention&quot;</span><span class="p">:</span> <span class="n">attn1_scores</span><span class="p">,</span> <span class="s2">&quot;enc_dec_attention&quot;</span><span class="p">:</span> <span class="n">attn2_scores</span><span class="p">}</span>
+            <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">attn_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="DecoderLayer.get_config">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.DecoderLayer.get_config">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">DecoderLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s2">&quot;d_model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="s2">&quot;num_heads&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span><span class="p">,</span>
+            <span class="s2">&quot;dff&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dff</span><span class="p">,</span>
+            <span class="s2">&quot;dropout_rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span>
+        <span class="p">})</span>
+        <span class="k">return</span> <span class="n">config</span></div>
+</div>
+
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Decoder</span>
+<span class="c1">########################################################################</span>
+<div class="viewcode-block" id="Decoder">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Decoder">[docs]</a>
+<span class="nd">@tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">register_keras_serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">Decoder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transformer Decoder: Projects inputs, adds positional encoding, applies dropout,</span>
+<span class="sd">    and passes data through a stack of DecoderLayer modules.</span>
+<span class="sd">    </span>
+<span class="sd">    Supports an optional flag &quot;return_attention&quot; to return attention weights.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span> <span class="n">max_target_seq_len</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Decoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_target_seq_len</span> <span class="o">=</span> <span class="n">max_target_seq_len</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_projection</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_encoding</span> <span class="o">=</span> <span class="n">PositionalEncoding</span><span class="p">(</span><span class="n">max_target_seq_len</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dec_layers</span> <span class="o">=</span> <span class="p">[</span><span class="n">DecoderLayer</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Decoder.call">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Decoder.call">[docs]</a>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">enc_output</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">look_ahead_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">padding_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            x: Decoder input tensor of shape (batch, T_dec, n_features).</span>
+<span class="sd">            enc_output: Encoder output tensor of shape (batch, T_enc, d_model).</span>
+<span class="sd">            training: Boolean flag.</span>
+<span class="sd">            look_ahead_mask: Look-ahead mask for self-attention.</span>
+<span class="sd">            padding_mask: Optional mask for encoder-decoder attention.</span>
+<span class="sd">            return_attention: Boolean flag. If True, returns (output, list_of_attention_dicts).</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            If return_attention is False: output tensor of shape (batch, T_dec, d_model).</span>
+<span class="sd">            If True: a tuple (output, attention_list) where attention_list is a list of dictionaries</span>
+<span class="sd">                    (one per decoder layer) with keys &quot;self_attention&quot; and &quot;enc_dec_attention&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_projection</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">*=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_encoding</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">)</span>
+
+        <span class="n">decoder_attentions</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">return_attention</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dec_layers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">attn_dict</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">enc_output</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                                     <span class="n">look_ahead_mask</span><span class="o">=</span><span class="n">look_ahead_mask</span><span class="p">,</span> <span class="n">padding_mask</span><span class="o">=</span><span class="n">padding_mask</span><span class="p">,</span>
+                                     <span class="n">return_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">decoder_attentions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attn_dict</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">enc_output</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                          <span class="n">look_ahead_mask</span><span class="o">=</span><span class="n">look_ahead_mask</span><span class="p">,</span> <span class="n">padding_mask</span><span class="o">=</span><span class="n">padding_mask</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">decoder_attentions</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span></div>
+
+        
+<div class="viewcode-block" id="Decoder.compute_output_shape">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Decoder.compute_output_shape">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_output_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Decoder.get_config">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Decoder.get_config">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Decoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s2">&quot;max_target_seq_len&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_target_seq_len</span><span class="p">,</span>
+            <span class="s2">&quot;dropout_rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span><span class="p">,</span>
+            <span class="s2">&quot;d_model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span>
+        <span class="p">})</span>
+        <span class="k">return</span> <span class="n">config</span></div>
+</div>
+
+    
+<span class="c1">########################################################################</span>
+<span class="c1"># Final</span>
+<span class="c1">########################################################################</span>
+<div class="viewcode-block" id="Final">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Final">[docs]</a>
+<span class="nd">@tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">register_keras_serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">Final</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Final.compute_output_shape">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.Final.compute_output_shape">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_output_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">):</span>
+       <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">)</span></div>
+</div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Transformer Forecaster</span>
+<span class="c1">########################################################################</span>
+<div class="viewcode-block" id="TransformerForecaster">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster">[docs]</a>
+<span class="nd">@tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">register_keras_serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">TransformerForecaster</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transformer Forecaster: Complete encoder-decoder model for time series prediction.</span>
+<span class="sd">    </span>
+<span class="sd">    Input modes supported:</span>
+<span class="sd">      - Training: (encoder_input, decoder_input) or (encoder_input, decoder_input, mask)</span>
+<span class="sd">      - Autoregressive inference: (encoder_input, target_seq_len)</span>
+<span class="sd">          where encoder_input can be a 2D (T, n_features) or 3D (batch, T, n_features) tensor.</span>
+<span class="sd">    </span>
+<span class="sd">    The model also accepts a “return_attention” Boolean argument in call() to return</span>
+<span class="sd">    attention weights without first duplicating the propagation code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TransformerForecaster.__init__">
+<a class="viewcode-back" href="../../../../generated/py_libraries.ml.model.TransformerForecaster.html#py_libraries.ml.model.TransformerForecaster.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span>
+                 <span class="n">max_input_seq_len</span><span class="p">,</span> <span class="n">max_target_seq_len</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span>
+                 <span class="n">dropout_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TransformerForecaster</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">=</span> <span class="n">num_layers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span> <span class="o">=</span> <span class="n">num_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dff</span> <span class="o">=</span> <span class="n">dff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_input_seq_len</span> <span class="o">=</span> <span class="n">max_input_seq_len</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_target_seq_len</span> <span class="o">=</span> <span class="n">max_target_seq_len</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_features</span> <span class="o">=</span> <span class="n">num_features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span> <span class="o">=</span> <span class="n">dropout_rate</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">Encoder</span><span class="p">(</span><span class="n">num_layers</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span> <span class="n">max_input_seq_len</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">Decoder</span><span class="p">(</span><span class="n">num_layers</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">dff</span><span class="p">,</span> <span class="n">max_target_seq_len</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_layer</span> <span class="o">=</span> <span class="n">Final</span><span class="p">(</span><span class="n">num_features</span><span class="p">)</span> <span class="c1">#Dense(num_features)</span>
+
+        <span class="c1"># Build the model</span>
+        <span class="n">dummy_encoder_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_input_seq_len</span><span class="p">,</span> <span class="n">num_features</span><span class="p">))</span>
+        <span class="n">dummy_decoder_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_target_seq_len</span><span class="p">,</span> <span class="n">num_features</span><span class="p">))</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">encoder_input</span><span class="o">=</span><span class="n">dummy_encoder_input</span><span class="p">,</span> <span class="n">decoder_input</span><span class="o">=</span><span class="n">dummy_decoder_input</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="TransformerForecaster.print_layers">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.print_layers">[docs]</a>
+    <span class="k">def</span> <span class="nf">print_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_print_layers_rec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">visited</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+        
+        
+    <span class="k">def</span> <span class="nf">_print_layers_rec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">visited</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">visited</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">visited</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="c1"># To avoid infinite loops, we can memorize the ID of objects already visited</span>
+        <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="n">module</span><span class="p">)</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">module</span><span class="p">))</span>
+        
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">indent</span>
+        <span class="c1"># Try to display some useful information</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">count_params</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="s2">&quot;?&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">name</span><span class="si">:</span><span class="s2">40s</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">module</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">:</span><span class="s2">25s</span><span class="si">}</span><span class="s2"> - Params: </span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># For sub-layers, look at either the &quot;layers&quot; attribute or browse __dict__</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;layers&quot;</span><span class="p">):</span>
+            <span class="n">sublayers</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">layers</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sublayers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># In some cases, lists stored in attributes (e.g. self.enc_layers) are not accessible via module.layers, so you have to iterate through __dict__</span>
+        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">module</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr_value</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+                <span class="n">sublayers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attr_value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr_value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">attr_value</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+                        <span class="n">sublayers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="c1"># Eliminate duplicates (sometimes the same objects appear in module.layers and via __dict__)</span>
+        <span class="n">sublayers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">({</span><span class="nb">id</span><span class="p">(</span><span class="n">layer</span><span class="p">):</span> <span class="n">layer</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">sublayers</span><span class="p">}</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="c1"># Recursive call for each sub-layer</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">sublayers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_print_layers_rec</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">indent</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">visited</span><span class="p">)</span>
+            
+    <span class="k">class</span> <span class="nc">_DisplayLearningRate</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">Callback</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">on_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">logs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="n">opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">optimizer</span>
+            
+            <span class="c1"># If optimizer implement _decayed_lr (TF ≥2.9) :</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="s2">&quot;_decayed_lr&quot;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">lr_t</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">_decayed_lr</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">lr_t</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">learning_rate</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Else get learning_rate which can be :</span>
+                <span class="c1">#    - a tf.Variable</span>
+                <span class="c1">#    - a LearningRateSchedule</span>
+                <span class="n">lr_t</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">learning_rate</span>
+
+            <span class="c1"># If a schedule, cann with the iteration number done</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lr_t</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">schedules</span><span class="o">.</span><span class="n">LearningRateSchedule</span><span class="p">):</span>
+                <span class="n">lr_t</span> <span class="o">=</span> <span class="n">lr_t</span><span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">iterations</span><span class="p">)</span>
+
+            <span class="c1"># convert it to a float</span>
+            <span class="c1"># If eager mode, convert to numpy</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">lr</span> <span class="o">=</span> <span class="n">lr_t</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">lr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">lr_t</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Learning rate: </span><span class="si">{</span><span class="n">lr</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+<div class="viewcode-block" id="TransformerForecaster.fit">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.fit">[docs]</a>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># get the callbacks list</span>
+        <span class="n">callbacks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;callbacks&#39;</span><span class="p">,</span> <span class="p">[]))</span>
+        
+        <span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TransformerForecaster</span><span class="o">.</span><span class="n">_DisplayLearningRate</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="TransformerForecaster.create_look_ahead_mask">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.create_look_ahead_mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_look_ahead_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a lower triangular mask of shape (size, size) to prevent attention being drawn to future tokens.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># mask = 1 - tf.linalg.band_part(tf.ones((size, size)), -1, 0)</span>
+        <span class="c1"># return mask</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">band_part</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">)),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span></div>
+
+    
+
+<div class="viewcode-block" id="TransformerForecaster.create_combined_mask">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.create_combined_mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_combined_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Combines look-ahead mask with decoder padding mask.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            decoder_mask: Shape tensor (batch, T_dec) or (T_dec,) with 1 for valid tokens.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            combined_mask: Form tensor (batch, T_dec, T_dec)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Assure seq en 2D : (batch, seq_len)</span>
+        <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">seq</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            
+        <span class="c1"># masque padding</span>
+        <span class="n">pad_mask</span>   <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">not_equal</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>                                   <span class="c1"># (batch, seq)</span>
+        <span class="n">lookahead</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_look_ahead_mask</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">seq</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>     <span class="c1"># (seq, seq)</span>
+        
+        <span class="c1"># broadcast &amp; AND logique</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+            <span class="n">pad_mask</span><span class="p">[:,</span> <span class="n">tf</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span>    <span class="c1"># (batch, 1, seq)</span>
+            <span class="n">lookahead</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>    <span class="c1"># (1, seq, seq)</span>
+        <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">combined</span> </div>
+
+        
+        <span class="c1"># if len(decoder_mask.shape) == 1:</span>
+        <span class="c1">#     decoder_mask = tf.expand_dims(decoder_mask, 0)</span>
+        <span class="c1"># T = tf.shape(decoder_mask)[1]</span>
+        <span class="c1"># look_ahead_mask = self.create_look_ahead_mask(T)</span>
+        <span class="c1"># decoder_mask_cols = tf.expand_dims(decoder_mask, 1)  # (batch, 1, T)</span>
+        <span class="c1"># mask_cols = look_ahead_mask * tf.cast(decoder_mask_cols, look_ahead_mask.dtype)</span>
+        <span class="c1"># decoder_mask_rows = tf.expand_dims(decoder_mask, 2)  # (batch, T, 1)</span>
+        <span class="c1"># combined_mask = mask_cols * tf.cast(decoder_mask_rows, mask_cols.dtype)</span>
+        <span class="c1"># return combined_mask</span>
+
+<div class="viewcode-block" id="TransformerForecaster.autoregressive_predict">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.autoregressive_predict">[docs]</a>
+    <span class="k">def</span> <span class="nf">autoregressive_predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoder_input</span><span class="p">,</span> <span class="n">target_seq_len</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="c1"># Create a TensorArray for decoder input tokens with fixed size: target_seq_len + 1 (including the start token).</span>
+        <span class="n">decoder_input_array</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorArray</span><span class="p">(</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> 
+            <span class="n">size</span><span class="o">=</span><span class="n">target_seq_len</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> 
+            <span class="n">element_shape</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_features</span><span class="p">])</span>
+        <span class="p">)</span>
+        
+        <span class="n">dummy</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_features</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">decoder_input_array</span> <span class="o">=</span> <span class="n">decoder_input_array</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dummy</span><span class="p">)</span>
+        
+        <span class="c1"># Create a TensorArray to hold the predicted tokens.</span>
+        <span class="n">predictions_array</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorArray</span><span class="p">(</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> 
+            <span class="n">size</span><span class="o">=</span><span class="n">target_seq_len</span><span class="p">,</span> 
+            <span class="n">element_shape</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_features</span><span class="p">])</span>
+        <span class="p">)</span>
+        
+        <span class="n">finished</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        
+        <span class="c1"># Loop counter &#39;i&#39; represents the current length of decoder tokens (starts at 1 because of the start token).</span>
+        <span class="k">def</span> <span class="nf">condition</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">less</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">target_seq_len</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        
+            
+        <span class="k">def</span> <span class="nf">loop_body</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">decoder_input_array</span><span class="p">,</span> <span class="n">predictions_array</span><span class="p">,</span> <span class="n">finished</span><span class="p">):</span>     
+            <span class="c1"># Stack all previous tokens (excluding the dummy at index 0) into shape [batch, i-1, num_features]</span>
+            <span class="n">prev_tokens</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span>
+                    <span class="n">decoder_input_array</span><span class="o">.</span><span class="n">stack</span><span class="p">(),</span>
+                    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>  <span class="c1"># skip the start_token slot when stacking for input</span>
+                    <span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_features</span><span class="p">]</span>
+                <span class="p">),</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="c1"># Add a dummy at the end so the model receives a full-length input. The teacher forcing of the call will remove the last token (dummy one)</span>
+            <span class="n">dummy_step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_features</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">decoder_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">prev_tokens</span><span class="p">,</span> <span class="n">dummy_step</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            
+          
+            <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span>
+                <span class="n">encoder_input</span><span class="o">=</span><span class="n">encoder_input</span><span class="p">,</span>
+                <span class="n">decoder_input</span><span class="o">=</span><span class="n">decoder_input</span><span class="p">,</span>
+                <span class="n">mask</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;encoder&quot;</span><span class="p">:</span> <span class="n">mask</span><span class="p">[</span><span class="s2">&quot;encoder&quot;</span><span class="p">]},</span>
+                <span class="n">training</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+            <span class="n">next_token</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># shape: [batch, 1, num_features]</span>
+            
+            <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">current_mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">][:,</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># shape: [batch]</span>
+                <span class="n">finished_step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">current_mask</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">finished</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="n">finished_step</span><span class="p">)</span>
+                <span class="n">finished_expanded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">next_token</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">finished_expanded</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">next_token</span><span class="p">),</span> <span class="n">next_token</span><span class="p">)</span>
+            
+            <span class="c1"># Instead of squeezing, explicitly reshape next_token to [batch_size, num_features].</span>
+            <span class="n">next_token_reshaped</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">next_token</span><span class="p">,</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_features</span><span class="p">])</span>
+            <span class="n">predictions_array</span> <span class="o">=</span> <span class="n">predictions_array</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">next_token_reshaped</span><span class="p">)</span>
+            <span class="n">decoder_input_array</span> <span class="o">=</span> <span class="n">decoder_input_array</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">next_token_reshaped</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">decoder_input_array</span><span class="p">,</span> <span class="n">predictions_array</span><span class="p">,</span> <span class="n">finished</span>
+
+        <span class="n">i0</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">decoder_input_array</span><span class="p">,</span> <span class="n">predictions_array</span><span class="p">,</span> <span class="n">finished</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">while_loop</span><span class="p">(</span>
+            <span class="n">condition</span><span class="p">,</span>
+            <span class="n">loop_body</span><span class="p">,</span>
+            <span class="n">loop_vars</span><span class="o">=</span><span class="p">[</span><span class="n">i0</span><span class="p">,</span> <span class="n">decoder_input_array</span><span class="p">,</span> <span class="n">predictions_array</span><span class="p">,</span> <span class="n">finished</span><span class="p">],</span>
+            <span class="n">shape_invariants</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">i0</span><span class="o">.</span><span class="n">get_shape</span><span class="p">(),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">])</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        
+        <span class="n">predictions_stacked</span> <span class="o">=</span> <span class="n">predictions_array</span><span class="o">.</span><span class="n">stack</span><span class="p">()</span>  <span class="c1"># shape: [target_seq_len, batch, num_features]</span>
+        <span class="n">predictions_stacked</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">predictions_stacked</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">predictions_stacked</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_expand_dims_if</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">ndims_equal_to</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">==</span> <span class="n">ndims_equal_to</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Tensor should have </span><span class="si">{</span><span class="n">ndims_equal_to</span><span class="si">}</span><span class="s1"> ndims but have </span><span class="si">{</span><span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tensor</span>
+    
+    <span class="k">def</span> <span class="nf">_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">mask</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> <span class="c1"># encoder, decoder</span>
+            <span class="c1"># ignore if none</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">mask</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>  <span class="c1"># convert to int tensor</span>
+            
+            <span class="c1"># If mask is 1D, expand it to 2D by repeating it for the batch size</span>
+            <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">mask</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">mask</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid mask shape for </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">mask</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">. Expected 1D or 2D tensor.&quot;</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">mask</span>
+    
+    <span class="c1">#! return_attention is not yet availible for autoregression</span>
+<div class="viewcode-block" id="TransformerForecaster.call">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.call">[docs]</a>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoder_input</span><span class="p">,</span> <span class="n">decoder_input</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_seq_len</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs a forward pass through the TransformerForecaster model.</span>
+
+<span class="sd">        This method supports multiple input configurations in order to flexibly handle</span>
+<span class="sd">        encoder and decoder inputs, including autoregressive prediction.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        encoder_input : tf.Tensor or dict</span>
+<span class="sd">            - When a tensor: A 3D tensor of shape (batch_size, input_seq_len, num_features)</span>
+<span class="sd">            representing the encoder input. If a tensor of lower rank is passed (e.g. 2D),</span>
+<span class="sd">            it is expanded along a new axis at index 0.</span>
+<span class="sd">            - When a dict: Must contain the key &#39;encoder_input&#39;. Other keys may include:</span>
+<span class="sd">            &#39;decoder_input&#39;, &#39;target_seq_len&#39;, and &#39;mask&#39;. These values are popped from the dict</span>
+<span class="sd">            and used as if passed as separate arguments.</span>
+
+<span class="sd">        decoder_input : tf.Tensor, optional</span>
+<span class="sd">            A 3D tensor of shape (batch_size, target_seq_len, num_features) representing the decoder</span>
+<span class="sd">            input. If not provided (i.e. None), the model will enter autoregressive prediction mode,</span>
+<span class="sd">            in which case `target_seq_len` must be provided or derived from the decoder mask.</span>
+<span class="sd">            </span>
+<span class="sd">        target_seq_len : int, list, or tf.Tensor, optional</span>
+<span class="sd">            Specifies the target sequence length for prediction. This is used only when</span>
+<span class="sd">            `decoder_input` is None (i.e. during autoregressive prediction). When a list or 1D tensor</span>
+<span class="sd">            is provided, the maximum value is taken to determine the final target sequence length.</span>
+<span class="sd">            If not provided and no decoder mask is available, `self.max_target_seq_len` is used.</span>
+
+<span class="sd">        mask : tuple, list, dict, or None</span>
+<span class="sd">            Specifies masks for attention operations:</span>
+<span class="sd">            - If a tuple or list is provided: The first element is used as the encoder mask and</span>
+<span class="sd">            the second as the decoder mask. If only one element is given, it is used for both.</span>
+<span class="sd">            - If a dict is provided: Expected keys are &#39;encoder&#39; and &#39;decoder&#39;. Missing keys default to None.</span>
+<span class="sd">            - If None is provided: Both encoder and decoder masks default to None.</span>
+<span class="sd">            In all cases, the mask is processed to ensure its shape is appropriate for the current batch.</span>
+
+<span class="sd">        training : bool, default False</span>
+<span class="sd">            Indicator for whether the model is running in training mode (affects dropout, etc.).</span>
+
+<span class="sd">        return_attention : bool, default False</span>
+<span class="sd">            If True, the method returns a tuple where the second element is a dictionary containing</span>
+<span class="sd">            the attention weights from the encoder and decoder layers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tf.Tensor or tuple</span>
+<span class="sd">            - In the typical case, returns the output tensor of the final layer with shape (batch_size, target_seq_len, num_features).</span>
+<span class="sd">            - If `return_attention` is True, returns a tuple (output, attentions), where &quot;attentions&quot; is a dict with keys:</span>
+<span class="sd">                * &quot;encoder_attentions&quot;: List of attention scores from encoder layers.</span>
+<span class="sd">                * &quot;decoder_attentions&quot;: List of attention scores from decoder layers.</span>
+
+<span class="sd">        Behavior</span>
+<span class="sd">        --------</span>
+<span class="sd">        - If `encoder_input` is provided as a dict, its keys (&#39;encoder_input&#39;, &#39;decoder_input&#39;,</span>
+<span class="sd">        &#39;target_seq_len&#39;, &#39;mask&#39;) are extracted and used.</span>
+<span class="sd">        - If the encoder input is not 3D, the input is expanded along axis 0.</span>
+<span class="sd">        - When `decoder_input` is None, autoregressive prediction is invoked using</span>
+<span class="sd">        `self.autoregressive_predict` with a derived or provided target sequence length.</span>
+<span class="sd">        - When a decoder mask is not provided but required, the target sequence length is inferred</span>
+<span class="sd">        from the mask dimensions or defaults to `self.max_target_seq_len`.</span>
+<span class="sd">        - The decoder input is adjusted by slicing off the last time step and prepending a start token</span>
+<span class="sd">        derived from the last time step of the encoder input.</span>
+<span class="sd">        - Appropriate look-ahead masks and encoder masks are generated for attention mechanisms.</span>
+<span class="sd">        - Finally, the encoder and decoder are run sequentially and the result is passed through the final layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># can&#39;t pass more than one input for the training so a dict</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">encoder_input</span><span class="p">,</span> <span class="n">decoder_input</span><span class="p">,</span> <span class="n">target_seq_len</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">encoder_input</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;encoder_input&#39;</span><span class="p">),</span> <span class="n">encoder_input</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;decoder_input&#39;</span><span class="p">,</span><span class="n">decoder_input</span><span class="p">),</span> <span class="n">encoder_input</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;target_seq_len&#39;</span><span class="p">,</span> <span class="n">target_seq_len</span><span class="p">),</span> <span class="n">encoder_input</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;mask&#39;</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+        
+        <span class="c1"># Adjust the encoder shape</span>
+        <span class="k">if</span> <span class="n">encoder_input</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">encoder_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand_dims_if</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">,</span> <span class="n">ndims_equal_to</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># get the batch size</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="c1"># handle the mask</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;encoder&quot;</span><span class="p">:</span> <span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;decoder&quot;</span><span class="p">:</span> <span class="n">mask</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;decoder&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;encoder&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;encoder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;decoder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mask should be a tuple, list, dict or None.&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Make sure of the mask shapes</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+        
+        <span class="c1"># If not enough information, set the target sequence len to the max of the training</span>
+        <span class="k">if</span> <span class="n">decoder_input</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">target_seq_len</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">target_seq_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_target_seq_len</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">target_seq_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span> 
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_seq_len</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">is_tensor</span><span class="p">(</span><span class="n">target_seq_len</span><span class="p">)</span> <span class="ow">and</span> <span class="n">target_seq_len</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">targets_seq_len</span> <span class="o">=</span> <span class="n">target_seq_len</span>
+                <span class="n">target_seq_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">target_seq_len</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Create a range from 0 to target_seq_len - 1</span>
+                    <span class="n">sequence_range</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">target_seq_len</span><span class="p">)</span>  <span class="c1"># Shape: (target_seq_len,)</span>
+
+                    <span class="c1"># Expand dimensions to compare against targets_seq_len</span>
+                    <span class="n">sequence_range</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">sequence_range</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Shape: (1, target_seq_len)</span>
+
+                    <span class="c1"># Expand `targets_seq_len` (which contains sequence lengths for each batch) to match shape</span>
+                    <span class="n">lengths_expanded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">targets_seq_len</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Shape: (batch_size, 1)</span>
+
+                    <span class="c1"># Create the mask: 1 if sequence index &lt; targets_seq_len[i], else 0</span>
+                    <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">sequence_range</span> <span class="o">&lt;</span> <span class="n">lengths_expanded</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_seq_len</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">is_tensor</span><span class="p">(</span><span class="n">target_seq_len</span><span class="p">)</span> <span class="ow">and</span> <span class="n">target_seq_len</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;target_seq_len should be an integer, a list of integers or None.&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive_predict</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">,</span> <span class="n">target_seq_len</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">return_attention</span><span class="o">=</span><span class="n">return_attention</span><span class="p">)</span>
+        
+        <span class="c1"># Adjust the decoder shape    </span>
+        <span class="k">if</span> <span class="n">decoder_input</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">decoder_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand_dims_if</span><span class="p">(</span><span class="n">decoder_input</span><span class="p">,</span> <span class="n">ndims_equal_to</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1">#start_token = tf.zeros((self.num_features,), dtype=tf.float32)</span>
+        <span class="n">start_token</span> <span class="o">=</span> <span class="n">encoder_input</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
+        
+        <span class="c1"># Ensure decoder_input is 3D</span>
+        <span class="n">decoder_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand_dims_if</span><span class="p">(</span><span class="n">decoder_input</span><span class="p">,</span> <span class="n">ndims_equal_to</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># Remove the last candle from decoder input (along time axis)</span>
+        <span class="n">decoder_input_sliced</span> <span class="o">=</span> <span class="n">decoder_input</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># (batch, T_dec - 1, n_features)</span>
+        <span class="c1"># Prepend start token to decoder input</span>
+        <span class="n">decoder_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">start_token</span><span class="p">,</span> <span class="n">decoder_input_sliced</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Build encoder self-attention mask.</span>
+        <span class="n">enc_pad</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># mask[&#39;encoder&#39;] est int32 avec 1 = visible, 0 = pad</span>
+            <span class="c1"># on crée un booléen True = visible</span>
+            <span class="n">pad_bool</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>             <span class="c1"># (batch, src_len)</span>
+            <span class="n">enc_pad</span> <span class="o">=</span> <span class="n">pad_bool</span><span class="p">[:,</span> <span class="n">tf</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>                     <span class="c1"># (batch, 1, src_len)</span>
+
+      
+        <span class="c1"># Build encoder self-attention mask.</span>
+        <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">encoder_mask_expanded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">target_seq_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">encoder_mask_final</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">encoder_mask_expanded</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">target_seq_len</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">encoder_mask_final</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">encoder_mask_final</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">encoder_mask_final</span> <span class="o">=</span> <span class="kc">None</span>
+            
+        <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Longueurs dynamiques</span>
+            <span class="n">enc_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">dec_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_input</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># Masque booléen du codeur de shape (batch, 1, enc_len)</span>
+            <span class="n">enc_mask_bool</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>  <span class="c1"># (batch, enc_len)</span>
+            <span class="n">enc_mask_bool</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">enc_mask_bool</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># (batch, 1, enc_len)</span>
+            <span class="c1"># Construire le masque pour l&#39;attention croisée (batch, dec_len, enc_len)</span>
+            <span class="n">decoder_padding_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">enc_mask_bool</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">dec_len</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">decoder_padding_mask</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Build look-ahead mask for decoder self-attention.</span>
+        
+        <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">combined_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_combined_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_seq_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_input</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">combined_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">create_look_ahead_mask</span><span class="p">(</span><span class="n">target_seq_len</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_attention</span><span class="p">:</span>
+            <span class="n">enc_output_tensor</span><span class="p">,</span> <span class="n">enc_attentions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                                                            <span class="n">mask</span><span class="o">=</span><span class="n">encoder_mask_final</span><span class="p">,</span>
+                                                            <span class="n">return_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">dec_output_tensor</span><span class="p">,</span> <span class="n">dec_attentions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">decoder_input</span><span class="p">,</span> <span class="n">enc_output_tensor</span><span class="p">,</span>
+                                                            <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                                                            <span class="n">look_ahead_mask</span><span class="o">=</span><span class="n">combined_mask</span><span class="p">,</span>
+                                                            <span class="n">padding_mask</span><span class="o">=</span><span class="n">decoder_padding_mask</span><span class="p">,</span>
+                                                            <span class="n">return_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_layer</span><span class="p">(</span><span class="n">dec_output_tensor</span><span class="p">)</span>
+            <span class="n">attentions</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;encoder_attentions&quot;</span><span class="p">:</span> <span class="n">enc_attentions</span><span class="p">,</span>
+                        <span class="s2">&quot;decoder_attentions&quot;</span><span class="p">:</span> <span class="n">dec_attentions</span><span class="p">}</span>
+            <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">attentions</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">enc_output_tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                                            <span class="n">mask</span><span class="o">=</span><span class="n">encoder_mask_final</span><span class="p">,</span>
+                                            <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">dec_output_tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">decoder_input</span><span class="p">,</span> <span class="n">enc_output_tensor</span><span class="p">,</span>
+                                            <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                                            <span class="n">look_ahead_mask</span><span class="o">=</span><span class="n">combined_mask</span><span class="p">,</span>
+                                            <span class="n">padding_mask</span><span class="o">=</span><span class="n">decoder_padding_mask</span><span class="p">,</span>
+                                            <span class="n">return_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_layer</span><span class="p">(</span><span class="n">dec_output_tensor</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="TransformerForecaster.get_config">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.get_config">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base_config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TransformerForecaster</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;num_layers&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span><span class="p">,</span>
+            <span class="s2">&quot;d_model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="s2">&quot;num_heads&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span><span class="p">,</span>
+            <span class="s2">&quot;dff&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dff</span><span class="p">,</span>
+            <span class="s2">&quot;max_input_seq_len&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_input_seq_len</span><span class="p">,</span>
+            <span class="s2">&quot;max_target_seq_len&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_target_seq_len</span><span class="p">,</span>
+            <span class="s2">&quot;num_features&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_features</span><span class="p">,</span>
+            <span class="s2">&quot;dropout_rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">base_config</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="TransformerForecaster.from_config">
+<a class="viewcode-back" href="../../../../py_libraries.ml.model.html#py_libraries.ml.model.TransformerForecaster.from_config">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;dtype&quot;</span> <span class="ow">in</span> <span class="n">config</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">d_config</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">d_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;DTypePolicy&quot;</span><span class="p">:</span>
+                <span class="n">policy_name</span> <span class="o">=</span> <span class="n">d_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">policy_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">mixed_precision</span><span class="o">.</span><span class="n">Policy</span><span class="p">(</span><span class="n">policy_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span></div>
+</div>
+
+    
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../py_libraries.html">py_libraries package</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

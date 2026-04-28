@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>py_libraries.file package &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="py_libraries.ml package" href="py_libraries.ml.html" />
+    <link rel="prev" title="py_libraries package" href="py_libraries.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-py_libraries.file">
+<span id="py-libraries-file-package"></span><h1>py_libraries.file package<a class="headerlink" href="#module-py_libraries.file" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-py_libraries.file.file">
+<span id="py-libraries-file-file-module"></span><h2>py_libraries.file.file module<a class="headerlink" href="#module-py_libraries.file.file" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.file.computeGlobalMeanVariance">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.file.</span></span><span class="sig-name descname"><span class="pre">computeGlobalMeanVariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'*.txt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/file.html#computeGlobalMeanVariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.file.computeGlobalMeanVariance" title="Link to this definition">¶</a></dt>
+<dd><p>Welford’s algorithm
+Compute the global mean and standard deviation of all numeric values
+in files matching the given pattern under data_dir, using Welford’s algorithm
+and NumPy for flexible file reading.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_dir</strong> (<em>str</em><em> or </em><em>Path</em>) – Directory containing data files.</p></li>
+<li><p><strong>pattern</strong> (<em>str</em><em>, </em><em>optional</em>) – Glob pattern to match files (default ‘<a href="#id1"><span class="problematic" id="id2">*</span></a>.txt’).</p></li>
+<li><p><strong>delimiter</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Delimiter for np.loadtxt (e.g. ‘,’, ‘   ‘); None means any whitespace.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>mean</strong> (<em>float</em>) – The computed global mean.</p></li>
+<li><p><strong>variance</strong> (<em>float</em>) – The computed global variance (population). sqrt(variance) gives the std.</p></li>
+<li><p><strong>count</strong> (<em>int</em>) – Total number of data points processed.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.file.excelSheetsToCsv">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.file.</span></span><span class="sig-name descname"><span class="pre">excelSheetsToCsv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excel_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">','</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utf-8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name_to_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">to_csv_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/file.html#excelSheetsToCsv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.file.excelSheetsToCsv" title="Link to this definition">¶</a></dt>
+<dd><p>Read an Excel file and export each sheet to its own CSV file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>excel_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Path to the .xlsx file.</p></li>
+<li><p><strong>output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory where CSVs will be written (created if needed).</p></li>
+<li><p><strong>sep</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Field delimiter for the CSV (default: “,”).</p></li>
+<li><p><strong>encoding</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – File encoding for the CSV (default: “utf-8”).</p></li>
+<li><p><strong>include_index</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to write row indices into the CSV (default: False).</p></li>
+<li><p><strong>sheet_name_to_filename</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional mapping from sheet names -&gt; desired filenames (without extension).
+If a sheet is not in the dict, its sheet name is used (sanitized).</p></li>
+<li><p><strong>to_csv_kwargs</strong> – Any additional keyword args passed straight to DataFrame.to_csv().
+e.g. header=True/False, date_format=”…”, quoting=csv.QUOTE_ALL, etc.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>FileNotFoundError</strong> – If the given Excel file doesn’t exist.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.file.h5">
+<span id="py-libraries-file-h5-module"></span><h2>py_libraries.file.h5 module<a class="headerlink" href="#module-py_libraries.file.h5" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.datasetPaths">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">datasetPaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#datasetPaths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.datasetPaths" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.datasets">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">datasets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.datasets" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.defineSize">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">defineSize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantity_to_add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#defineSize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.defineSize" title="Link to this definition">¶</a></dt>
+<dd><p>Resize or create a resizable dataset.</p>
+<p>Provide either new_size or quantity_to_add (can be negative).
+data_shape is required only when creating a dataset that does not yet exist.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.describe">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">describe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#describe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.describe" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.dfToH5">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">dfToH5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h5_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#dfToH5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.dfToH5" title="Link to this definition">¶</a></dt>
+<dd><p>Save a DataFrame to HDF5, one dataset per column.
+Overwrite is the h5 is not empty</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.display">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">display</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.display" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.displayDetails">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">displayDetails</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#displayDetails"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.displayDetails" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.extend">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">extend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#extend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.extend" title="Link to this definition">¶</a></dt>
+<dd><p>Create or append data to an HDF5 dataset dynamically, allowing for unlimited rows.</p>
+<p>If the dataset <cite>name</cite> does not exist in the given HDF5 group <cite>h5</cite>, this function
+creates it with the shape of <cite>values</cite> (first dimension set to unlimited) and optional <cite>dtype</cite>.
+If the dataset already exists, the function appends <cite>values</cite> along the first axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>h5</strong> (<em>h5py.Group</em><em> or </em><em>h5py.File</em>) – The HDF5 group or file where the dataset resides.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the dataset to create or append to.</p></li>
+<li><p><strong>values</strong> (<em>array-like</em><em> or </em><em>scalar</em>) – Data to store in the dataset. Scalars are converted to 1D arrays.</p></li>
+<li><p><strong>dtype</strong> (<em>h5py compatible dtype</em><em>, </em><em>optional</em>) – Data type for the dataset. If None and values are string-like, a variable-length
+UTF-8 string type is used automatically.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Supports automatic resizing of datasets along the first axis.</p></li>
+<li><p>Ensures string arrays are properly stored as variable-length UTF-8 strings.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.getH5RowSet">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">getH5RowSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#getH5RowSet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.getH5RowSet" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.getName">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">getName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#getName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.getName" title="Link to this definition">¶</a></dt>
+<dd><p>Return the current group or dataset name</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.hasDataset">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">hasDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#hasDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.hasDataset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.iDatasetPaths">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">iDatasetPaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#iDatasetPaths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.iDatasetPaths" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.iDatasets">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">iDatasets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#iDatasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.iDatasets" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.iterate">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">iterate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#iterate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.iterate" title="Link to this definition">¶</a></dt>
+<dd><p>Recursively traverses an HDF5 file or group using a path string
+with optional wildcards (* and <a href="#id3"><span class="problematic" id="id4">**</span></a>).</p>
+<dl>
+<dt>Args:</dt><dd><p>h5: An open h5py.File or h5py.Group object.
+path: A path string or list of</p>
+<blockquote>
+<div><blockquote>
+<div><p>(e.g. ‘raw/<em>’, ‘data/group1/*</em>’, ‘raw/<a href="#id5"><span class="problematic" id="id6">**</span></a>/data’, ‘measurements’).</p>
+</div></blockquote>
+<p>Specificities:
+- * All elements at the current place
+- ** All elements recursively
+- [] A subset of elements
+- ~[] An exclude subset of elements</p>
+</div></blockquote>
+<p>sep: Path separator (default: ‘/’).</p>
+</dd>
+<dt>Yields:</dt><dd><p>Tuples of (internal_path, h5py object) where object is a Group or Dataset.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>h5</strong> (<em>File</em><em> | </em><em>Group</em>)</p></li>
+<li><p><strong>path</strong> (<em>str</em><em> | </em><em>list</em>)</p></li>
+<li><p><strong>sep</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.makeH5Copy">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">makeH5Copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_copy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#makeH5Copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.makeH5Copy" title="Link to this definition">¶</a></dt>
+<dd><p>Create a unique copy of h5_path next to the original.
+Returns the path of the created copy.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.file.h5.toExcel">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.file.h5.</span></span><span class="sig-name descname"><span class="pre">toExcel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excel_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./h5_to_excel.xlsx'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1048576</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16384</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_title_chars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">31</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/h5.html#toExcel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.h5.toExcel" title="Link to this definition">¶</a></dt>
+<dd><p>Export all datasets from an HDF5 file or group to an Excel workbook, splitting large datasets
+into multiple sheets to respect Excel’s maximum row and column limits.</p>
+<p>Each dataset is written to one or more sheets, with names derived from the HDF5 path.
+1D datasets are treated as single-column sheets. Sheet names are truncated to the
+maximum allowed Excel sheet name length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>h5</strong> (<em>h5py.File</em><em> or </em><em>h5py.Group</em>) – The HDF5 file or group containing datasets to export.</p></li>
+<li><p><strong>excel_path</strong> (<em>str</em><em>, </em><em>default='./h5_to_excel.xlsx'</em>) – File path for the Excel workbook to create.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>default=0</em>) – If nonzero, displays a progress bar for dataset iteration.</p></li>
+<li><p><strong>max_rows</strong> (<em>int</em><em>, </em><em>default=1_048_576</em>) – Maximum number of rows per Excel sheet (Excel limit).</p></li>
+<li><p><strong>max_cols</strong> (<em>int</em><em>, </em><em>default=16_384</em>) – Maximum number of columns per Excel sheet (Excel limit).</p></li>
+<li><p><strong>max_title_chars</strong> (<em>int</em><em>, </em><em>default=31</em>) – Maximum number of characters for Excel sheet names (Excel limit).</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Automatically slices datasets into chunks to fit Excel’s row/column limits.</p></li>
+<li><p>Works with 1D and 2D datasets.</p></li>
+<li><p>Sheet names are derived from HDF5 dataset paths and truncated safely.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.file.json_utils">
+<span id="py-libraries-file-json-utils-module"></span><h2>py_libraries.file.json_utils module<a class="headerlink" href="#module-py_libraries.file.json_utils" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.file.json_utils.NumpyEncoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.file.json_utils.</span></span><span class="sig-name descname"><span class="pre">NumpyEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure_ascii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_circular</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/json_utils.html#NumpyEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.json_utils.NumpyEncoder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">JSONEncoder</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.file.json_utils.NumpyEncoder.default">
+<span class="sig-name descname"><span class="pre">default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/file/json_utils.html#NumpyEncoder.default"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.file.json_utils.NumpyEncoder.default" title="Link to this definition">¶</a></dt>
+<dd><p>Implement this method in a subclass such that it returns
+a serializable object for <code class="docutils literal notranslate"><span class="pre">o</span></code>, or calls the base implementation
+(to raise a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>).</p>
+<p>For example, to support arbitrary iterators, you could
+implement default like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">iterable</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="c1"># Let the base class default method raise the TypeError</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="py_libraries.html">py_libraries package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="py_libraries.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Queue">py_libraries.Queue module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Stack">py_libraries.Stack module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.cipher">py_libraries.cipher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.encoder">py_libraries.encoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.internet">py_libraries.internet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.path">py_libraries.path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.system">py_libraries.system module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.temp">py_libraries.temp module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-test-module">py_libraries.test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.visualize_deprecate">py_libraries.visualize_deprecate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-windows-module">py_libraries.windows module</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="py_libraries.html">py_libraries package</a><ul>
+      <li>Previous: <a href="py_libraries.html" title="previous chapter">py_libraries package</a></li>
+      <li>Next: <a href="py_libraries.ml.html" title="next chapter">py_libraries.ml package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/py_libraries.file.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

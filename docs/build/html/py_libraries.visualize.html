@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>py_libraries.visualize package &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="py_libraries" href="generated/py_libraries.html" />
+    <link rel="prev" title="py_libraries.ml.preprocessing package" href="py_libraries.ml.preprocessing.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-py_libraries.visualize">
+<span id="py-libraries-visualize-package"></span><h1>py_libraries.visualize package<a class="headerlink" href="#module-py_libraries.visualize" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-py_libraries.visualize.Config">
+<span id="py-libraries-visualize-config-module"></span><h2>py_libraries.visualize.Config module<a class="headerlink" href="#module-py_libraries.visualize.Config" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.Config.</span></span><span class="sig-name descname"><span class="pre">AxisConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xticklabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yticklabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Config.html#AxisConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<em>str</em>)</p></li>
+<li><p><strong>xlabel</strong> (<em>str</em>)</p></li>
+<li><p><strong>ylabel</strong> (<em>str</em>)</p></li>
+<li><p><strong>xlim</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>ylim</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>xscale</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>yscale</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>grid</strong> (<em>bool</em><em> | </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>legend</strong> (<em>bool</em>)</p></li>
+<li><p><strong>legend_opts</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>xticks</strong> (<em>List</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>yticks</strong> (<em>List</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>xticklabels</strong> (<em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>yticklabels</strong> (<em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.fieldNames">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fieldNames</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Config.html#AxisConfig.fieldNames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.fieldNames" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.fromKwargs">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fromKwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Config.html#AxisConfig.fromKwargs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.fromKwargs" title="Link to this definition">¶</a></dt>
+<dd><p>Pop all recognized AxisConfig fields from kwargs and return an instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Config.AxisConfig" title="py_libraries.visualize.Config.AxisConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">AxisConfig</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>kwargs</strong> (<em>dict</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.grid">
+<span class="sig-name descname"><span class="pre">grid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.grid" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.legend">
+<span class="sig-name descname"><span class="pre">legend</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.legend" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.legend_opts">
+<span class="sig-name descname"><span class="pre">legend_opts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.legend_opts" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.title">
+<span class="sig-name descname"><span class="pre">title</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.title" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.xlabel">
+<span class="sig-name descname"><span class="pre">xlabel</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.xlabel" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.xlim">
+<span class="sig-name descname"><span class="pre">xlim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.xlim" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.xscale">
+<span class="sig-name descname"><span class="pre">xscale</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.xscale" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.xticklabels">
+<span class="sig-name descname"><span class="pre">xticklabels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.xticklabels" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.xticks">
+<span class="sig-name descname"><span class="pre">xticks</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.xticks" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.ylabel">
+<span class="sig-name descname"><span class="pre">ylabel</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.ylabel" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.ylim">
+<span class="sig-name descname"><span class="pre">ylim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.ylim" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.yscale">
+<span class="sig-name descname"><span class="pre">yscale</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.yscale" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.yticklabels">
+<span class="sig-name descname"><span class="pre">yticklabels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.yticklabels" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Config.AxisConfig.yticks">
+<span class="sig-name descname"><span class="pre">yticks</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#py_libraries.visualize.Config.AxisConfig.yticks" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.visualize.Figure">
+<span id="py-libraries-visualize-figure-module"></span><h2>py_libraries.visualize.Figure module<a class="headerlink" href="#module-py_libraries.visualize.Figure" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.Figure">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.Figure.</span></span><span class="sig-name descname"><span class="pre">Figure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'paper'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(8,</span> <span class="pre">5)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#Figure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.Figure" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Layout manager and output controller.</p>
+<section id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>Single axes:</dt><dd><p>fig = Figure(theme=’paper’)
+ax  = fig.addAxes(title=’Signal’, xlabel=’Time (s)’)
+ax.plot((t, y)).scatter((t, pts, {‘color’: ‘red’}))
+fig.show()</p>
+</dd>
+<dt>Subplots:</dt><dd><p>fig  = Figure(theme=’paper’, figsize=(12, 8))
+grid = fig.addSubplots(2, 3, sharex=True)
+grid[0][0].histogram(data)
+grid[0][1].scatter((x, y))
+fig.save(‘results.pdf’)</p>
+</dd>
+<dt>Twin axes:</dt><dd><p>fig = Figure(theme=’paper’)
+ax1 = fig.addAxes(ylabel=’Temperature’)
+ax2 = fig.addTwin(ax1, ylabel=’Pressure’)
+ax1.plot((t, temp))
+ax2.plot((t, pres, {‘color’: ‘red’}))
+fig.show()</p>
+</dd>
+<dt>Inset:</dt><dd><p>fig = Figure(theme=’paper’)
+ax  = fig.addAxes()
+ins = fig.addInset(ax, bounds=(0.55, 0.55, 0.4, 0.35))
+ax.plot((x, y))
+ins.plot((x_zoom, y_zoom))
+fig.show()</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.Figure.addAxes">
+<span class="sig-name descname"><span class="pre">addAxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">style_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#Figure.addAxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.Figure.addAxes" title="Link to this definition">¶</a></dt>
+<dd><p>Add a single axes filling the figure.
+Any AxisConfig field can be passed as a keyword argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.Figure.addInset">
+<span class="sig-name descname"><span class="pre">addInset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">style_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#Figure.addInset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.Figure.addInset" title="Link to this definition">¶</a></dt>
+<dd><p>Add an inset axes inside source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bounds</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>)</p></li>
+<li><p><strong>source</strong> (<a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><em>PlotAxes</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.Figure.addSubplots">
+<span class="sig-name descname"><span class="pre">addSubplots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nrows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sharex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sharey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.35</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#Figure.addSubplots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.Figure.addSubplots" title="Link to this definition">¶</a></dt>
+<dd><p>Create a (nrows x ncols) grid of axes.
+Returns a 2D list; access panels as grid[row][col].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sharex</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – All axes in each column share the same x-axis.</p></li>
+<li><p><strong>sharey</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – All axes in each row share the same y-axis.</p></li>
+<li><p><strong>hspace</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Vertical spacing between rows (in fraction of average axis height).</p></li>
+<li><p><strong>wspace</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Horizontal spacing between columns.</p></li>
+<li><p><strong>nrows</strong> (<em>int</em>)</p></li>
+<li><p><strong>ncols</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.Figure.addTwin">
+<span class="sig-name descname"><span class="pre">addTwin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">style_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#Figure.addTwin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.Figure.addTwin" title="Link to this definition">¶</a></dt>
+<dd><p>Add an axis that shares the x-axis (axis=’x’) or y-axis (axis=’y’) with source.</p>
+<p>The new axis gets its own independent scale on the opposite side.
+Any AxisConfig field (e.g. ylabel=’Pressure’) can be passed as a keyword argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>source</strong> (<a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><em>PlotAxes</em></a>)</p></li>
+<li><p><strong>axis</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.Figure.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#Figure.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.Figure.close" title="Link to this definition">¶</a></dt>
+<dd><p>Close the figure and release its memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.Figure.raw">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">raw</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Figure</span></span><a class="headerlink" href="#py_libraries.visualize.Figure.Figure.raw" title="Link to this definition">¶</a></dt>
+<dd><p>Underlying matplotlib Figure, for any operation not covered above.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.Figure.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#Figure.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.Figure.save" title="Link to this definition">¶</a></dt>
+<dd><p>Render and write the figure to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>)</p></li>
+<li><p><strong>dpi</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.Figure.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#Figure.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.Figure.show" title="Link to this definition">¶</a></dt>
+<dd><p>Render and display the figure interactively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theme</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#py_libraries.visualize.Theme.Theme" title="py_libraries.visualize.Theme.Theme"><em>Theme</em></a><em>]</em>)</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.Figure.</span></span><span class="sig-name descname"><span class="pre">PlotAxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Fluent wrapper around matplotlib Axes.</p>
+<dl class="simple">
+<dt>All plot methods return self to allow chaining:</dt><dd><p>ax.plot(data).scatter(pts).style(title=’Result’, legend=True)</p>
+</dd>
+</dl>
+<p>Style configuration is applied lazily: call render() explicitly,
+or let Figure.show() / Figure.save() trigger it automatically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>MplAxes</em>)</p></li>
+<li><p><strong>config</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#py_libraries.visualize.Config.AxisConfig" title="py_libraries.visualize.Config.AxisConfig"><em>AxisConfig</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.bar">
+<span class="sig-name descname"><span class="pre">bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{}'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.bar" title="Link to this definition">¶</a></dt>
+<dd><p>Bar chart. Set text=True to annotate bar heights; use fmt to control format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>text</strong> (<em>bool</em>)</p></li>
+<li><p><strong>fmt</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.candles">
+<span class="sig-name descname"><span class="pre">candles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">open_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wick_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.candles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.candles" title="Link to this definition">¶</a></dt>
+<dd><p>OHLC candlestick chart.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>array</em><em> of </em><em>shape</em><em> (</em><em>N</em><em>, </em><em>4</em><em>) </em><em>-- columns: open</em><em>, </em><em>high</em><em>, </em><em>low</em><em>, </em><em>close.</em>)</p></li>
+<li><p><strong>width</strong> (<em>float</em>)</p></li>
+<li><p><strong>open_color</strong> (<em>str</em>)</p></li>
+<li><p><strong>close_color</strong> (<em>str</em>)</p></li>
+<li><p><strong>wick_width</strong> (<em>float</em>)</p></li>
+<li><p><strong>show_legend</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.ecdf">
+<span class="sig-name descname"><span class="pre">ecdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.ecdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.ecdf" title="Link to this definition">¶</a></dt>
+<dd><p>Empirical cumulative distribution function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.errorbar">
+<span class="sig-name descname"><span class="pre">errorbar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.errorbar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.errorbar" title="Link to this definition">¶</a></dt>
+<dd><p>Error bar plot. Each series is plotted as mean +/- std.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.heatmap">
+<span class="sig-name descname"><span class="pre">heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.heatmap" title="Link to this definition">¶</a></dt>
+<dd><p>2D density heatmap. Pass intensity=array for weighted bin averaging.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>bins</strong> (<em>int</em>)</p></li>
+<li><p><strong>cmap</strong> (<em>str</em>)</p></li>
+<li><p><strong>cbar_label</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.histogram">
+<span class="sig-name descname"><span class="pre">histogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.histogram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.histogram" title="Link to this definition">¶</a></dt>
+<dd><p>Univariate histogram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>bins</strong> (<em>int</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>bin_type</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.image">
+<span class="sig-name descname"><span class="pre">image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.image" title="Link to this definition">¶</a></dt>
+<dd><p>Display one or more images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>colorbar</strong> (<em>bool</em>)</p></li>
+<li><p><strong>cbar_label</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Line plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>cmap_label</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.raw">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">raw</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Axes</span></span><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.raw" title="Link to this definition">¶</a></dt>
+<dd><p>Underlying matplotlib Axes, for any operation not covered above.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.render" title="Link to this definition">¶</a></dt>
+<dd><p>Apply AxisConfig to the underlying matplotlib Axes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.scatter">
+<span class="sig-name descname"><span class="pre">scatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.scatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.scatter" title="Link to this definition">¶</a></dt>
+<dd><p>Scatter plot. Accepts c=array, cmap=’…’ for color-mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cmap_label</strong> (<em>str</em><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.scatterDensity">
+<span class="sig-name descname"><span class="pre">scatterDensity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bw_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.scatterDensity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.scatterDensity" title="Link to this definition">¶</a></dt>
+<dd><p>Scatter plot colored by 2D Gaussian KDE density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>density_alpha</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Scale point opacity by local density.</p></li>
+<li><p><strong>center</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Restrict the view to the densest region. True = 90%.
+A value in (0, 1] is a fraction; a value &gt; 1 is a percentage.</p></li>
+<li><p><strong>rate</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Discard low-density points before plotting.
+Float: keep the top fraction. Int: keep the top N points.</p></li>
+<li><p><strong>bw_method</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Bandwidth selector forwarded to scipy.stats.gaussian_kde.</p></li>
+<li><p><strong>cbar_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Colorbar label. Pass None to suppress the colorbar.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Figure.PlotAxes.style">
+<span class="sig-name descname"><span class="pre">style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Figure.html#PlotAxes.style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Figure.PlotAxes.style" title="Link to this definition">¶</a></dt>
+<dd><p>Update axis configuration. Accepts any AxisConfig field as a keyword argument.</p>
+<p>Example: ax.style(title=’Signal’, xlabel=’Time (s)’, legend=True)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Figure.PlotAxes" title="py_libraries.visualize.Figure.PlotAxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotAxes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.visualize.Theme">
+<span id="py-libraries-visualize-theme-module"></span><h2>py_libraries.visualize.Theme module<a class="headerlink" href="#module-py_libraries.visualize.Theme" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.visualize.Theme.Theme">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.Theme.</span></span><span class="sig-name descname"><span class="pre">Theme</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rc_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Theme.html#Theme"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Theme.Theme" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>rc_params</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>palette</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Theme.Theme.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Theme.html#Theme.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Theme.Theme.apply" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.Theme.Theme.derive">
+<span class="sig-name descname"><span class="pre">derive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rc_overrides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/Theme.html#Theme.derive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.Theme.Theme.derive" title="Link to this definition">¶</a></dt>
+<dd><p>Create a modified copy of this theme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#py_libraries.visualize.Theme.Theme" title="py_libraries.visualize.Theme.Theme"><code class="xref py py-class docutils literal notranslate"><span class="pre">Theme</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rc_overrides</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>palette</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Theme.Theme.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#py_libraries.visualize.Theme.Theme.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Theme.Theme.palette">
+<span class="sig-name descname"><span class="pre">palette</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#py_libraries.visualize.Theme.Theme.palette" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.visualize.Theme.Theme.rc_params">
+<span class="sig-name descname"><span class="pre">rc_params</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#py_libraries.visualize.Theme.Theme.rc_params" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.visualize.cmap">
+<span id="py-libraries-visualize-cmap-module"></span><h2>py_libraries.visualize.cmap module<a class="headerlink" href="#module-py_libraries.visualize.cmap" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.cmap.</span></span><span class="sig-name descname"><span class="pre">Cmap</span></span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.all">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.all" title="Link to this definition">¶</a></dt>
+<dd><p>All named colorscales (with both normal and reversed names).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.cyclical">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">cyclical</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.cyclical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.cyclical" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.cyclical_r">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">cyclical_r</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.cyclical_r"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.cyclical_r" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.diverging">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">diverging</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.diverging"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.diverging" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.diverging_r">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">diverging_r</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.diverging_r"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.diverging_r" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.other">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">other</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.other"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.other" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.qualitative">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">qualitative</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.qualitative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.qualitative" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.qualitative_r">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">qualitative_r</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.qualitative_r"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.qualitative_r" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.sequential">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">sequential</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.sequential"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.sequential" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.sequential_r">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">sequential_r</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.sequential_r"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.sequential_r" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.cmap.Cmap.verify">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">verify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/cmap.html#Cmap.verify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.cmap.Cmap.verify" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.visualize.color">
+<span id="py-libraries-visualize-color-module"></span><h2>py_libraries.visualize.color module<a class="headerlink" href="#module-py_libraries.visualize.color" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.color.</span></span><span class="sig-name descname"><span class="pre">Color</span></span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.all">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.all" title="Link to this definition">¶</a></dt>
+<dd><p>All named colors from matplotlib (base, CSS4, Tableau, XKCD).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.base">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">base</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.base" title="Link to this definition">¶</a></dt>
+<dd><p>Base colors (short names).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.complementary">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">complementary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.complementary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.complementary" title="Link to this definition">¶</a></dt>
+<dd><p>Return hex code for the complementary color of a named color.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.css4">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">css4</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.css4"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.css4" title="Link to this definition">¶</a></dt>
+<dd><p>CSS4 named colors.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.dark">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.dark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.dark" title="Link to this definition">¶</a></dt>
+<dd><p>Named colors with luminance at or below threshold (dark colors).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.darkNamed">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">darkNamed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.darkNamed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.darkNamed" title="Link to this definition">¶</a></dt>
+<dd><p>Named colors whose names start with ‘dark’ (case-insensitive).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.darken">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">darken</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.darken"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.darken" title="Link to this definition">¶</a></dt>
+<dd><p>Darken a named color by a given factor (0..1).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.grayscale">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">grayscale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.grayscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.grayscale" title="Link to this definition">¶</a></dt>
+<dd><p>Named colors where R≈G≈B within tolerance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.hex_values">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">hex_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.hex_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.hex_values" title="Link to this definition">¶</a></dt>
+<dd><p>All hex values of named colors.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.light">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">light</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.light"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.light" title="Link to this definition">¶</a></dt>
+<dd><p>Named colors whose names start with ‘light’ (case-insensitive).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.lighten">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">lighten</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.lighten"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.lighten" title="Link to this definition">¶</a></dt>
+<dd><p>Lighten a named color by a given factor (0..1).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.luminance">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">luminance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.luminance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.luminance" title="Link to this definition">¶</a></dt>
+<dd><p>Return relative luminance [0..1] of a named color.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.other">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">other</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.other"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.other" title="Link to this definition">¶</a></dt>
+<dd><p>Colors not in base, tableau, CSS4, or XKCD.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.primary">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dominance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.primary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.primary" title="Link to this definition">¶</a></dt>
+<dd><p>Colors where one channel exceeds the other two by ‘dominance’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.random">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.random" title="Link to this definition">¶</a></dt>
+<dd><p>Random subset of n named colors.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.sorted_by_hue">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">sorted_by_hue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_hex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.sorted_by_hue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.sorted_by_hue" title="Link to this definition">¶</a></dt>
+<dd><p>Return colors sorted by HSV hue. Optionally include hex codes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.tableau">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">tableau</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.tableau"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.tableau" title="Link to this definition">¶</a></dt>
+<dd><p>Tableau colors (named palette colors).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.verify">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">verify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.verify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.verify" title="Link to this definition">¶</a></dt>
+<dd><p>Verify that named mappings are consistent and unique.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.color.Color.xkcd">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">xkcd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/color.html#Color.xkcd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.color.Color.xkcd" title="Link to this definition">¶</a></dt>
+<dd><p>XKCD survey colors (prefixed names).</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.visualize.exemple">
+<span id="py-libraries-visualize-exemple-module"></span><h2>py_libraries.visualize.exemple module<a class="headerlink" href="#module-py_libraries.visualize.exemple" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.exemple.chaining">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.exemple.</span></span><span class="sig-name descname"><span class="pre">chaining</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/exemple.html#chaining"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.exemple.chaining" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.exemple.gridAndSubGraphs">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.exemple.</span></span><span class="sig-name descname"><span class="pre">gridAndSubGraphs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/exemple.html#gridAndSubGraphs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.exemple.gridAndSubGraphs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.exemple.insetZoom">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.exemple.</span></span><span class="sig-name descname"><span class="pre">insetZoom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/exemple.html#insetZoom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.exemple.insetZoom" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.exemple.rawAccess">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.exemple.</span></span><span class="sig-name descname"><span class="pre">rawAccess</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/exemple.html#rawAccess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.exemple.rawAccess" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.exemple.twinAxes">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.exemple.</span></span><span class="sig-name descname"><span class="pre">twinAxes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/exemple.html#twinAxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.exemple.twinAxes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.exemple.unicAxe">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.exemple.</span></span><span class="sig-name descname"><span class="pre">unicAxe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/exemple.html#unicAxe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.exemple.unicAxe" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-py_libraries.visualize.main">
+<span id="py-libraries-visualize-main-module"></span><h2>py_libraries.visualize.main module<a class="headerlink" href="#module-py_libraries.visualize.main" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.main.isClose">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.main.</span></span><span class="sig-name descname"><span class="pre">isClose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/main.html#isClose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.main.isClose" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ax</strong> (<em>Axes</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.main.isOpen">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.main.</span></span><span class="sig-name descname"><span class="pre">isOpen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/main.html#isOpen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.main.isOpen" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ax</strong> (<em>Axes</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.main.makeBins">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.main.</span></span><span class="sig-name descname"><span class="pre">makeBins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/main.html#makeBins"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.main.makeBins" title="Link to this definition">¶</a></dt>
+<dd><p>Create histogram bin edges with different spacing types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>array-like</em>) – Source data; used to infer range when bins is an integer.</p></li>
+<li><p><strong>bins</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of bins (int) or explicit base edges (array-like).</p></li>
+<li><p><strong>bin_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Spacing strategy: ‘linear’ (default), ‘log’, ‘sqrt’, ‘quantile’.
+‘quantile’ is only valid when bins is an integer.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of bin edges.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.main.save">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.main.</span></span><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/main.html#save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.main.save" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>file_path</strong> (<em>str</em>)</p></li>
+<li><p><strong>dpi</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.visualize.main_deprecate">
+<span id="py-libraries-visualize-main-deprecate-module"></span><h2>py_libraries.visualize.main_deprecate module<a class="headerlink" href="#module-py_libraries.visualize.main_deprecate" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.main_deprecate.isClose">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.main_deprecate.</span></span><span class="sig-name descname"><span class="pre">isClose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/main_deprecate.html#isClose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.main_deprecate.isClose" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ax</strong> (<em>Axes</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.main_deprecate.isOpen">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.main_deprecate.</span></span><span class="sig-name descname"><span class="pre">isOpen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/main_deprecate.html#isOpen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.main_deprecate.isOpen" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ax</strong> (<em>Axes</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.main_deprecate.makeBins">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.main_deprecate.</span></span><span class="sig-name descname"><span class="pre">makeBins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/main_deprecate.html#makeBins"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.main_deprecate.makeBins" title="Link to this definition">¶</a></dt>
+<dd><p>Create histogram bin edges with different spacing types.</p>
+<p>Parameters
+-
+data : array-like</p>
+<blockquote>
+<div><p>The data from which to infer min/max values (used only if bins is int).</p>
+</div></blockquote>
+<dl class="simple">
+<dt>bins<span class="classifier">int or array-like</span></dt><dd><ul class="simple">
+<li><p>If int: defines the number of bins to generate.</p></li>
+<li><p>If array-like: base edges to which the bin_type transformation is applied.</p></li>
+</ul>
+</dd>
+<dt>bin_type<span class="classifier">str, optional</span></dt><dd><p>Type of bin spacing:
+- “linear” : no transformation (default)
+- “log” : logarithmic spacing
+- “sqrt” : square-root spacing
+- “quantile” : equal number of samples (ignored if bins are array-like)</p>
+</dd>
+</dl>
+<p>Returns
+-
+:
+np.ndarray</p>
+<blockquote>
+<div><p>Array of bin edges.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bin_type</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.visualize.main_deprecate.save">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.main_deprecate.</span></span><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/main_deprecate.html#save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.main_deprecate.save" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-py_libraries.visualize.maker">
+<span id="py-libraries-visualize-maker-module"></span><h2>py_libraries.visualize.maker module<a class="headerlink" href="#module-py_libraries.visualize.maker" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.maker.</span></span><span class="sig-name descname"><span class="pre">Maker</span></span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.all">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.all" title="Link to this definition">¶</a></dt>
+<dd><p>All named markers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.all_not_none">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">all_not_none</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.all_not_none"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.all_not_none" title="Link to this definition">¶</a></dt>
+<dd><p>All named markers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.caret">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">caret</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.caret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.caret" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.circle">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">circle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.circle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.circle" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.cross">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">cross</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.cross" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.diamond">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">diamond</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.diamond"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.diamond" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.directional">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">directional</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.directional"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.directional" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.filled">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">filled</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.filled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.filled" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.fillstyles">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fillstyles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.fillstyles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.fillstyles" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.hexagon">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">hexagon</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.hexagon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.hexagon" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.none">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">none</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.none"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.none" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.numeric">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">numeric</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.numeric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.numeric" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.other">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">other</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.other"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.other" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.pentagon">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">pentagon</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.pentagon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.pentagon" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.pixel">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">pixel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.pixel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.pixel" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.square">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">square</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.square"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.square" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.star">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">star</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.star"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.star" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.tick">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">tick</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.tick"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.tick" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.triangle">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">triangle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.triangle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.triangle" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.unfilled">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">unfilled</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.unfilled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.unfilled" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.maker.Maker.verify">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">verify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/maker.html#Maker.verify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.maker.Maker.verify" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.visualize.plot_deprecate">
+<span id="py-libraries-visualize-plot-deprecate-module"></span><h2>py_libraries.visualize.plot_deprecate module<a class="headerlink" href="#module-py_libraries.visualize.plot_deprecate" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.visualize.plot_deprecate.</span></span><span class="sig-name descname"><span class="pre">Plot</span></span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Unified plotting interface. All methods accept:
+- <a href="#id1"><span class="problematic" id="id2">*</span></a>args: each can be</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>y-array</p></li>
+<li><p>(x, y)</p></li>
+<li><p>(x, y, {opts})</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p>fig, ax: pass existing fig/ax if desired.</p></li>
+<li><p>path (opt), show (bool)</p></li>
+<li><p>global styling kwargs: title, xlabel, ylabel, grid, xlim, ylim, legend, xscale, yscale</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.bar">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.bar" title="Link to this definition">¶</a></dt>
+<dd><p>Bar chart.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.candles">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">candles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">open_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wick_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.candles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.candles" title="Link to this definition">¶</a></dt>
+<dd><p>OHLC candlestick chart.
+<cite>data</cite> is an (N,4) array of [open, high, low, close].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>data</strong> (<em>ndarray</em>)</p></li>
+<li><p><strong>width</strong> (<em>float</em>)</p></li>
+<li><p><strong>open_color</strong> (<em>str</em>)</p></li>
+<li><p><strong>close_color</strong> (<em>str</em>)</p></li>
+<li><p><strong>wick_width</strong> (<em>float</em>)</p></li>
+<li><p><strong>legend</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.ecdf">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ecdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.ecdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.ecdf" title="Link to this definition">¶</a></dt>
+<dd><p>empirical cumulative distribution function of x</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.errorbar">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">errorbar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.errorbar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.errorbar" title="Link to this definition">¶</a></dt>
+<dd><p>Error bar plot using per-series mean and standard deviation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.heatmap">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.heatmap" title="Link to this definition">¶</a></dt>
+<dd><p>2D density heatmap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>bins</strong> (<em>int</em>)</p></li>
+<li><p><strong>cmap</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.histogram">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">histogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.histogram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.histogram" title="Link to this definition">¶</a></dt>
+<dd><p>Univariate histogram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>data</strong> (<em>List</em><em> | </em><em>ndarray</em>)</p></li>
+<li><p><strong>bins</strong> (<em>int</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.image">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.image" title="Link to this definition">¶</a></dt>
+<dd><p>Display an image or a set of images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.plot">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Simple line plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.scatter">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">scatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.scatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.scatter" title="Link to this definition">¶</a></dt>
+<dd><p>Scatter / dot plot.
+scatter already accept: c=cmap_values, cmap=’viridis’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.visualize.plot_deprecate.Plot.scatterDensity">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">scatterDensity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bw_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/visualize/plot_deprecate.html#Plot.scatterDensity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.visualize.plot_deprecate.Plot.scatterDensity" title="Link to this definition">¶</a></dt>
+<dd><p>Scatter plot colored by a 2D Gaussian KDE estimate of density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>bw_method</strong> (<em>str</em><em> | </em><em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>cbar_label</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<p>Parameters:
+- <a href="#id3"><span class="problematic" id="id4">*</span></a>args: each of</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>y-array</p></li>
+<li><p>(x, y)</p></li>
+<li><p>(x, y, {opts})</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p>bw_method: passed to gaussian_kde (None for scott’s rule, or float/string)</p></li>
+<li><p>cbar_label: label for the density colorbar. If none no color bar</p></li>
+<li><p>plus all the usual kwargs (fig, ax, title, xlabel, path, show, etc.)</p></li>
+<li><p>center: If true, center (the last plot, useless if many args) on the 90% denser values. If a number on it’s pourcentage or rate</p></li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="py_libraries.html">py_libraries package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="py_libraries.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Queue">py_libraries.Queue module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Stack">py_libraries.Stack module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.cipher">py_libraries.cipher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.encoder">py_libraries.encoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.internet">py_libraries.internet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.path">py_libraries.path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.system">py_libraries.system module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.temp">py_libraries.temp module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-test-module">py_libraries.test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.visualize_deprecate">py_libraries.visualize_deprecate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-windows-module">py_libraries.windows module</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="py_libraries.html">py_libraries package</a><ul>
+      <li>Previous: <a href="py_libraries.ml.preprocessing.html" title="previous chapter">py_libraries.ml.preprocessing package</a></li>
+      <li>Next: <a href="generated/py_libraries.html" title="next chapter">py_libraries</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/py_libraries.visualize.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

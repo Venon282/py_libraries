@@ -1,0 +1,34 @@
+py\_libraries.file package
+==========================
+
+.. automodule:: py_libraries.file
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+py\_libraries.file.file module
+------------------------------
+
+.. automodule:: py_libraries.file.file
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.file.h5 module
+----------------------------
+
+.. automodule:: py_libraries.file.h5
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.file.json\_utils module
+-------------------------------------
+
+.. automodule:: py_libraries.file.json_utils
+   :members:
+   :show-inheritance:
+   :undoc-members:

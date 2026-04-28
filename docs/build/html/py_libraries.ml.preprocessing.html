@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>py_libraries.ml.preprocessing package &#8212; py_libraries 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="py_libraries.visualize package" href="py_libraries.visualize.html" />
+    <link rel="prev" title="py_libraries.ml.optimisation package" href="py_libraries.ml.optimisation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-py_libraries.ml.preprocessing">
+<span id="py-libraries-ml-preprocessing-package"></span><h1>py_libraries.ml.preprocessing package<a class="headerlink" href="#module-py_libraries.ml.preprocessing" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-py_libraries.ml.preprocessing.MinMaxGlobalScaler">
+<span id="py-libraries-ml-preprocessing-minmaxglobalscaler-module"></span><h2>py_libraries.ml.preprocessing.MinMaxGlobalScaler module<a class="headerlink" href="#module-py_libraries.ml.preprocessing.MinMaxGlobalScaler" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.preprocessing.MinMaxGlobalScaler.</span></span><span class="sig-name descname"><span class="pre">MinMaxGlobalScaler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxGlobalScaler.html#MinMaxGlobalScaler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Globally scale numeric data to a given feature range using the minimum and maximum
+computed over all fitted values. The fitted data can be arbitrarily nested (e.g., [[1], [2]], [1, 2, 3],
+or deeper structures), and transformed data can have a different shape.</p>
+<dl class="simple">
+<dt>The transformation is:</dt><dd><p>X_std = (X - global_min) / (global_max - global_min)
+X_scaled = X_std * (max - min) + min</p>
+</dd>
+</dl>
+<p>where (min, max) is the desired feature_range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feature_range</strong> (<em>tuple</em><em> (</em><em>min</em><em>, </em><em>max</em><em>)</em><em>, </em><em>default=</em><em>(</em><em>0</em><em>, </em><em>1</em><em>)</em>) – Desired range for the transformed data.</p></li>
+<li><p><strong>copy</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, work on a copy of the input data.</p></li>
+<li><p><strong>clip</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, clip transformed values to the given feature_range.</p></li>
+<li><p><strong>log</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, a logarithme is apply to the values. Usefull when the values have different orders.</p></li>
+<li><p><strong>dtype</strong> (<em>data-type</em><em>, </em><em>default=np.float64</em>) – Desired floating point precision for the computations (e.g., np.float32 for lower precision).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.data_min_">
+<span class="sig-name descname"><span class="pre">data_min_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.data_min_" title="Link to this definition">¶</a></dt>
+<dd><p>Global minimum of the fitted data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.data_max_">
+<span class="sig-name descname"><span class="pre">data_max_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.data_max_" title="Link to this definition">¶</a></dt>
+<dd><p>Global maximum of the fitted data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.data_range_">
+<span class="sig-name descname"><span class="pre">data_range_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.data_range_" title="Link to this definition">¶</a></dt>
+<dd><p>Global range (<a href="#id3"><span class="problematic" id="id4">data_max_</span></a> - <a href="#id5"><span class="problematic" id="id6">data_min_</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.scale_">
+<span class="sig-name descname"><span class="pre">scale_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.scale_" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Scaling factor computed as:</dt><dd><p>(feature_range[1] - feature_range[0]) / (<a href="#id7"><span class="problematic" id="id8">data_range_</span></a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.min_">
+<span class="sig-name descname"><span class="pre">min_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.min_" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Offset computed as:</dt><dd><p>feature_range[0] - <a href="#id9"><span class="problematic" id="id10">data_min_</span></a> * <a href="#id11"><span class="problematic" id="id12">scale_</span></a></p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxGlobalScaler.html#MinMaxGlobalScaler.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the global minimum and maximum from the fitted data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>any nested structure</em><em> of </em><em>numbers</em>) – Data to compute the global minimum and maximum.</p></li>
+<li><p><strong>y</strong> (<em>None</em>) – Ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>self</strong> – Fitted scaler.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxGlobalScaler.html#MinMaxGlobalScaler.fit_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.fit_transform" title="Link to this definition">¶</a></dt>
+<dd><p>Fit the scaler to X, then transform X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>any nested structure</em><em> of </em><em>numbers</em>) – Data to fit and transform.</p></li>
+<li><p><strong>y</strong> (<em>None</em>) – Ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Transformed data in the same structure as X (or as a numpy array if possible).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.inverse_transform">
+<span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxGlobalScaler.html#MinMaxGlobalScaler.inverse_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.inverse_transform" title="Link to this definition">¶</a></dt>
+<dd><p>Reverse the transformation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>any nested structure</em><em> of </em><em>numbers</em>) – Transformed data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Inverse transformed data in the same structure as the input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxGlobalScaler.html#MinMaxGlobalScaler.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxGlobalScaler.MinMaxGlobalScaler.transform" title="Link to this definition">¶</a></dt>
+<dd><p>Scale the input data using the global minimum and maximum computed during fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>any nested structure</em><em> of </em><em>numbers</em>) – Data to be transformed.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Transformed data in the same structure (or as a numpy array if possible).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.preprocessing.MinMaxRowScaler">
+<span id="py-libraries-ml-preprocessing-minmaxrowscaler-module"></span><h2>py_libraries.ml.preprocessing.MinMaxRowScaler module<a class="headerlink" href="#module-py_libraries.ml.preprocessing.MinMaxRowScaler" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.preprocessing.MinMaxRowScaler.</span></span><span class="sig-name descname"><span class="pre">MinMaxRowScaler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxRowScaler.html#MinMaxRowScaler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Scale each row of the input data to a given range.</p>
+<dl class="simple">
+<dt>The transformation is given by:</dt><dd><p>X_std = (X - X.min(axis=1)) / (X.max(axis=1) - X.min(axis=1))
+X_scaled = X_std * (max - min) + min</p>
+</dd>
+</dl>
+<p>where (min, max) is the desired feature_range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feature_range</strong> (<em>tuple</em><em> (</em><em>min</em><em>, </em><em>max</em><em>)</em><em>, </em><em>default=</em><em>(</em><em>0</em><em>, </em><em>1</em><em>)</em>) – Desired range of transformed data.</p></li>
+<li><p><strong>copy</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Set to False to perform inplace row normalization if the input is already a numpy array.</p></li>
+<li><p><strong>clip</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, clip transformed values of held-out data to the provided feature_range.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.data_min_">
+<span class="sig-name descname"><span class="pre">data_min_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.data_min_" title="Link to this definition">¶</a></dt>
+<dd><p>Per-row minimum seen in the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.data_max_">
+<span class="sig-name descname"><span class="pre">data_max_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.data_max_" title="Link to this definition">¶</a></dt>
+<dd><p>Per-row maximum seen in the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.data_range_">
+<span class="sig-name descname"><span class="pre">data_range_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.data_range_" title="Link to this definition">¶</a></dt>
+<dd><p>Per-row range (<a href="#id13"><span class="problematic" id="id14">data_max_</span></a> - <a href="#id15"><span class="problematic" id="id16">data_min_</span></a>) seen in the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.scale_">
+<span class="sig-name descname"><span class="pre">scale_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.scale_" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Per-row scaling factor, computed as:</dt><dd><p>(feature_range[1] - feature_range[0]) / (<a href="#id17"><span class="problematic" id="id18">data_max_</span></a> - <a href="#id19"><span class="problematic" id="id20">data_min_</span></a>)</p>
+</dd>
+</dl>
+<p>(with division-by-zero handled for constant rows).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.min_">
+<span class="sig-name descname"><span class="pre">min_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.min_" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Per-row adjustment for minimum, computed as:</dt><dd><p>feature_range[0] - <a href="#id21"><span class="problematic" id="id22">data_min_</span></a> * <a href="#id23"><span class="problematic" id="id24">scale_</span></a></p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.n_rows_seen_">
+<span class="sig-name descname"><span class="pre">n_rows_seen_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.n_rows_seen_" title="Link to this definition">¶</a></dt>
+<dd><p>Number of rows seen during fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxRowScaler.html#MinMaxRowScaler.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the minimum and maximum for each row to be used for later scaling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The data used to compute the per-row minimum and maximum.</p></li>
+<li><p><strong>y</strong> (<em>None</em>) – Ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>self</strong> – Fitted scaler.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxRowScaler.html#MinMaxRowScaler.fit_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.fit_transform" title="Link to this definition">¶</a></dt>
+<dd><p>Fit to data, then transform it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Input samples.</p></li>
+<li><p><strong>y</strong> (<em>None</em>) – Ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>X_new</strong> – Transformed data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples, n_features)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.inverse_transform">
+<span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxRowScaler.html#MinMaxRowScaler.inverse_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.inverse_transform" title="Link to this definition">¶</a></dt>
+<dd><p>Undo the scaling of X according to the feature_range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Input data that will be inverse transformed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>X_orig</strong> – Original data before transformation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples, n_features)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/MinMaxRowScaler.html#MinMaxRowScaler.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.MinMaxRowScaler.MinMaxRowScaler.transform" title="Link to this definition">¶</a></dt>
+<dd><p>Scale the data row-wise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Input data that will be transformed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>X_scaled</strong> – Transformed data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples, n_features)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.preprocessing.StandardGlobalScaler">
+<span id="py-libraries-ml-preprocessing-standardglobalscaler-module"></span><h2>py_libraries.ml.preprocessing.StandardGlobalScaler module<a class="headerlink" href="#module-py_libraries.ml.preprocessing.StandardGlobalScaler" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.preprocessing.StandardGlobalScaler.</span></span><span class="sig-name descname"><span class="pre">StandardGlobalScaler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardGlobalScaler.html#StandardGlobalScaler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Globally standardize numeric data by removing the global mean and scaling to unit variance.
+Works on arbitrarily nested structures (lists, tuples, object arrays).</p>
+<dl class="simple">
+<dt>The standard score of a sample x is calculated as:</dt><dd><p>z = (x - mean) / std</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>copy</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, work on a copy of the input data.</p></li>
+<li><p><strong>with_mean</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, center data before scaling.</p></li>
+<li><p><strong>with_std</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, scale data to unit variance.</p></li>
+<li><p><strong>dtype</strong> (<em>data-type</em><em>, </em><em>default=np.float64</em>) – Precision for computations.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.mean_">
+<span class="sig-name descname"><span class="pre">mean_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.mean_" title="Link to this definition">¶</a></dt>
+<dd><p>Global mean of fitted data (None if with_mean=False).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.var_">
+<span class="sig-name descname"><span class="pre">var_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.var_" title="Link to this definition">¶</a></dt>
+<dd><p>Global variance of fitted data (None if with_std=False).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.std_">
+<span class="sig-name descname"><span class="pre">std_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.std_" title="Link to this definition">¶</a></dt>
+<dd><p>Global standard deviation of fitted data (None if with_std=False).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.scale_">
+<span class="sig-name descname"><span class="pre">scale_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.scale_" title="Link to this definition">¶</a></dt>
+<dd><p>Scaling factor = 1/<a href="#id25"><span class="problematic" id="id26">std_</span></a> (None if with_std=False).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.n_samples_seen_">
+<span class="sig-name descname"><span class="pre">n_samples_seen_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.n_samples_seen_" title="Link to this definition">¶</a></dt>
+<dd><p>Number of samples used to compute statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardGlobalScaler.html#StandardGlobalScaler.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Compute global mean and standard deviation from nested data X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardGlobalScaler.html#StandardGlobalScaler.fit_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.fit_transform" title="Link to this definition">¶</a></dt>
+<dd><p>Fit to data, then transform it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.inverse_transform">
+<span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardGlobalScaler.html#StandardGlobalScaler.inverse_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.inverse_transform" title="Link to this definition">¶</a></dt>
+<dd><p>Reverse standardization of nested data X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Original-scale data, same structure or numpy array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardGlobalScaler.html#StandardGlobalScaler.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardGlobalScaler.StandardGlobalScaler.transform" title="Link to this definition">¶</a></dt>
+<dd><p>Standardize nested data X using fitted statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Transformed data, same structure or numpy array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.preprocessing.StandardRowScaler">
+<span id="py-libraries-ml-preprocessing-standardrowscaler-module"></span><h2>py_libraries.ml.preprocessing.StandardRowScaler module<a class="headerlink" href="#module-py_libraries.ml.preprocessing.StandardRowScaler" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">py_libraries.ml.preprocessing.StandardRowScaler.</span></span><span class="sig-name descname"><span class="pre">StandardRowScaler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardRowScaler.html#StandardRowScaler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Standardize each row of the input data by removing the mean and scaling to unit variance.</p>
+<dl class="simple">
+<dt>The transformation is given by:</dt><dd><p>X_scaled = (X - mean) / std</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>copy</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Set to False to perform inplace row normalization if the input is already a numpy array.</p></li>
+<li><p><strong>with_mean</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, center the data before scaling.</p></li>
+<li><p><strong>with_std</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, scale the data to unit variance (or unit standard deviation).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.mean_">
+<span class="sig-name descname"><span class="pre">mean_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.mean_" title="Link to this definition">¶</a></dt>
+<dd><p>Per-row mean seen in the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.scale_">
+<span class="sig-name descname"><span class="pre">scale_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.scale_" title="Link to this definition">¶</a></dt>
+<dd><p>Per-row standard deviation seen in the data.
+If a row is constant (std=0), the scale is set to 1.0 to avoid division by zero.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.n_rows_seen_">
+<span class="sig-name descname"><span class="pre">n_rows_seen_</span></span><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.n_rows_seen_" title="Link to this definition">¶</a></dt>
+<dd><p>Number of rows seen during fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardRowScaler.html#StandardRowScaler.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the mean and std for each row to be used for later scaling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The data used to compute the per-row mean and standard deviation.</p></li>
+<li><p><strong>y</strong> (<em>None</em>) – Ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>self</strong> – Fitted scaler.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardRowScaler.html#StandardRowScaler.fit_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.fit_transform" title="Link to this definition">¶</a></dt>
+<dd><p>Fit to data, then transform it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Input samples.</p></li>
+<li><p><strong>y</strong> (<em>None</em>) – Ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>X_new</strong> – Transformed data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples, n_features)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.inverse_transform">
+<span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardRowScaler.html#StandardRowScaler.inverse_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.inverse_transform" title="Link to this definition">¶</a></dt>
+<dd><p>Undo the scaling of X according to the stored mean and std.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Input data that will be inverse transformed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>X_orig</strong> – Original data before transformation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples, n_features)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/StandardRowScaler.html#StandardRowScaler.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.StandardRowScaler.StandardRowScaler.transform" title="Link to this definition">¶</a></dt>
+<dd><p>Standardize the data row-wise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Input data that will be transformed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>X_scaled</strong> – Transformed data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples, n_features)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.preprocessing.module">
+<span id="py-libraries-ml-preprocessing-module-module"></span><h2>py_libraries.ml.preprocessing.module module<a class="headerlink" href="#module-py_libraries.ml.preprocessing.module" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.module.trainTestSplit">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.ml.preprocessing.module.</span></span><span class="sig-name descname"><span class="pre">trainTestSplit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/module.html#trainTestSplit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.module.trainTestSplit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.preprocessing.sampling">
+<span id="py-libraries-ml-preprocessing-sampling-module"></span><h2>py_libraries.ml.preprocessing.sampling module<a class="headerlink" href="#module-py_libraries.ml.preprocessing.sampling" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.sampling.equilibrate">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.ml.preprocessing.sampling.</span></span><span class="sig-name descname"><span class="pre">equilibrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_bound_excess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_cell_excess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/sampling.html#equilibrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.sampling.equilibrate" title="Link to this definition">¶</a></dt>
+<dd><p>Equilibrate a multi-dimensional dataset by binning and filling under-populated cells.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – <dl>
+<dt>Each argument must be one of:</dt><dd><ul>
+<li><p>(data_list, n_bins)</p></li>
+<li><p>(data_list, n_bins, chunk_method)</p></li>
+<li><p>(data_list, bound_min, bound_max, n_bins)</p></li>
+<li><p>(data_list, bound_min, bound_max, n_bins, chunk_method)</p></li>
+</ul>
+<p>chunk_method can be  ‘linear’,’uniform’,’log’,’gaussian’,’exponential’,’beta’. Default is linear.</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>method</strong> (<em>{'max'</em><em>, </em><em>'mean'}</em><em> or </em><em>int</em><em>, </em><em>default='max'</em>) – Target number of samples per occupied cell.</p></li>
+<li><p><strong>fill_method</strong> (<em>{'random'</em><em>, </em><em>'midpoint'</em><em>, </em><em>'gap'}</em><em>, </em><em>default='random'</em>) – <p>How to generate new points within each under-populated cell.
+- random: random point in the cell
+- midpoint: point in the center of the cell
+- linear_gap: point in the most empty space on each dimension
+- dimensional_gap: point in the most empty space of the cell based on subpoints (costly)</p>
+<blockquote>
+<div><ul>
+<li><p>n_sub (default 3) give n_sub^n_dims candidate points.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>return_all</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, return original + synthetic samples.
+If False, return only synthetic samples.</p></li>
+<li><p><strong>trim_bound_excess</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If true, the original array will be trim based on bounds defined</p></li>
+<li><p><strong>trim_cell_excess</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, randomly downsample points in over-populated cells to match <cite>method</cite>. Process only when return_all is true</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, show a tqdm progress bar over all grid cells.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>If <cite>return_all=True</cite> (default), returns a tuple of three tuples:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>combined<span class="classifier">tuple of lists</span></dt><dd><p>One list per dimension containing original + synthetic samples.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>original<span class="classifier">tuple of lists</span></dt><dd><p>One list per dimension containing only the original samples (after trimming if applied).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>synthetic<span class="classifier">tuple of lists</span></dt><dd><p>One list per dimension containing only the synthetic samples generated to fill under-populated cells.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>If <cite>return_all=False</cite>, returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>synthetic<span class="classifier">tuple of lists</span></dt><dd><p>One list per dimension containing only the synthetic samples.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of lists or tuple of tuples of lists</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.sampling.stratified">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.ml.preprocessing.sampling.</span></span><span class="sig-name descname"><span class="pre">stratified</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/sampling.html#stratified"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.sampling.stratified" title="Link to this definition">¶</a></dt>
+<dd><p>Generates stratified random samples within specified ranges for each parameter.</p>
+<p>The input parameters for each dimension should be provided as a tuple with the following structure:
+(bound_min, bound_max (exclusive), n_values, method).</p>
+<ul class="simple">
+<li><p>bound_min: Lower bound of the parameter’s range (inclusive).</p></li>
+<li><p>bound_max: Upper bound of the parameter’s range (exclusive).</p></li>
+<li><p>n_values: Number of samples to generate per parameter.</p></li>
+<li><p>method: Sampling method (‘’). Defaults to ‘linear’.</p></li>
+</ul>
+<p>Sampling is performed for each dimension separately, with the specified number of bins
+and the chosen method (linear or logarithmic scaling). A random value is then chosen
+from each bin to generate a stratified sample.</p>
+<p>Parameters:
+<a href="#id1"><span class="problematic" id="id2">*</span></a>args (tuples): For each dimension, a tuple of (bound_min, bound_max (exclusive), n_values, method).</p>
+<blockquote>
+<div><p>Method can be ‘linear’, ‘log’, ‘uniform’, ‘gaussian’, ‘exponential’, or ‘beta’.</p>
+</div></blockquote>
+<p>verbose (int): 0 silent, 1 all infos, 2 quiet infos.</p>
+<p>Returns:
+list: A list of random samples, one for each parameter combination.</p>
+</dd></dl>
+
+</section>
+<section id="module-py_libraries.ml.preprocessing.split">
+<span id="py-libraries-ml-preprocessing-split-module"></span><h2>py_libraries.ml.preprocessing.split module<a class="headerlink" href="#module-py_libraries.ml.preprocessing.split" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.split.h5">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.ml.preprocessing.split.</span></span><span class="sig-name descname"><span class="pre">h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.7,</span> <span class="pre">0.15,</span> <span class="pre">0.15)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['train',</span> <span class="pre">'val',</span> <span class="pre">'test']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/split.html#h5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.split.h5" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a dictionary containing ‘train’, ‘val’, ‘test’ arrays of INDICES.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py_libraries.ml.preprocessing.split.indice">
+<span class="sig-prename descclassname"><span class="pre">py_libraries.ml.preprocessing.split.</span></span><span class="sig-name descname"><span class="pre">indice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.7,</span> <span class="pre">0.15,</span> <span class="pre">0.15)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['train',</span> <span class="pre">'val',</span> <span class="pre">'test']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_libraries/ml/preprocessing/split.html#indice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#py_libraries.ml.preprocessing.split.indice" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">py_libraries</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="py_libraries.html">py_libraries package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="py_libraries.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Queue">py_libraries.Queue module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.Stack">py_libraries.Stack module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.cipher">py_libraries.cipher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.encoder">py_libraries.encoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.internet">py_libraries.internet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.path">py_libraries.path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.system">py_libraries.system module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.temp">py_libraries.temp module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-test-module">py_libraries.test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#module-py_libraries.visualize_deprecate">py_libraries.visualize_deprecate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_libraries.html#py-libraries-windows-module">py_libraries.windows module</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="generated/py_libraries.html">py_libraries</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="py_libraries.html">py_libraries package</a><ul>
+  <li><a href="py_libraries.ml.html">py_libraries.ml package</a><ul>
+      <li>Previous: <a href="py_libraries.ml.optimisation.html" title="previous chapter">py_libraries.ml.optimisation package</a></li>
+      <li>Next: <a href="py_libraries.visualize.html" title="next chapter">py_libraries.visualize package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Esteban Thevenon.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/py_libraries.ml.preprocessing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

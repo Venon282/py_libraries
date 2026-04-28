@@ -1,0 +1,90 @@
+py\_libraries.visualize package
+===============================
+
+.. automodule:: py_libraries.visualize
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+py\_libraries.visualize.Config module
+-------------------------------------
+
+.. automodule:: py_libraries.visualize.Config
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize.Figure module
+-------------------------------------
+
+.. automodule:: py_libraries.visualize.Figure
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize.Theme module
+------------------------------------
+
+.. automodule:: py_libraries.visualize.Theme
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize.cmap module
+-----------------------------------
+
+.. automodule:: py_libraries.visualize.cmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize.color module
+------------------------------------
+
+.. automodule:: py_libraries.visualize.color
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize.exemple module
+--------------------------------------
+
+.. automodule:: py_libraries.visualize.exemple
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize.main module
+-----------------------------------
+
+.. automodule:: py_libraries.visualize.main
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize.main\_deprecate module
+----------------------------------------------
+
+.. automodule:: py_libraries.visualize.main_deprecate
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize.maker module
+------------------------------------
+
+.. automodule:: py_libraries.visualize.maker
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+py\_libraries.visualize.plot\_deprecate module
+----------------------------------------------
+
+.. automodule:: py_libraries.visualize.plot_deprecate
+   :members:
+   :show-inheritance:
+   :undoc-members:
