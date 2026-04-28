@@ -391,6 +391,7 @@ def mask(
     Filter HDF5 dataset indices using a set of predicate functions.
 
     All datasets referenced in filters must have the same length.
+    The order of the filters matters; add the most relevant one first.
 
     Parameters
     ----------
