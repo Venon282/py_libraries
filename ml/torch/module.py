@@ -1,12 +1,26 @@
 import torch
 
 def getDevice():
+    """
+    Returns the best available PyTorch device.
+
+    The function automatically detects available hardware accelerators
+    and selects the most appropriate device.
+
+    Returns:
+        str: Device name ("cuda", "xpu", "mps", or "cpu").
+    """
+
     if torch.cuda.is_available():
-        return "cuda" # Use NVIDIA GPU (if available)
-    elif torch.backends.mps.is_available():
-        return "mps" # Use Apple Silicon GPU (if available)
-    else:
-        return "cpu" # Default to CPU if no GPU is available
+        return "cuda"  # NVIDIA GPU
+
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        return "xpu"  # Intel GPU
+
+    if torch.backends.mps.is_available():
+        return "mps"  # Apple Silicon GPU
+
+    return "cpu"  # CPU fallback
 
 def infer(model, datas, device="cpu"):
     # todo add batch
