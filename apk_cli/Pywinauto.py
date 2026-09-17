@@ -124,7 +124,7 @@ class Pywinauto:
 
         # Recurse into children
         for child in ctrl.children():
-            self.getControlIdentifiers(child, depth + 1, out)
+            self.getControlIdentifiersRec(child, depth + 1, out)
 
         return out
     
