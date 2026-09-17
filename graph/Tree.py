@@ -202,7 +202,7 @@ class Tree(Graph):
         depth = 0
         current = node
         while current is not self.root:
-            parent = self.getParent(node)
+            parent = self.getParent(current)
             if parent is None:
                 raise ValueError('The node is not connected to the root.')
             
