@@ -397,7 +397,7 @@ class Graph:
             
             # Ensure no self-loops
             for edge in node.edges_out:
-                if edge.end_node is node:
+                if edge.end is node:
                     return False
 
         return True
