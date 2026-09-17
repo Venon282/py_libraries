@@ -161,22 +161,6 @@ class ScrapingSelenium:
             return rect.top > (window.innerHeight || document.documentElement.clientHeight);
         """, element)
 
-    def isElementAtLeastHalfAboveViewport(self, element):
-        return driver.execute_script("""
-            var rect = arguments[0].getBoundingClientRect();
-            var elementHeight = rect.height;
-            var visibleHeight = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
-            return visibleHeight < (elementHeight / 2);
-        """, element)
-
-    def isElementAtLeastHalfBelowViewport(self, element):
-        return driver.execute_script("""
-            var rect = arguments[0].getBoundingClientRect();
-            var elementHeight = rect.height;
-            var visibleHeight = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
-            return visibleHeight < (elementHeight / 2);
-        """, element)
-
     def isElementVisibleInViewport(self, element: WebElement):
         return self.driver.execute_script("""
             var elem = arguments[0],
