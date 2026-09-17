@@ -43,7 +43,7 @@ def sleepComputer(hibernate: bool = False, force: bool = True, disable_wake_even
         ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps],
         capture_output=True, text=True
     )
-    return respons == 0
+    return respons.returncode == 0
 
 def deleteTask(task_name:str):
     delete_command = f'schtasks /delete /tn "{task_name}" /f >nul 2>&1'
