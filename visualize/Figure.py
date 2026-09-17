@@ -7,7 +7,7 @@ import numpy as np
 import scipy.stats
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
-from matplotlib import cm
+from matplotlib import colormaps
 from matplotlib.axes import Axes as MplAxes
 from matplotlib.figure import Figure as MplFigure
 from matplotlib.lines import Line2D
@@ -68,7 +68,7 @@ class PlotAxes:
         """Line plot."""
         colors = None
         if cmap:
-            cmap_obj = cm.get_cmap(cmap)
+            cmap_obj = colormaps.get_cmap(cmap)
             if cmap_values is not None:
                 cmap_arr   = np.asarray(cmap_values, dtype=float)
                 cmap_range = cmap_arr.max() - cmap_arr.min()
@@ -255,7 +255,7 @@ class PlotAxes:
                 heat.T,
                 extent=[xe[0], xe[-1], ye[0], ye[-1]],
                 origin='lower', aspect='auto',
-                cmap=cm.get_cmap(cmap),
+                cmap=colormaps.get_cmap(cmap),
                 **kwargs, **opts,
             )
             self._ax.figure.colorbar(im, ax=self._ax, label=cbar_label)
