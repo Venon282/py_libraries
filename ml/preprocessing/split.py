@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 
 def indice(indices, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42, names=['train', 'val', 'test']):
     # Apply Mask 
-    if mask:
+    if mask is not None:
         valid_indices = indices[mask.astype(bool)]
     else:
         valid_indices = indices
