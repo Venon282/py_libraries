@@ -1,4 +1,10 @@
+import numpy as np
 from sklearn.model_selection import train_test_split
+
+def _emptyLike(obj):
+    if isinstance(obj, np.ndarray):
+        return obj[:0]         
+    return type(obj)()
 
 def trainTestSplit(*args, test_size, random_state):
     if test_size == 0.0:
