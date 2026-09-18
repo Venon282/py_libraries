@@ -330,7 +330,7 @@ class ScrapingPlaywright:
         args = [f"{k}={v}" for k, v in locals().items() if v is not None]
         args = '?' + '&'.join(args) if len(args) > 0 else ''
         url = f"https://proxylist.geonode.com/api/proxy-list{args}"
-        return requests.get(url).json().get("data", [])
+        return requests.get(url, timeout=10).json().get("data", [])
 
     @staticmethod
     def getGeonodeProxies(limit:int=100, sort_by:str='lastChecked', sort_type:str='desc', 
@@ -342,7 +342,7 @@ class ScrapingPlaywright:
     @staticmethod
     def getFreeProxyInfos(limit:int=300, path_extension:str='', **kwargs) -> list[str]:
         """Scrape SSLProxies.org for fast list."""
-        r = requests.get("https://free-proxy-list.net"+path_extension)
+        r = requests.get("https://free-proxy-list.net"+path_extension, timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
         header = [toCamelCase(th.text.strip()) for th in soup.select("table thead tr th")]
         
@@ -405,7 +405,7 @@ class ScrapingPlaywright:
     @staticmethod
     def proxyInfos(proxy):
         proxy = proxy.replace('http://','').split(':')[0]
-        return requests.get(f"http://ip-api.com/json/{proxy}").json()
+        return requests.get(f"http://ip-api.com/json/{proxy}", timeout=5).json()
 
     async def _apply_stealth_scripts(self, ctx: BrowserContext):
         # override webdriver
