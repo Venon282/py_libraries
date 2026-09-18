@@ -3,8 +3,9 @@ import numpy as np
 from tqdm import tqdm
 import pandas as pd
 import os
+from glob import glob
 
-def computeGlobalMeanVariance(data_dir, pattern="*.txt", delimiter=None, verbose=False):
+def computeGlobalMeanVariance(data_dir, pattern="*.txt", delimiter=None, verbose=False, recursive=False):
     """
     Welford's algorithm
     Compute the global mean and standard deviation of all numeric values
@@ -29,12 +30,12 @@ def computeGlobalMeanVariance(data_dir, pattern="*.txt", delimiter=None, verbose
     count : int
         Total number of data points processed.
     """
-    data_path = Path(data_dir)
+    files = glob(pattern, root_dir=data_dir, recursive=recursive)
     n = 0                     # total count of samples
     mean = 0.0                # running mean
     M2 = 0.0                  # sum of squares of differences from the current mean
 
-    iterator = data_path.glob(pattern) if not verbose else tqdm(data_path.glob(pattern), desc="Processing files", unit="file", total=len(list(data_path.glob(pattern))), mininterval=1)
+    iterator = tqdm(files, desc="Processing files", unit="file", mininterval=1) if verbose else files
     for filepath in iterator:
         # load entire file into a NumPy array, respecting the given delimiter
         # assumes files contain only numeric columns
@@ -45,14 +46,18 @@ def computeGlobalMeanVariance(data_dir, pattern="*.txt", delimiter=None, verbose
 
         # flatten in case of multi-column files
         flat = arr.ravel()
+        n_b = flat.size
+        if n_b == 0:
+            continue
 
-        # update Welford accumulators for each element
-        for x in flat:
-            n += 1
-            delta = x - mean
-            mean += delta / n
-            delta2 = x - mean
-            M2 += delta * delta2
+        # update Welford accumulators
+        mean_b = flat.mean()
+        var_b = flat.var(ddof=0)
+        delta = mean_b - mean
+        new_n = n + n_b
+        mean += delta * n_b / new_n
+        M2 += var_b * n_b + delta**2 * n * n_b / new_n
+        n = new_n
 
     if n == 0:
         raise ValueError("No data points found in any file.")
