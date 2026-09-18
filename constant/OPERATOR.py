@@ -1,6 +1,6 @@
 from .Constant import ConstantMeta
 import operator as op
-import numpy as np
+import math
 
 class OPERATOR(metaclass=ConstantMeta):
     OPERATORS_MAP = {
@@ -33,4 +33,14 @@ class OPERATOR(metaclass=ConstantMeta):
         "false": False, "f":     False, "no":   False, "n":    False, "0": False,
     }
     
-    EMPTY = (None, np.nan, "", (), [], {}, set())
+    EMPTY = (None, "", (), [], {}, set())
+
+    @staticmethod
+    def isEmpty(value) -> bool:
+        """Remplace `value in OPERATOR.EMPTY` : gère explicitement NaN (nan != nan)."""
+        if isinstance(value, float) and math.isnan(value):
+            return True
+        try:
+            return value in OPERATOR.EMPTY
+        except TypeError:
+            return False
