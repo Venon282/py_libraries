@@ -4,5 +4,5 @@ def lackingBinaries(lst, length=None):
     Default length is the lenght of the binary max
     """
     if length is None:
-        length = len(max(lst)) - 2
+        length = max(len(x) for x in lst) - 2
     return [bin(i) for i in range(2**length) if bin(i) not in lst]
