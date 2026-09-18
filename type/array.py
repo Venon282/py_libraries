@@ -51,7 +51,6 @@ def crop(arr: np.ndarray, new_size: int | tuple, method: str = 'left') -> np.nda
 
 def circularMean(arr, center=None, threshold = np.sqrt(2)/2):
     nr, nc = arr.shape
-    new_arr = arr.copy()
 
     # Define the center if not provided
     if center is None:
@@ -59,50 +58,47 @@ def circularMean(arr, center=None, threshold = np.sqrt(2)/2):
     
     y, x = np.indices((nr, nc)) # coordonnées
     r = np.hypot(x - center[1], y - center[0]) # distance radiale
-    r_unic = np.unique(r) # distances uniques
-    
-    for j, unic in enumerate(r_unic):                       # For each unique distance
-            mask = np.abs(r - r_unic[j]) < threshold        # Mask inside the threshold distance
-            new_arr[r == unic] = np.sum(arr[mask])/np.sum(mask) # Apply the mean to the
-    return new_arr
+
+    # Groups pixels by ring in a single vectorized pass
+    bin_idx = np.round(r / threshold).astype(np.int64)
+    sums = np.bincount(bin_idx.ravel(), weights=arr.ravel())
+    counts = np.bincount(bin_idx.ravel())
+    ring_mean = sums / counts
+
+    return ring_mean[bin_idx]
+
+def _groupedReduce(bin_idx, values, reduce_fn):
+    """Applies `reduce_fn` to each group defined by `bin_idx`, sorting only
+    once (O(n log n)) rather than reconstructing an O(n_pixels) mask for each ring."""
+    flat_bins = bin_idx.ravel()
+    flat_vals = values.ravel()
+    order = np.argsort(flat_bins, kind='stable')
+    sorted_bins = flat_bins[order]
+    sorted_vals = flat_vals[order]
+
+    unique_bins, start_idx = np.unique(sorted_bins, return_index=True)
+    boundaries = np.append(start_idx, len(sorted_bins))
+
+    out_sorted = np.empty(len(sorted_bins), dtype=float)
+    for i in range(len(unique_bins)):
+        segment = sorted_vals[boundaries[i]:boundaries[i + 1]]
+        out_sorted[boundaries[i]:boundaries[i + 1]] = reduce_fn(segment)
+
+    out = np.empty_like(out_sorted)
+    out[order] = out_sorted
+    return out.reshape(bin_idx.shape)
 
 def circularMedian(arr, center=None, threshold = np.sqrt(2)/2):
     nr, nc = arr.shape
-    new_arr = arr.copy()
 
     # Define the center if not provided
     if center is None:
         center = (nr//2, nc//2)
     
-    y, x = np.indices((nr, nc)) # coordonnées
-    r = np.hypot(x - center[1], y - center[0]) # distance radiale
-    r_unic = np.unique(r) # distances uniques
-    
-    for j, unic in enumerate(r_unic):                       # For each unique distance
-            mask = np.abs(r - r_unic[j]) < threshold        # Mask inside the threshold distance
-            new_arr[r == unic] = np.median(arr[mask]) # Apply the mean to the
-    return new_arr
-
-# def circularHist(arr, center=None, threshold = np.sqrt(2)/2, bins_threshold=0.9):
-#     nr, nc = arr.shape
-#     new_arr = arr.copy()
-
-#     # Define the center if not provided
-#     if center is None:
-#         center = (nr//2, nc//2)
-    
-#     y, x = np.indices((nr, nc)) # coordonnées
-#     r = np.hypot(x - center[1], y - center[0]) # distance radiale
-#     r_unic = np.unique(r) # distances uniques
-    
-#     for j, unic in enumerate(r_unic):                       # For each unique distance
-#             mask = np.abs(r - r_unic[j]) < threshold        # Mask inside the threshold distance
-#             ring_values = arr[mask]
-#             counts, bins = np.histogram(ring_values, bins=max(int(len(ring_values)*bins_threshold), 1))
-#             i_max = np.argmax(counts)
-#             new_arr[r == unic] = (bins[i_max] + bins[i_max+1]) / 2  # Set the value to the bin center of the most frequent value
-#     return new_arr
-
+    y, x = np.indices((nr, nc))
+    r = np.hypot(x - center[1], y - center[0])
+    bin_idx = np.round(r / threshold).astype(np.int64)
+    return _groupedReduce(bin_idx, arr, np.median)
 
 from scipy.stats import trim_mean
 
