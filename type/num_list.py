@@ -34,6 +34,9 @@ def mergeIntervals(intervals):
     :type intervals: List[List[int]]
     :rtype: List[List[int]]
     """
+    if not intervals:                 
+        return []
+    
     intervals = sorted(intervals, key=lambda x: x[0])
     start, end = intervals.pop(0)
     new = [[start, end]]
