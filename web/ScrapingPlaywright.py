@@ -245,12 +245,20 @@ class ScrapingPlaywright:
         self.mouses_position[idx] = [x, y]
     
     def displayMouseMovment(self, page: Page, start, end, show=True, path=None, factor=0.1):
-        from py_libraries.visualize import Visualize
         import numpy as np
-        
+        from py_libraries.visualize import Figure
+
         points = np.array([list(p) for p in ScrapingPlaywright._bezier_curve(start, end, steps=random.randint(20, 40))])
         x, y = points[:, 0], points[:, 1]
-        Visualize.Plot.plot((x * factor, y * factor), show=show, path=path, figsize=(page.viewport_size["width"] * factor, page.viewport_size["height"] * factor))
+
+        fig = Figure(figsize=(page.viewport_size["width"] * factor, page.viewport_size["height"] * factor))
+        ax = fig.addAxes(title="Mouse movement")
+        ax.plot((x * factor, y * factor))
+
+        if path:
+            fig.save(path)
+        if show:
+            fig.show()
         
     async def mouseToSelector(self, page: Page, selector: str):
         locator = page.locator(selector)
