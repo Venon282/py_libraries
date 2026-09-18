@@ -4,4 +4,4 @@ from .ModelBuilder import BaseModelBuilder
 from .TransformerModelBuilder import TransformerModelBuilder
 from .module import *
 
-__all__ = ["DnnModelBuilder", "ModelBuilder", "BayesianTuner"]
+__all__ = ["DnnModelBuilder", "ModelBuilder", "BayesianTuner", "TransformerModelBuilder"]
