@@ -97,12 +97,13 @@ def addWavelet(
     ndarray
         Modified signal(s), preserving input dimensionality.
     """
-    def getRandom(element, randFunc, size):
+    def getRandom(element, randFunc, size, is_integer=False):
         # tuple mean between two bornes
         if isinstance(element, tuple):
             if len(element) != 2:
                 raise ValueError(f'The tuple size must be 2 (min, max), not {len(element)}')
-            return randFunc(element[0], element[1] + 1, size=size)
+            hi = element[1] + 1 if is_integer else element[1]
+            return randFunc(element[0], hi, size=size)
         # value mean we want it size time
         elif isinstance(element, (float, int)):
             return np.full(size, element)
@@ -132,7 +133,7 @@ def addWavelet(
     if rng is None:
         rng = np.random.default_rng()
         
-    num_wavelets_per_signal = getRandom(element=wavelet_range, randFunc=rng.integers, size=n_signals)
+    num_wavelets_per_signal = getRandom(element=wavelet_range, randFunc=rng.integers, size=n_signals, is_integer=True)
     max_wavelets = np.max(num_wavelets_per_signal)
     
     # Pre-create a time axis: shape (signal_length,)
@@ -146,9 +147,9 @@ def addWavelet(
         
         # Vectorized generation of parameters for 'active' signals
         centers = rng.integers(0, signal_length, size=(active_count, 1))
-        amplitudes = getRandom(element=amplitude_range, randFunc=rng.uniform, size=(active_count, 1))
-        widths = getRandom(element=width_range, randFunc=rng.uniform, size=(active_count, 1)) 
-        scales = getRandom(element=scale_range, randFunc=rng.uniform, size=(active_count, 1))
+        amplitudes = getRandom(element=amplitude_range, randFunc=rng.uniform, size=(active_count, 1), is_integer=False)
+        widths = getRandom(element=width_range, randFunc=rng.uniform, size=(active_count, 1), is_integer=False) 
+        scales = getRandom(element=scale_range, randFunc=rng.uniform, size=(active_count, 1), is_integer=False)
         
         mapping_factors = (scales * 4 * np.pi) / signal_length
         
