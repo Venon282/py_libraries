@@ -723,16 +723,13 @@ class TransformerForecaster(tf.keras.Model):
             enc_pad = pad_bool[:, tf.newaxis, :]                     # (batch, 1, src_len)
 
       
-        # Build encoder self-attention mask.
-        if mask['encoder'] is not None:
+            # Build encoder self-attention mask.
+   
             encoder_mask_expanded = tf.expand_dims(mask['encoder'], 1)
             target_seq_len = tf.shape(encoder_input)[1]
             encoder_mask_final = tf.tile(encoder_mask_expanded, [1, target_seq_len, 1])
             encoder_mask_final = tf.cast(encoder_mask_final, tf.bool)
-        else:
-            encoder_mask_final = None
-            
-        if mask['encoder'] is not None:
+
             # Longueurs dynamiques
             enc_len = tf.shape(encoder_input)[1]
             dec_len = tf.shape(decoder_input)[1]
@@ -742,6 +739,7 @@ class TransformerForecaster(tf.keras.Model):
             # Construire le masque pour l'attention croisée (batch, dec_len, enc_len)
             decoder_padding_mask = tf.tile(enc_mask_bool, [1, dec_len, 1])
         else:
+            encoder_mask_final = None
             decoder_padding_mask = None
 
         # Build look-ahead mask for decoder self-attention.
