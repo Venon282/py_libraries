@@ -27,6 +27,7 @@ class ColoredFormatter(logging.Formatter):
     def __init__(self, fmt: str):
         super().__init__()
         self.fmt = fmt
+        self._plain_formatter = logging.Formatter(self.fmt, datefmt="%Y-%m-%d %H:%M:%S")
 
     def format(self, record):
         # Apply color to the levelname
@@ -36,8 +37,7 @@ class ColoredFormatter(logging.Formatter):
         orig_levelname = record.levelname
         record.levelname = f"{level_color}{orig_levelname}{self.RESET}"
 
-        formatter = logging.Formatter(self.fmt, datefmt="%Y-%m-%d %H:%M:%S")
-        result = formatter.format(record)
+        result = self._plain_formatter.format(record)
 
         # Restore original levelname for other handlers (like file logging)
         record.levelname = orig_levelname
