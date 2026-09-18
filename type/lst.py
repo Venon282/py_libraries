@@ -356,10 +356,11 @@ def describeValues(array, chunk_size=1_000_000, sample_limit=5_000_000,
             finite_min = min(finite_min, np.min(finite_chunk))
             finite_max = max(finite_max, np.max(finite_chunk))
 
-            # Incremental mean / variance (Welford)
+            # Combinaison de variance par paires.  Incremental mean / variance (Chan/Welford)
+            prev_count = finite_count - n                       # effectif AVANT d'ajouter ce chunk
             delta = finite_chunk.mean() - mean_accum
             mean_accum += delta * n / finite_count
-            M2 += finite_chunk.var() * n  # variance sum approximation
+            M2 += finite_chunk.var(ddof=0) * n + delta**2 * prev_count * n / finite_count   
 
             # Store chunk values for quantile/skew/kurtosis (optional)
             # if finite_count < 5_000_000:  # limit memory for quantiles
