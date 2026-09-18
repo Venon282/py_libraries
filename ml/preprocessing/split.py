@@ -25,7 +25,7 @@ def indice(indices, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42, names=['
         # Get the name
         try:
             name = names[i]
-        except:
+        except IndexError:
             name = str(i)
             
         if split_ratios[i] == 0.0:
@@ -47,7 +47,7 @@ def indice(indices, mask=None, split_ratios=(0.7, 0.15, 0.15), seed=42, names=['
     # Insert the last set
     try:
         name = names[i+1]
-    except:
+    except IndexError:
         name = str(i+1)
     indice_dict[name] = remaining_indices
     
