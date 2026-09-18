@@ -174,6 +174,23 @@ class ScrapingSelenium:
             }
             return false;
         """, element)
+    
+    def isElementAtLeastHalfAboveViewport(self, element):
+        return self.driver.execute_script("""
+            var rect = arguments[0].getBoundingClientRect();
+            var elementHeight = rect.height;
+            var hiddenAbove = Math.max(0, -rect.top);
+            return hiddenAbove >= (elementHeight / 2);
+        """, element)
+
+    def isElementAtLeastHalfBelowViewport(self, element):
+        return self.driver.execute_script("""
+            var rect = arguments[0].getBoundingClientRect();
+            var elementHeight = rect.height;
+            var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            var hiddenBelow = Math.max(0, rect.bottom - viewportHeight);
+            return hiddenBelow >= (elementHeight / 2);
+        """, element)
 
     @staticmethod
     def _bezier_curve(start, end, steps=25):
