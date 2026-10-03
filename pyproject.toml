@@ -1,0 +1,46 @@
+[project]
+# requirements.txt pins numpy 2.4, pandas 3.0, scipy 1.17 and scikit-learn 1.8,
+# which all need Python 3.11 or later
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+# Only the modules that already have tests are checked. Add a module here, and its
+# tests under tests/, when it is migrated to the coding standards.
+include = [
+    "tests/**/*.py",
+    "type/binary.py",
+    "type/dataframe.py",
+    "type/iterable.py",
+    "type/object.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "N802",  # camelCase function/method names: intentional
+    "N806",  # camelCase local variables assigned from a camelCase function
+]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.mypy]
+python_version = "3.11"
+# mypy follows the imports of the tests, so it checks exactly the modules that
+# already have tests. Other modules are not checked until they get tests.
+files = ["tests"]
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+# pandas ships no inline types and pandas-stubs is not a project dependency
+module = ["pandas", "pandas.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
