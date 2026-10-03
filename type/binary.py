@@ -1,16 +1,24 @@
-from typing import Any
+"""Helpers for binary number strings."""
 
 
 def getLackingBinaries(lst: list[str], length: int | None = None) -> list[str]:
-    """Return the binary numbers that are not present in the list at the defined length.
+    """Return the `bin()` strings below 2**length that are missing from a list.
+
+    Strings follow the `bin()` format: a `0b` prefix and no zero padding, so `'0b101'`
+    stands for 5 and `'0b1'` for 1. Entries of `lst` in any other format never match.
 
     Args:
-        lst: List of binary strings to check against.
-        length: Length of binary numbers to generate. If None, uses the maximum length
-            of binary strings in the list minus 2.
+        lst: List of `bin()` strings to check against.
+        length: Number of bits: the integers from 0 to 2**length - 1 are generated. If
+            None, uses the length of the longest string in `lst` minus 2 (the `0b`
+            prefix).
 
     Returns:
-        List of binary strings that are missing from the input list.
+        The `bin()` strings of the integers below 2**length that are not in `lst`, in
+        ascending numeric order.
+
+    Raises:
+        ValueError: If lst is empty and length is None.
     """
     if length is None:
         length = max(len(x) for x in lst) - 2
