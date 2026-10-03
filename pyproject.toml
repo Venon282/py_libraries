@@ -14,6 +14,7 @@ include = [
     "type/dataframe.py",
     "type/iterable.py",
     "type/object.py",
+    "type/lst.py",
 ]
 
 [tool.ruff.lint]
