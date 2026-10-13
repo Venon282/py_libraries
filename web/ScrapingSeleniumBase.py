@@ -667,7 +667,7 @@ class ScrapingSeleniumBase:
             if not_exist_ok is False:
                 raise Exception(f'The file {path} do not exist.')
             else:
-                return
+                return False
             
         with open(path, "rb") as f:
             cookies = pickle.load(f)
@@ -684,6 +684,7 @@ class ScrapingSeleniumBase:
                 print("Skipping cookie:", cookie.get("name"), "-", e)
             
         self.sb.driver.refresh() 
+        return True
         
     def getViewportSize(self):
         """Return (width, height) of the viewport (innerWidth, innerHeight)."""
