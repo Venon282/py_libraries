@@ -45,7 +45,7 @@ class ColoredFormatter(logging.Formatter):
 
 def getLogger(
     name: str,
-    level: int = logging.INFO,
+    level: int | None = None,
     log_file: Optional[str] = None,
     format_str: Optional[str] = "%(levelname)s - %(name)s - %(asctime)s  - %(message)s"
 ) -> logging.Logger:
@@ -62,7 +62,8 @@ def getLogger(
     if logger.hasHandlers():
         return logger
 
-    logger.setLevel(level)
+    if level is not None:
+        logger.setLevel(level)
 
     # Console Handler (Colored)
     console_handler = logging.StreamHandler(sys.stdout)
