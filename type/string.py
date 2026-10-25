@@ -385,17 +385,21 @@ def maxOccurenceAdjacentEmoji(s: str) -> int:
 
 
 def containsChineseChar(s: str) -> bool:
-    """Check whether a string contains a Chinese character.
+    """Check whether a string contains a Chinese (Han) character.
 
-    Only the common CJK Unified Ideographs range (U+4E00 to U+9FFF) is checked.
+    Covers the whole Unicode Han script: the CJK Unified Ideographs and all their
+    extensions, the compatibility ideographs, the CJK radicals and a few ideographic
+    marks such as the iteration mark U+3005. Han ideographs are shared with Japanese
+    kanji and Korean hanja, so this cannot tell Chinese from those languages. CJK
+    punctuation belongs to no script and does not match.
 
     Args:
         s: String to scan.
 
     Returns:
-        True if `s` contains at least one character of that range, False otherwise.
+        True if `s` contains at least one Han character, False otherwise.
     """
-    return any('\u4e00' <= char <= '\u9fff' for char in s)
+    return containsScriptChar(s, 'Han')
 
 
 def _scriptProperty(name: str) -> str:

@@ -2,7 +2,7 @@
 
 import pytest
 import regex
-from py_libraries.type.string import containsChineseChar, containsScriptChar
+from py_libraries.type.string import containsScriptChar
 
 
 @pytest.mark.parametrize(
@@ -55,26 +55,6 @@ def test_containsScriptChar_several_scripts(
 def test_containsScriptChar_script_name_ignores_case(script: str) -> None:
     assert containsScriptChar('abc', script) is True
     assert containsScriptChar('\u03b1', script) is False
-
-
-@pytest.mark.parametrize(
-    's',
-    [
-        '',
-        'abc',
-        '\u4e00',
-        '\u9fff',
-        # YIJING HEXAGRAM FOR THE CREATIVE HEAVEN: just below the CJK range
-        '\u4dff',
-        # YI SYLLABLE IT: just above the CJK range
-        '\ua000',
-        'ab\u4f60',
-    ],
-)
-def test_containsScriptChar_han_matches_containsChineseChar_on_basic_range(
-    s: str,
-) -> None:
-    assert containsScriptChar(s, 'Han') is containsChineseChar(s)
 
 
 def test_containsScriptChar_without_script_raises() -> None:
