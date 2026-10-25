@@ -15,6 +15,7 @@ include = [
     "type/iterable.py",
     "type/object.py",
     "type/lst.py",
+    "type/string.py",
 ]
 
 [tool.ruff.lint]
