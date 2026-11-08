@@ -2,6 +2,9 @@ import logging
 import sys
 from typing import Optional
 
+_current_level: int | str = logging.INFO
+_project_loggers: set[str] = set()
+
 class ColoredFormatter(logging.Formatter):
     """
     Custom Formatter to add colors to the levelname based on the log level.
@@ -43,33 +46,36 @@ class ColoredFormatter(logging.Formatter):
         record.levelname = orig_levelname
         return result
 
+def setGlobalLevel(level: int | str) -> None:
+    """Set the level of every project logger, existing and future ones."""
+    global _current_level
+    _current_level = level
+    for name in _project_loggers:
+        logging.getLogger(name).setLevel(level)
+
+
 def getLogger(
     name: str,
-    level: int = logging.INFO,
-    log_file: Optional[str] = None,
-    format_str: Optional[str] = "%(levelname)s - %(name)s - %(asctime)s  - %(message)s"
+    level: int | str | None = None,
+    log_file: str | None = None,
+    format_str: str = "%(levelname)s - %(name)s - %(asctime)s  - %(message)s",
 ) -> logging.Logger:
-    """
-    Configures and returns a logger instance.
-
-    Args:
-        name: Name of the logger (usually __name__).
-        level: Logging level (e.g., logging.INFO).
-        log_file: Optional path to save logs to a file.
-    """
     logger = logging.getLogger(name)
+    _project_loggers.add(name)
 
-    if logger.hasHandlers():
+    # Explicit level wins, otherwise use the current global level.
+    logger.setLevel(level if level is not None else _current_level)
+
+    # root logger and stays True if a library called basicConfig().
+    if logger.handlers:
         return logger
 
-    logger.setLevel(level)
+    logger.propagate = False  # avoid duplicated messages through the root logger
 
-    # Console Handler (Colored)
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(ColoredFormatter(format_str))
     logger.addHandler(console_handler)
 
-    # File Handler (Plain Text)
     if log_file:
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(logging.Formatter(format_str, datefmt="%Y-%m-%d %H:%M:%S"))
