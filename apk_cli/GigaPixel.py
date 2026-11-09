@@ -71,6 +71,10 @@ class GigaPixel(Pywinauto):
         self.main_win.set_focus()
         #self.main_win.print_control_identifiers()
         
+    def __enter__(self, start_if_missing: bool = True):
+        self.openApp(start_if_missing)
+        return self
+        
     def closeApp(self):
         try:
             if not self.app:
@@ -83,6 +87,9 @@ class GigaPixel(Pywinauto):
         finally:
             self.app = None
             self.main_win = None
+            
+    def __exit__(self, exc_type, exc, tb):
+        self.closeApp()
             
     def openImage(self, path):
         path = Path(path)
