@@ -23,6 +23,7 @@ target-version = "py311"
 # Only the modules that already have tests are checked. Add a module here, and its
 # tests under tests/, when it is migrated to the coding standards.
 include = [
+    "other/HappyString.py",
     "tests/**/*.py",
     "type/array.py",
     "type/binary.py",
