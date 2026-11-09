@@ -1,7 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
 [project]
+name = "py_libraries"
+version = "0.1.0"
 # requirements.txt pins numpy 2.4, pandas 3.0, scipy 1.17 and scikit-learn 1.8,
 # which all need Python 3.11 or later
 requires-python = ">=3.11"
+
+# The repository root is itself the `py_libraries` package (it holds the
+# top-level __init__.py), so map the package name to the root directory.
+[tool.setuptools]
+packages = ["py_libraries"]
+
+[tool.setuptools.package-dir]
+py_libraries = "."
 
 [tool.ruff]
 line-length = 88
@@ -10,11 +24,16 @@ target-version = "py311"
 # tests under tests/, when it is migrated to the coding standards.
 include = [
     "tests/**/*.py",
+    "type/array.py",
     "type/binary.py",
     "type/dataframe.py",
+    "type/dictionary.py",
     "type/iterable.py",
     "type/object.py",
     "type/lst.py",
+    "type/num_list.py",
+    "type/number.py",
+    "type/string.py",
 ]
 
 [tool.ruff.lint]
@@ -45,3 +64,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# The repository root has an __init__.py, so the default "prepend" mode names the
+# test modules after the parent folders of the checkout (e.g. `code.py_libraries`).
+# "importlib" avoids that and does not touch sys.path.
+addopts = "--import-mode=importlib"
