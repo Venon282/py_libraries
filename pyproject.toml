@@ -10,39 +10,49 @@ version = "0.1.0"
 requires-python = ">=3.11"
 
 dependencies = [
-
 ]
 
 [project.optional-dependencies]
 
 # module ones
 cipher = [
-
 ]
 
 other = [
-
 ]
 
 type = [
-    
+    'numpy>=2.4.4',
+    'pandas>=3.0.2',
+    'scipy>=1.17.1',
+    'regex>=2024.11.6',
 ]
 
 # classic
 docs = [
-
+    'mkdocs>=1.6,<=1.6.1',
+    'mkdocs-material>=9.5,<10',
+    'mkdocstrings[python]>=0.25',
+    'mkdocs-gen-files>=0.5',
+    'mkdocs-literate-nav>=0.6',
+    'mkdocs-section-index>=0.3',
+    'ruff~=0.16.0',
 ]
 
 dev = [
-
+    'py_libraries[cipher]',
+    'py_libraries[other]',
+    'py_libraries[type]',
 ]
 
 test = [
-
+    'pytest>=8.3.4',
 ]
 
 all = [
-
+    'py_libraries[dev]',
+    'py_libraries[docs]',
+    'py_libraries[test]',
 ]
 
 # The repository root is itself the `py_libraries` package (it holds the
