@@ -24,6 +24,8 @@ target-version = "py311"
 # tests under tests/, when it is migrated to the coding standards.
 include = [
     "other/HappyString.py",
+    "other/UnitConverter.py",
+    "other/loggingUtils.py",
     "tests/**/*.py",
     "type/array.py",
     "type/binary.py",

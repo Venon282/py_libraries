@@ -1,10 +1,22 @@
+"""Unit tests for HappyString.substringsContainingAllChars."""
+
 import random
 
 import pytest
+
 from py_libraries.other.HappyString import HappyString
 
 
 def countSubstringsBruteforce(string: str, chars: str) -> int:
+    """Reference implementation: test every substring.
+
+    Args:
+        string: String to scan.
+        chars: Characters that a substring must all contain.
+
+    Returns:
+        The number of substrings of `string` that contain every character of `chars`.
+    """
     total = 0
     for start in range(len(string)):
         for end in range(start + 1, len(string) + 1):
@@ -25,10 +37,17 @@ def countSubstringsBruteforce(string: str, chars: str) -> int:
     ],
 )
 def test_substringsContainingAllChars_known_values(string: str, expected: int) -> None:
+    """Count the substrings that hold a, b and c.
+
+    Args:
+        string: String to scan.
+        expected: Expected count.
+    """
     assert HappyString('abc').substringsContainingAllChars(string) == expected
 
 
 def test_substringsContainingAllChars_matches_bruteforce() -> None:
+    """Agree with the exhaustive count on random strings."""
     rng = random.Random(0)
 
     for _ in range(50):
@@ -38,6 +57,7 @@ def test_substringsContainingAllChars_matches_bruteforce() -> None:
 
 
 def test_substringsContainingAllChars_ignores_chars_outside_the_allowed_set() -> None:
+    """Ignore the characters that are not allowed."""
     # 'c' is not in the allowed set 'ab', so it is ignored: only substrings that
     # contain both 'a' and 'b' are counted ('ab' and 'abc').
     assert HappyString('ab').substringsContainingAllChars('abc') == 2
