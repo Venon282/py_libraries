@@ -1,19 +1,37 @@
-"""
-Module: cipher_module
-Description: Contains classes for various encoding/decoding methods.
-Note: The ZigZagCipher class implements a basic transposition cipher using the zigzag method.
-"""
+"""Abstract interface shared by the string ciphers of the project."""
 
 from abc import ABC, abstractmethod
 
-# For strings
+
 class ICipher(ABC):
+    """Abstract base class for a cipher that encrypts and decrypts strings.
+
+    A cipher is fully defined by its `encrypt` and `decrypt` methods, which take
+    a string and a key and return a string.
+    """
+
     @abstractmethod
     def encrypt(self, data: str, key: str) -> str:
-        """Chiffre les données avec la clé fournie."""
-        pass
-    
+        """Encrypt a string with the given key.
+
+        Args:
+            data: Plain text to encrypt.
+            key: Key that selects the encryption.
+
+        Returns:
+            The encrypted text.
+        """
+        ...
+
     @abstractmethod
     def decrypt(self, data: str, key: str) -> str:
-        """Déchiffre les données avec la clé fournie."""
-        pass
+        """Decrypt a string with the given key.
+
+        Args:
+            data: Encrypted text to decrypt.
+            key: Key that selects the decryption, the one used to encrypt.
+
+        Returns:
+            The recovered plain text.
+        """
+        ...

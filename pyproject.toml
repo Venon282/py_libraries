@@ -9,6 +9,42 @@ version = "0.1.0"
 # which all need Python 3.11 or later
 requires-python = ">=3.11"
 
+dependencies = [
+
+]
+
+[project.optional-dependencies]
+
+# module ones
+cipher = [
+
+]
+
+other = [
+
+]
+
+type = [
+    
+]
+
+# classic
+docs = [
+
+]
+
+dev = [
+
+]
+
+test = [
+
+]
+
+all = [
+
+]
+
 # The repository root is itself the `py_libraries` package (it holds the
 # top-level __init__.py), so map the package name to the root directory.
 [tool.setuptools]
@@ -23,20 +59,10 @@ target-version = "py311"
 # Only the modules that already have tests are checked. Add a module here, and its
 # tests under tests/, when it is migrated to the coding standards.
 include = [
-    "other/HappyString.py",
-    "other/UnitConverter.py",
-    "other/loggingUtils.py",
+    "cipher/*.py",
+    "other/*.py",
     "tests/**/*.py",
-    "type/array.py",
-    "type/binary.py",
-    "type/dataframe.py",
-    "type/dictionary.py",
-    "type/iterable.py",
-    "type/object.py",
-    "type/lst.py",
-    "type/num_list.py",
-    "type/number.py",
-    "type/string.py",
+    "type/*.py",
 ]
 
 [tool.ruff.lint]
