@@ -28,6 +28,19 @@ type = [
     'regex>=2024.11.6',
 ]
 
+file = [
+    'numpy>=2.4.4',
+    'pandas>=3.0.2',
+    'h5py>=3.12.1',
+    'tqdm>=4.67.1',
+    'openpyxl>=3.1.0',
+]
+
+graph = [
+    'numpy>=2.4.4',
+    'matplotlib>=3.10.8',
+]
+
 # classic
 docs = [
     'mkdocs>=1.6,<=1.6.1',
@@ -43,10 +56,14 @@ dev = [
     'py_libraries[cipher]',
     'py_libraries[other]',
     'py_libraries[type]',
+    'py_libraries[file]',
+    'py_libraries[graph]',
 ]
 
 test = [
     'pytest>=8.3.4',
+    'ruff~=0.16.0',
+    'mypy>=1.10',
 ]
 
 all = [
@@ -70,6 +87,8 @@ target-version = "py311"
 # tests under tests/, when it is migrated to the coding standards.
 include = [
     "cipher/*.py",
+    "file/*.py",
+    "graph/*.py",
     "other/*.py",
     "tests/**/*.py",
     "type/*.py",
@@ -87,6 +106,12 @@ quote-style = "single"
 
 [tool.mypy]
 python_version = "3.11"
+# The repository root is the `py_libraries` package (it holds the top-level
+# __init__.py), so the parent directory must be on the search path for mypy to
+# resolve `py_libraries.*` imports. explicit_package_bases makes mypy compute
+# module names from that base instead of walking up to the checkout root.
+mypy_path = ".."
+explicit_package_bases = true
 # mypy follows the imports of the tests, so it checks exactly the modules that
 # already have tests. Other modules are not checked until they get tests.
 files = ["tests"]
@@ -99,6 +124,16 @@ no_implicit_optional = true
 [[tool.mypy.overrides]]
 # pandas ships no inline types and pandas-stubs is not a project dependency
 module = ["pandas", "pandas.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# h5py ships no type stubs
+module = ["h5py", "h5py.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# tqdm ships no type stubs
+module = ["tqdm", "tqdm.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
